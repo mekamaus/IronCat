@@ -1,0 +1,10 @@
+.idea/
+*.log
+*.pot
+*.pyc
+local_settings.py
+.cfg
+.DS_Store
+Desktop.ini
+*.db
+__pycache__/
