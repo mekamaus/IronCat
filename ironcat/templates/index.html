@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
-    <script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/static/lib/jquery.min.js"></script>
-    <script src="/static/lib/jquery.cookie.js"></script>
-    <script src="/static/scripts/start.js"></script>
-</head>
-<body>
-<p>The current datetime is {{ now }}</p>
-</body>
-</html>
+{% extends "global.html" %}
+
+{% block content %}
+    <p>The current datetime is {{ now }}</p>
+{% endblock %}

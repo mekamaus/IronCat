@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>{% block title %}IronCat{% endblock %}</title>
+    <script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/lib/jquery.min.js"></script>
+    <script src="/static/lib/jquery.cookie.js"></script>
+    <script src="/static/scripts/start.js"></script>
+    <link rel="stylesheet" href="/static/lib/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/lib/bootstrap/css/bootstrap-custom.min.css"/>
+    {% block scripts %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">IronCat</a>
+            </div>
+            <div>
+                <ul class="nav navbar-nav">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/">Contribute</a></li>
+                    <li><a href="/">Search</a></li>
+                    <li><a href="/">Profile</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        {% block content %}
+            <p>Content goes here.</p>
+        {% endblock %}
+    </div>
+</body>
+</html>
