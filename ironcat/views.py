@@ -91,6 +91,15 @@ def index(request):
 
 # endregion
 
+
+@ensure_csrf_cookie
+def contribute(request):
+    now = datetime.now
+    data = {
+        'now': now
+    }
+    return render(request, 'contribute.html', data)
+
 # region evaluate
 
 
