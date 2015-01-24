@@ -45,7 +45,7 @@ class TestPrimitive(TestCase):
         self.assertEqual(a + b, result_add)
         self.assertEqual(a - b, result_sub)
         self.assertEqual(a * b, result_mul)
-        self.assertEqual(int(a / b), result_div)
+        self.assertEqual(a / b, result_div)
         self.assertEqual(a ** b, result_pow)
 
     def test_evaluate_math11(self):

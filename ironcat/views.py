@@ -6,7 +6,7 @@ import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 import re
 from django.db.models import Q
-from ironcat.function_engine import _primitives
+from ironcat.function_engine import get_primitive
 from ironcat import function_engine
 import traceback
 import sys
@@ -160,14 +160,9 @@ def get_function(request):
     try:
         function = Function.objects.get(name=name)
     except Function.DoesNotExist as e:
-        if name in _primitives:
-            try:
-                function = Function(name=name, input_types_json='', output_types_json='', primitive=True)
-                function.save()
-            except Exception as e:
-                return json_error(e)
-            return json_success({'function': function})
-        else:
+        try:
+            return get_primitive(name)
+        except Exception as e:
             return json_error(e)
     except Exception as e:
         return json_error(e)

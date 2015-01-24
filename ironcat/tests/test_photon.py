@@ -11,8 +11,8 @@ class TestPhoton(TestCase):
         p1 = Photon(1)
         p2 = Photon(1.0)
         p3 = Photon('foo')
-        self.assertEqual(p1.type, PhotonTypes.int)
-        self.assertEqual(p2.type, PhotonTypes.float)
+        self.assertEqual(p1.type, PhotonTypes.number)
+        self.assertEqual(p2.type, PhotonTypes.number)
         self.assertEqual(p3.type, PhotonTypes.string)
 
     def test_photon_equality(self):

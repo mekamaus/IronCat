@@ -7,26 +7,38 @@ from functools import reduce
 
 
 _primitives = {
-    '+',
-    '-',
-    '*',
-    '/',
-    '^',
-    'sin',
-    'cos',
-    'tan',
-    'asin',
-    'acos',
-    'atan',
-    'atan2',
-    'get',
-    'set',
-    'to list',
-    'concatenate',
-    'map',
-    'reduce',
-    'evaluate'
+    '+': (),
+    '-': (),
+    '*': (),
+    '/': (),
+    '^': (),
+    'sin': (),
+    'cos': (),
+    'tan': (),
+    'asin': (),
+    'acos': (),
+    'atan': (),
+    'atan2': (),
+    'get': (),
+    'set': (),
+    'to list': (),
+    'concatenate': (),
+    'map': (),
+    'reduce': (),
+    'evaluate': ()
 }
+
+
+def get_function(name):
+    try:
+        return Function.objects.get(name=name)
+    except Function.DoesNotExist:
+        if name in _primitives:
+            function = Function(name=name, primitive=True)
+            function.save()
+            return function
+        else:
+            raise
 
 
 def evaluate_function(function, inputs):
@@ -38,131 +50,116 @@ def evaluate_function(function, inputs):
 
     if type(function) is str:
 
-        if function in _primitives:
-            try:
-                Function.objects.get(name=function)
-            except Function.DoesNotExist:
-                fn = Function(name=function, input_types_json='', output_types_json='', primitive=True)
-                fn.save()
+        get_function(function)
 
         if function == '+':
-            if any(not ph.is_number for ph in inputs):
+            if any(ph.type != PhotonTypes.number for ph in inputs):
                 return error
             input_values = [ph.raw for ph in inputs]
             result = sum(input_values)
-            if all(ph.type == PhotonTypes.int for ph in inputs):
-                result = int(result)
             return [Photon(result)]
         elif function == '-':
             if len(inputs) != 2:
                 return error
-            sx = inputs[0]
-            sy = inputs[1]
-            if not sx.is_number or not sy.is_number:
+            px = inputs[0]
+            py = inputs[1]
+            if px.type != PhotonTypes.number or py.type != PhotonTypes.number:
                 return error
-            x = float(sx.value)
-            y = float(sy.value)
+            x = float(px.value)
+            y = float(py.value)
             result = x - y
-            if sx.type == PhotonTypes.int and sy.type == PhotonTypes.int:
-                result = int(result)
             return [Photon(result)]
         elif function == '*':
-            if any(not ph.is_number for ph in inputs):
+            if any(ph.type != PhotonTypes.number for ph in inputs):
                 return error
             values = [ph.raw for ph in inputs]
             result = reduce(lambda a, b: a * b, values, 1)
-            if all(ph.type == PhotonTypes.int for ph in inputs):
-                result = int(result)
             return [Photon(result)]
         elif function == '/':
             if len(inputs) != 2:
                 return error
-            sx = inputs[0]
-            sy = inputs[1]
-            if not sx.is_number or not sy.is_number:
+            px = inputs[0]
+            py = inputs[1]
+            if px.type != PhotonTypes.number or py.type != PhotonTypes.number:
                 return error
-            x = float(sx.value)
-            y = float(sy.value)
+            x = px.raw
+            y = py.raw
             result = x / y
-            if sx.type == PhotonTypes.int and sy.type == PhotonTypes.int:
-                result = int(result)
             return [Photon(result)]
         elif function == '^':
             if len(inputs) != 2:
                 return error
-            sx = inputs[0]
-            sy = inputs[1]
-            if not sx.is_number or not sy.is_number:
+            px = inputs[0]
+            py = inputs[1]
+            if px.type != PhotonTypes.number or py.type != PhotonTypes.number:
                 return error
-            x = float(sx.value)
-            y = float(sy.value)
+            x = px.raw
+            y = py.raw
             result = x ** y
-            if sx.type == PhotonTypes.int and sy.type == PhotonTypes.int:
-                result = int(result)
             return [Photon(result)]
         elif function == 'sin':
             if len(inputs) != 1:
                 return error
-            sx = inputs[0]
-            if not sx.is_number:
+            px = inputs[0]
+            if px.type != PhotonTypes.number:
                 return error
-            x = float(sx.value)
+            x = px.raw
             result = math.sin(x)
             return [Photon(result)]
         elif function == 'cos':
             if len(inputs) != 1:
                 return error
-            sx = inputs[0]
-            if not sx.is_number:
+            px = inputs[0]
+            if px.type != PhotonTypes.number:
                 return error
-            x = float(sx.value)
+            x = px.raw
             result = math.cos(x)
             return [Photon(result)]
         elif function == 'tan':
             if len(inputs) != 1:
                 return error
-            sx = inputs[0]
-            if not sx.is_number:
+            px = inputs[0]
+            if px.type != PhotonTypes.number:
                 return error
-            x = float(sx.value)
+            x = px.raw
             result = math.tan(x)
             return [Photon(result)]
         elif function == 'asin':
             if len(inputs) != 1:
                 return error
-            sx = inputs[0]
-            if not sx.is_number:
+            px = inputs[0]
+            if px.type != PhotonTypes.number:
                 return error
-            x = float(sx.value)
+            x = px.raw
             result = math.asin(x)
             return [Photon(result)]
         elif function == 'acos':
             if len(inputs) != 1:
                 return error
-            sx = inputs[0]
-            if not sx.is_number:
+            px = inputs[0]
+            if px.type != PhotonTypes.number:
                 return error
-            x = float(sx.value)
+            x = px.raw
             result = math.acos(x)
             return [Photon(result)]
         elif function == 'atan':
             if len(inputs) != 1:
                 return error
-            ph_x = inputs[0]
-            if not ph_x.is_number:
+            px = inputs[0]
+            if px.type != PhotonTypes.number:
                 return error
-            x = ph_x.raw
+            x = px.raw
             result = math.atan(x)
             return [Photon(result)]
         elif function == 'atan2':
             if len(inputs) != 2:
                 return error
-            ph_y = inputs[0]
-            ph_x = inputs[1]
-            if not ph_x.is_number or not ph_y.is_number:
+            py = inputs[0]
+            px = inputs[1]
+            if px.type != PhotonTypes.number or py.type != PhotonTypes.number:
                 return error
-            x = ph_x.raw
-            y = ph_y.raw
+            x = px.raw
+            y = py.raw
             result = math.atan2(y, x)
             return [Photon(result)]
         elif function == 'get':
@@ -170,15 +167,16 @@ def evaluate_function(function, inputs):
                 return error
             ph_col = inputs[0]
             ph_key = inputs[1]
-            if ph_key.type == PhotonTypes.int:
+            if ph_key.type == PhotonTypes.number:
                 if not ph_col.is_indexable:
                     return error
+                result = ph_col.raw[int(ph_key.raw)]
             elif ph_key.type == PhotonTypes.string:
                 if not ph_col.is_keyable:
                     return error
+                result = ph_col.raw[ph_key.raw]
             else:
                 return error
-            result = ph_col.raw[ph_key.raw]
             return [Photon(result)]
         elif function == 'set':
             if len(inputs) != 3:
@@ -186,17 +184,20 @@ def evaluate_function(function, inputs):
             ph_col = inputs[0]
             ph_key = inputs[1]
             ph_value = inputs[2]
-            if ph_key.type == PhotonTypes.int:
+            if ph_key.type == PhotonTypes.number:
                 if not ph_col.is_indexable:
                     return error
+                col = ph_col.raw
+                col[int(ph_key.raw)] = ph_value
+                col = Photon(col).raw
             elif ph_key.type == PhotonTypes.string:
                 if not ph_col.is_keyable:
                     return error
+                col = ph_col.raw
+                col[ph_key.raw] = ph_value
+                col = Photon(col).raw
             else:
                 return error
-            col = ph_col.raw
-            col[ph_key.raw] = ph_value
-            col = Photon(col).raw
             return [Photon(col)]
         elif function == 'to list':
             if len(inputs) != 1:

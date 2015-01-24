@@ -27,15 +27,12 @@ class Photon:
                 elif isinstance(value, dict) or isinstance(value, frozendict):
                     self.value = serialize([[k, Photon(v)] for k, v in value.items()])
                     self.type = PhotonTypes.object
-                elif isinstance(value, int):
+                elif isinstance(value, int) or isinstance(value, float):
                     self.value = str(value)
-                    self.type = PhotonTypes.int
+                    self.type = PhotonTypes.number
                 elif isinstance(value, str):
                     self.value = value
                     self.type = PhotonTypes.string
-                elif isinstance(value, float):
-                    self.value = str(value)
-                    self.type = PhotonTypes.float
                 elif isinstance(value, bool):
                     self.value = str(int(value))
                     self.type = PhotonTypes.bool
@@ -52,14 +49,12 @@ class Photon:
             return deserialize(self.value)
         if self.type == PhotonTypes.function:
             return self.value
-        if self.type == PhotonTypes.float:
+        if self.type == PhotonTypes.number:
             return float(self.value)
         if self.type == PhotonTypes.error:
             return None
         if self.type == PhotonTypes.bool:
             return bool(int(self.value))
-        if self.type == PhotonTypes.int:
-            return int(self.value)
         if self.type == PhotonTypes.none:
             return None
         if self.type == PhotonTypes.object:
@@ -83,8 +78,7 @@ class Photon:
     def __eq__(self, other):
         if not isinstance(other, Photon):
             other = Photon(other)
-        if self.type != other.type \
-                and not (self.type in number_types and other.type in number_types):
+        if self.type != other.type:
             return False
         return self.raw == other.raw
 
@@ -99,10 +93,6 @@ class Photon:
     @property
     def is_valid(self):
         return self.type in valid_types
-
-    @property
-    def is_number(self):
-        return self.type in number_types
 
     @property
     def is_collection(self):

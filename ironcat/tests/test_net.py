@@ -2,7 +2,9 @@ from ironcat.models import Wire, Node, Function
 from django.test import TestCase
 from ironcat.function_engine import evaluate_function
 from ironcat.photon import Photon
+from ironcat.photon_types import PhotonTypes
 import math
+import json
 
 
 def get_fn(name):
@@ -25,8 +27,12 @@ class TestNet(TestCase):
         nd1a = Node(containing_function=rect_to_polar, inner_function=get_fn('*'))
         nd1b = Node(containing_function=rect_to_polar, inner_function=get_fn('*'))
         nd2a = Node(containing_function=rect_to_polar, inner_function=get_fn('+'))
-        nd3a = Node(containing_function=rect_to_polar, inner_function=get_fn('^'),
-                    default_inputs_json='[{"value": "0", "type": 3}, {"value": "0.5", "type": 3}]')
+        nd3a = Node(containing_function=rect_to_polar,
+                    inner_function=get_fn('^'),
+                    default_inputs_json=json.dumps([
+                        {'value': '0', 'type': PhotonTypes.number},
+                        {'value': '0.5', 'type': PhotonTypes.number}
+                    ]))
         nd4a = Node(containing_function=rect_to_polar, inner_function=get_fn('atan2'))
 
         [node.save() for node in (nd1a, nd1b, nd2a, nd3a, nd4a)]
@@ -58,30 +64,3 @@ class TestNet(TestCase):
 
         self.assertAlmostEqual(polar[0], math.sqrt(2))
         self.assertAlmostEqual(polar[1], math.pi / 4)
-
-        """
-        net = Net()
-        net.save()
-
-        nd1a = Node(net=net, function=get_fn('cos'))
-        nd1b = Node(net=net, function=rect_to_polar)
-        nd2a = Node(net=net, function=get_fn('*'))
-        nd2b = Node(net=net, function=get_fn('+'))
-        [node.save() for node in (nd1a, nd1b, nd2a, nd2b)]
-
-        wire_in0_1a0 = Wire(source_node=None, source_pin=0, target_node=nd1a, target_pin=0)
-        wire_in0_1b0 = Wire(source_node=None, source_pin=0, target_node=nd1b, target_pin=0)
-        wire_in1_1b1 = Wire(source_node=None, source_pin=1, target_node=nd1b, target_pin=1)
-        wire_in0_2a0 = Wire(source_node=None, source_pin=0, target_node=nd2a, target_pin=0)
-        wire_1a0_2a1 = Wire(source_node=nd1a, source_pin=0, target_node=nd2a, target_pin=1)
-        wire_1b0_2a2 = Wire(source_node=nd1b, source_pin=0, target_node=nd2a, target_pin=2)
-        wire_1a0_2b0 = Wire(source_node=nd1a, source_pin=0, target_node=nd2b, target_pin=0)
-        wire_1b1_2b1 = Wire(source_node=nd1b, source_pin=1, target_node=nd2b, target_pin=1)
-        wire_2a0_ou0 = Wire(source_node=nd2a, source_pin=0, target_node=None, target_pin=0)
-        wire_2b0_ou1 = Wire(source_node=nd2b, source_pin=0, target_node=None, target_pin=1)
-
-        [wire.save() for wire in (wire_in0_1a0, wire_in0_1b0, wire_in1_1b1, wire_in0_2a0, wire_1a0_2a1, wire_1b0_2a2,
-                                  wire_1a0_2b0, wire_1b1_2b1, wire_2a0_ou0, wire_2b0_ou1)]
-        """
-
-        # TODO: make it work

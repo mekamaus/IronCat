@@ -5,13 +5,12 @@ class PhotonTypes(IntEnum):
     none = 0
     error = 1
     string = 2
-    float = 3
-    int = 4
-    bool = 5
-    object = 6
-    set = 7
-    list = 8
-    function = 9
+    number = 3
+    bool = 4
+    object = 5
+    set = 6
+    list = 7
+    function = 8
 
     @staticmethod
     def multiple(*type_names):
@@ -20,10 +19,9 @@ class PhotonTypes(IntEnum):
 
 # region type collections
 invalid_types = PhotonTypes.multiple('none', 'error')
-valid_types = PhotonTypes.multiple('string', 'float', 'int', 'bool', 'object', 'set', 'list', 'function')
+valid_types = PhotonTypes.multiple('string', 'number', 'bool', 'object', 'set', 'list', 'function')
 collection_types = PhotonTypes.multiple('object', 'set', 'list', 'string')
 list_set_types = PhotonTypes.multiple('list', 'set')
 indexable_types = PhotonTypes.multiple('list', 'string')
 keyable_types = PhotonTypes.multiple('object')
-number_types = PhotonTypes.multiple('int', 'float')
 # endregion
