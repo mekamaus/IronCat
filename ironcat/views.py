@@ -17,7 +17,10 @@ from ironcat import photon
 
 
 def json_response(data, status=200):
-    serialized_data = photon.serialize(data)
+    try:
+        serialized_data = photon.serialize(data)
+    except Exception as e:
+        return json_error(e)
     result = HttpResponse(serialized_data, content_type='application/json', status=status)
     return result
 
@@ -163,13 +166,13 @@ def get_function(request):
                 function.save()
             except Exception as e:
                 return json_error(e)
-            return json_success({'id': function.id})
+            return json_success({'function': function})
         else:
             return json_error(e)
     except Exception as e:
         return json_error(e)
 
-    return json_success({'id': function.id})
+    return json_success({'function': function})
 
 
 def delete_function(request):

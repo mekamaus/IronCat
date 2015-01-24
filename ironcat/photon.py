@@ -1,5 +1,6 @@
 from ironcat.photon_types import *
 from ironcat.frozendict import frozendict
+from ironcat.models import Function
 import json
 
 
@@ -117,8 +118,19 @@ class Photon:
 
 
 def json_encoder_default(o):
+    if isinstance(o, Function):
+        return {
+            'name': o.name,
+            'description': o.description,
+            'input_types': json.loads(o.input_types_json or '[]'),
+            'output_types': json.loads(o.output_types_json or '[]'),
+            'primitive': o.primitive
+        }
     if isinstance(o, Photon):
-        return {'value': o.value, 'type': int(o.type)}
+        return {
+            'value': o.value,
+            'type': int(o.type)
+        }
     if isinstance(o, PhotonTypes):
         return o.value
     if isinstance(o, set) or isinstance(o, frozenset):

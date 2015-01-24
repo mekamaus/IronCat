@@ -313,8 +313,9 @@ $(function() {
 
         for (var i = 0; i < words.length; i++) {
             var tspan = el.append('tspan').text(words[i]);
-            if (i > 0)
+            if (i > 0) {
                 tspan.attr('x', 0).attr('dy', '15');
+            }
         }
     };
 
@@ -350,9 +351,8 @@ $(function() {
 
     GraphCreator.prototype.removeSelectFromNode = function(){
         var thisGraph = this;
-        thisGraph.circles.filter(function(cd){
-            return cd.id === thisGraph.state.selectedNode.id;
-        }).classed(thisGraph.consts.selectedClass, false);
+        thisGraph.circles.filter(function(cd) { return cd.id === thisGraph.state.selectedNode.id; })
+            .classed(thisGraph.consts.selectedClass, false);
         thisGraph.state.selectedNode = null;
     };
 
@@ -503,6 +503,15 @@ $(function() {
                 d.title = this.textContent;
                 thisGraph.insertTitleLinebreaks(d3node, d.title);
                 d3.select(this.parentElement).remove();
+                $.getJSON('/get_function/', { name: d.title }).success(function (result) {
+                    if (result.success) {
+                        var fn = result.function;
+                        console.log('Got function', fn);
+                        d.inputs = fn.input_types;
+                        d.outputs = fn.output_types;
+                        thisGraph.updateGraph();
+                    }
+                });
             });
         return d3txt;
     };
@@ -650,7 +659,7 @@ $(function() {
             state = thisGraph.state;
 
         thisGraph.paths = thisGraph.paths.data(thisGraph.edges, function(d) {
-            return String(d.sourceNode.id) + '/' + String(d.sourcePin) + '+' + String(d.targetNode.id) + '/' + String(d.targetPin);
+            return d.sourceNode.id + '/' + d.sourcePin + '+' + d.targetNode.id + '/' + d.targetPin;
         });
         var paths = thisGraph.paths;
         // update existing paths
@@ -667,8 +676,12 @@ $(function() {
             ctrlPt1[1] = sourcePos[1];
             var ctrlPt2 = avg(sourcePos, targetPos);
             ctrlPt2[1] = targetPos[1];
-            ctrlPt1[0] = sourcePos[0] + Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt1[0] - sourcePos[0]));
-            ctrlPt2[0] = targetPos[0] - Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt2[0] - targetPos[0]));
+            ctrlPt1[0] = sourcePos[0] + Math.max(
+                Math.abs(sourcePos[1] - targetPos[1]),
+                Math.abs(ctrlPt1[0] - sourcePos[0]));
+            ctrlPt2[0] = targetPos[0] - Math.max(
+                Math.abs(sourcePos[1] - targetPos[1]),
+                Math.abs(ctrlPt2[0] - targetPos[0]));
             return moveto(sourcePos) + curveto(ctrlPt1, ctrlPt2, targetPos);
         };
         paths.style('marker-end', 'url(#end-arrow)')
@@ -697,10 +710,11 @@ $(function() {
         thisGraph.circles.attr('transform', function(d) { return translate(d); });
 
         // add new nodes
-        var newGs = thisGraph.circles.enter()
-            .append('g');
+        var newNodes = thisGraph.circles.enter()
+            .append('g')
+            .classed('node', true);
 
-        newGs.classed(consts.circleGClass, true)
+        newNodes.classed(consts.circleGClass, true)
             .attr('transform', function(d) { return translate(d); })
             .on('mouseover', function(d) {
                 if (state.nodeDrag) {
@@ -718,47 +732,85 @@ $(function() {
             })
             .call(thisGraph.drag);
 
-        newGs.append('rect')
-            .attr('width', String(consts.nodeWidth))
-            .attr('height', function(d) { return String(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin); })
-            .attr('transform', function(d) { return translate(-consts.nodeWidth / 2, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2); })
-            .attr('rx', String(consts.nodeCornerRadius))
-            .attr('ry', String(consts.nodeCornerRadius))
+        newNodes.append('rect')
+            .classed('node-shape', true)
+            .attr('width', consts.nodeWidth)
+            .attr('rx', consts.nodeCornerRadius)
+            .attr('ry', consts.nodeCornerRadius)
             .attr('fill', '#ddd')
             .attr('stroke', '#000')
             .attr('stroke-width', 2);
 
-        var inputPinG = newGs.append('g')
-            .attr('transform', function(d) { return translate(-consts.nodeWidth / 2, -(d.inputs.length - 1) * consts.pinSpacing / 2); });
-        var inputPins = inputPinG.selectAll()
-            .data(function(d) { return d.inputs; });
-        inputPins.enter()
+        newNodes.append('g')
+            .classed('inputs', true)
+            .selectAll()
+            .data(function (d) { return d.inputs; });
+
+        newNodes.append('g')
+            .classed('outputs', true)
+            .selectAll()
+            .data(function (d) { return d.outputs; });
+
+        var inputs = thisGraph.circles.selectAll('.inputs').selectAll('circle')
+            .data(function (d) { return d.inputs; });
+
+        inputs.enter()
             .append('circle')
-            .attr('r', String(consts.pinSize / 2))
-            .attr('transform', function(d, i) { return translate(0, i * consts.pinSpacing); })
-            .attr('class', 'pin')
+            .attr('r', consts.pinSize / 2)
+            .attr('transform', function (d, i) {
+                return translate(0, i * consts.pinSpacing);
+            })
+            .classed('pin', true)
             .on('mouseup', function(d, i) {
                 thisGraph.pinMouseUp.call(thisGraph, d3.select(this), d3.select(this.parentNode).datum(), i);
             });
-        inputPins.exit()
+        inputs.exit()
             .remove();
 
-        var outputPinG = newGs.append('g')
-            .attr('transform', function(d) { return translate(consts.nodeWidth / 2, -(d.outputs.length - 1) * consts.pinSpacing / 2); });
-        var outputPins = outputPinG.selectAll()
-            .data(function(d) { return d.outputs; });
-        outputPins.enter()
+        var outputs = thisGraph.circles.selectAll('.outputs').selectAll('circle')
+            .data(function (d) {
+                return d.outputs;
+            });
+
+        outputs.enter()
             .append('circle')
-            .attr('r', String(consts.pinSize / 2))
-            .attr('transform', function(d, i) { return translate(0, i * consts.pinSpacing); })
-            .attr('class', 'pin')
-            .on('mousedown', function(d, i) {
+            .attr('r', consts.pinSize / 2)
+            .attr('transform', function (d, i) {
+                return translate(0, i * consts.pinSpacing);
+            })
+            .classed('pin', true)
+            .on('mousedown', function (d, i) {
                 thisGraph.pinMouseDown.call(thisGraph, d3.select(this), d3.select(this.parentNode).datum(), i);
             });
-        outputPins.exit()
+        outputs.exit()
             .remove();
 
-        newGs.each(function(d) {
+        svg.selectAll('.node').selectAll('.node-shape')
+            .attr('height', function (d) {
+                return Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
+            })
+            .attr('transform', function(d) {
+                return translate(
+                    -consts.nodeWidth / 2,
+                    -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+            });
+
+        svg.selectAll('.node').selectAll('.inputs').attr('transform', function (d) {
+            return translate(-consts.nodeWidth / 2, -(d.inputs.length - 1) * consts.pinSpacing / 2);
+        });
+
+        svg.selectAll('.node').selectAll('.outputs').attr('transform', function (d) {
+            return translate(consts.nodeWidth / 2, -(d.outputs.length - 1) * consts.pinSpacing / 2);
+        });
+
+        // Remove paths that from or to non-existent nodes.
+        thisGraph.paths
+            .filter(function (d) {
+                return d.sourcePin >= d.sourceNode.outputs.length || d.targetPin >= d.targetNode.inputs.length;
+            })
+            .remove();
+
+        newNodes.each(function(d) {
             thisGraph.insertTitleLinebreaks(d3.select(this), d.title);
         });
 
@@ -796,26 +848,26 @@ $(function() {
         {
             title: 'new concept',
             id: 0,
-            x: xLoc,
+            x: xLoc + 300,
             y: yLoc,
             inputs: [
-                [ 'int' ],
-                [ 'int' ],
-                [ 'int' ],
-                [ 'int' ],
-                [ 'int' ],
-                [ 'int' ]
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
             ],
             outputs: [
-                [ 'int' ],
-                [ 'int' ]
+                1,
+                1
             ]
         },
         {
             title: 'new concept',
             id: 1,
             x: xLoc,
-            y: yLoc + 200,
+            y: yLoc,
             inputs: [
                 1,
                 1

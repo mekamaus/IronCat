@@ -42,6 +42,7 @@ class Node(Model):
 
 
 class Wire(Model):
+    name = CharField(max_length=255, null=True)
     source_node = ForeignKey('Node', null=True, related_name='out_wires')
     source_pin = IntegerField()
     target_node = ForeignKey('Node', null=True, related_name='in_wires')
