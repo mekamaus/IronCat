@@ -149,6 +149,16 @@ $(function() {
     // define graphcreator object
     var GraphCreator = function(svg, nodes, edges, inputs, outputs) {
         var thisGraph = this;
+
+        thisGraph.function = {
+            name: 'New Function',
+            id: '',
+            nodes: nodes || [],
+            edges: edges || [],
+            inputs: inputs || [],
+            outputs: outputs || []
+        };
+
         thisGraph.idct = 0;
 
         thisGraph.nodes = nodes || [];
@@ -460,7 +470,7 @@ $(function() {
                     && d.targetPin === newEdge.targetPin;
             });
             var cycleFormed = false;
-            if (mouseDownNode && node) {
+            if (newEdge.sourceNode && newEdge.targetNode) {
                 // Do a BFS to see if target node actually directs to source node.
                 var visitedNodes = [];
                 var frontierNodes = [];
@@ -478,7 +488,7 @@ $(function() {
                             cycleFormed = true;
                             break;
                         }
-                        if (visitedNodes.indexOf(targetNode) < 0) {
+                        if (targetNode && visitedNodes.indexOf(targetNode) < 0) {
                             frontierNodes.push(targetNode);
                         }
                     }
@@ -539,6 +549,7 @@ $(function() {
                         console.log('Got function', fn);
                         d.inputs = fn.input_types;
                         d.outputs = fn.output_types;
+                        d.functionId = fn.id;
                         thisGraph.updateGraph();
                     }
                 });
@@ -924,6 +935,7 @@ $(function() {
             id: 0,
             x: xLoc + 300,
             y: yLoc,
+            functionId: 'asdf',
             inputs: [
                 1,
                 1,
@@ -942,6 +954,7 @@ $(function() {
             id: 1,
             x: xLoc,
             y: yLoc,
+            functionId: '1234',
             inputs: [
                 1,
                 1
