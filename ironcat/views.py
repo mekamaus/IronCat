@@ -6,7 +6,6 @@ import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 import re
 from django.db.models import Q
-from ironcat.function_engine import get_primitive
 from ironcat import function_engine
 import traceback
 import sys
@@ -158,12 +157,7 @@ def get_function(request):
     name = request.GET['name']
 
     try:
-        function = Function.objects.get(name=name)
-    except Function.DoesNotExist as e:
-        try:
-            return get_primitive(name)
-        except Exception as e:
-            return json_error(e)
+        function = function_engine.get_function(name)
     except Exception as e:
         return json_error(e)
 

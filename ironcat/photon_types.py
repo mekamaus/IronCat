@@ -18,6 +18,7 @@ class PhotonTypes(IntEnum):
 
 
 # region type collections
+all_types = PhotonTypes.multiple('none', 'error', 'string', 'number', 'bool', 'object', 'set', 'list', 'function')
 invalid_types = PhotonTypes.multiple('none', 'error')
 valid_types = PhotonTypes.multiple('string', 'number', 'bool', 'object', 'set', 'list', 'function')
 collection_types = PhotonTypes.multiple('object', 'set', 'list', 'string')

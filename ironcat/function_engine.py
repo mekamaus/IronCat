@@ -1,4 +1,4 @@
-from ironcat.photon_types import PhotonTypes
+from ironcat.photon_types import *
 from ironcat.photon import Photon, deserialize
 from ironcat.models import *
 import json
@@ -6,26 +6,81 @@ import math
 from functools import reduce
 
 
+class Wildcard:
+    def __init__(self, *type_names):
+        self.types = type_names
+
+
+math_2_1 = (
+    [
+        [PhotonTypes.number],
+        [PhotonTypes.number]
+    ],
+    [
+        [PhotonTypes.number]
+    ]
+)
+math_1_1 = ([[PhotonTypes.number]], [[PhotonTypes.number]])
+
 _primitives = {
-    '+': (),
-    '-': (),
-    '*': (),
-    '/': (),
-    '^': (),
-    'sin': (),
-    'cos': (),
-    'tan': (),
-    'asin': (),
-    'acos': (),
-    'atan': (),
-    'atan2': (),
-    'get': (),
-    'set': (),
-    'to list': (),
-    'concatenate': (),
-    'map': (),
-    'reduce': (),
-    'evaluate': ()
+    '+': math_2_1,
+    '-': math_2_1,
+    '*': math_2_1,
+    '/': math_2_1,
+    '^': math_2_1,
+    'sin': math_1_1,
+    'cos': math_1_1,
+    'tan': math_1_1,
+    'asin': math_1_1,
+    'acos': math_1_1,
+    'atan': math_1_1,
+    'atan2': math_1_1,
+    'get': math_1_1,
+    'set': math_1_1,
+    'to list': (
+        [
+            collection_types
+        ],
+        [
+            [PhotonTypes.list]
+        ]
+    ),
+    'concatenate': (
+        [
+            [PhotonTypes.string],
+            [PhotonTypes.string]
+        ],
+        [
+            [PhotonTypes.string]
+        ]
+    ),
+    'map': (
+        [
+            collection_types,
+            [PhotonTypes.function]
+        ],
+        [
+            collection_types
+        ]),
+    'reduce': (
+        [
+            collection_types,
+            [PhotonTypes.function],
+            valid_types
+        ],
+        [
+            collection_types
+        ]
+    ),
+    'evaluate': (
+        [
+            [PhotonTypes.function],
+            valid_types
+        ],
+        [
+            valid_types
+        ]
+    )
 }
 
 
@@ -34,7 +89,13 @@ def get_function(name):
         return Function.objects.get(name=name)
     except Function.DoesNotExist:
         if name in _primitives:
-            function = Function(name=name, primitive=True)
+            input_types, output_types = _primitives[name]
+            print(json.dumps(input_types))
+            print(json.dumps(output_types))
+            function = Function(name=name,
+                                input_types_json=json.dumps(input_types),
+                                output_types_json=json.dumps(output_types),
+                                primitive=True)
             function.save()
             return function
         else:

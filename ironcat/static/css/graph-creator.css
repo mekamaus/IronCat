@@ -57,20 +57,20 @@ marker {
     fill: #333;
 }
 
-g.conceptG circle {
+.node rect {
     fill: #F6FBFF;
     stroke: #333;
     stroke-width: 2px;
 }
 
-g.conceptG:hover circle {
+g.node:hover rect {
     fill: rgb(200, 238, 241);
 }
 
-g.selected circle {
+g.selected rect {
     fill: rgb(250, 232, 255);
 }
-g.selected:hover circle {
+g.selected:hover rect {
     fill: rgb(250, 232, 255);
 }
 
@@ -85,7 +85,7 @@ path.link:hover {
     stroke: rgb(94, 196, 204);
 }
 
-g.connect-node circle {
+g.connect-node rect {
     fill: #BEFFFF;
 }
 

@@ -134,15 +134,28 @@ $(function() {
         return x + ' ' + y + ' ' + w + ' ' + h;
     }
 
+    function point(x, y) {
+        if (x.x !== undefined && x.y !== undefined) {
+            return [x.x, x.y];
+        } else if (x[0] !== undefined && x[1] !== undefined) {
+            return [x[0], x[1]];
+        } else {
+            return x, y;
+        }
+    }
+
     var d3 = window.d3;
 
     // define graphcreator object
-    var GraphCreator = function(svg, nodes, edges) {
+    var GraphCreator = function(svg, nodes, edges, inputs, outputs) {
         var thisGraph = this;
         thisGraph.idct = 0;
 
         thisGraph.nodes = nodes || [];
         thisGraph.edges = edges || [];
+
+        thisGraph.inputs = inputs || [];
+        thisGraph.outputs = outputs || [];
 
         thisGraph.state = {
             selectedNode: null,
@@ -152,7 +165,7 @@ $(function() {
             justDragged: false,
             justScaleTransGraph: false,
             lastKeyDown: -1,
-            nodeDrag: false,
+            pinDrag: false,
             selectedText: null
         };
 
@@ -184,41 +197,50 @@ $(function() {
             .attr('class', thisGraph.consts.graphClass);
         var svgG = thisGraph.svgG;
 
-        // displayed when dragging between nodes
+        // displayed when pinDrag between nodes
         thisGraph.dragLine = svgG.append('svg:path')
             .attr('class', 'link dragline hidden')
             .attr('d', moveto(0, 0) + lineto(0, 0))
             .style('marker-end', 'url(#mark-end-arrow)');
 
         // svg nodes and edges
-        thisGraph.paths = svgG.append('g').selectAll('g');
-        thisGraph.circles = svgG.append('g').selectAll('g');
+        thisGraph.edgeElements = svgG.append('g').selectAll('g');
+        thisGraph.nodeElements = svgG.append('g').selectAll('g');
+        thisGraph.inputElements = svgG.append('g')
+            .classed('inputs', true)
+            .on('mousedown', function () { d3.event.stopPropagation(); })
+            .selectAll('g');
+        thisGraph.outputElements = svgG.append('g')
+            .classed('outputs', true)
+            .attr('transform', translate(1000, 0))
+            .selectAll('g');
 
         thisGraph.drag = d3.behavior.drag()
-            .origin(function(d) { return { x: d.x, y: d.y }; })
-            .on('drag', function(args) {
+            .on('drag', function(d, i) {
                 thisGraph.state.justDragged = true;
-                thisGraph.dragmove.call(thisGraph, args);
+                thisGraph.dragmove.call(thisGraph, d, i);
             })
             .on('dragend', function() {
                 // todo check if edge-mode is selected
             });
 
         // listen for key events
-        d3.select(window).on('keydown', function(){
-            thisGraph.svgKeyDown.call(thisGraph);
-        })
-        .on('keyup', function(){
-            thisGraph.svgKeyUp.call(thisGraph);
-        });
-        svg.on('mousedown', function(d) {
-            thisGraph.svgMouseDown.call(thisGraph, d);
-        });
-        svg.on('mouseup', function(d) {
-            thisGraph.svgMouseUp.call(thisGraph, d);
-        });
+        d3.select(window)
+            .on('keydown', function() {
+                thisGraph.svgKeyDown.call(thisGraph);
+            })
+            .on('keyup', function() {
+                thisGraph.svgKeyUp.call(thisGraph);
+            });
+        svg
+            .on('mousedown', function(d) {
+                thisGraph.svgMouseDown.call(thisGraph, d);
+            })
+            .on('mouseup', function(d) {
+                thisGraph.svgMouseUp.call(thisGraph, d);
+            });
 
-        // listen for dragging
+        // listen for pinDrag
         var dragSvg = d3.behavior.zoom()
             .on('zoom', function() {
                 if (d3.event.sourceEvent.shiftKey) {
@@ -234,8 +256,9 @@ $(function() {
                 if (ael) {
                     ael.blur();
                 }
-                if (!d3.event.sourceEvent.shiftKey)
+                if (!d3.event.sourceEvent.shiftKey) {
                     d3.select('body').style('cursor', 'move');
+                }
             })
             .on('zoomend', function() {
                 d3.select('body').style('cursor', 'auto');
@@ -256,7 +279,6 @@ $(function() {
     GraphCreator.prototype.consts =  {
         selectedClass: 'selected',
         connectClass: 'connect-node',
-        circleGClass: 'conceptG',
         graphClass: 'graph',
         activeEditId: 'active-editing',
         BACKSPACE_KEY: 8,
@@ -272,19 +294,25 @@ $(function() {
 
     /* PROTOTYPE FUNCTIONS */
 
-    GraphCreator.prototype.dragmove = function(d) {
+    GraphCreator.prototype.dragmove = function(d, i) {
         var thisGraph = this,
             consts = thisGraph.consts,
             state = thisGraph.state;
-        if (thisGraph.state.nodeDrag) {
-            var sourcePos = add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.outputs.length - 1) / 2) * consts.pinSpacing]);
+        if (thisGraph.state.pinDrag) {
+            var sourcePos = d.outputs
+                ? add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.outputs.length - 1) / 2) * consts.pinSpacing])
+                : [0, i * 50];
             var targetPos = d3.mouse(thisGraph.svgG.node());
             var ctrlPt1 = avg(sourcePos, targetPos);
             ctrlPt1[1] = sourcePos[1];
             var ctrlPt2 = avg(sourcePos, targetPos);
             ctrlPt2[1] = targetPos[1];
-            ctrlPt1[0] = sourcePos[0] + Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt1[0] - sourcePos[0]));
-            ctrlPt2[0] = targetPos[0] - Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt2[0] - targetPos[0]));
+            ctrlPt1[0] = sourcePos[0] + Math.max(
+                Math.abs(sourcePos[1] - targetPos[1]),
+                Math.abs(ctrlPt1[0] - sourcePos[0]));
+            ctrlPt2[0] = targetPos[0] - Math.max(
+                Math.abs(sourcePos[1] - targetPos[1]),
+                Math.abs(ctrlPt2[0] - targetPos[0]));
             thisGraph.dragLine.attr('d', moveto(sourcePos) + curveto(ctrlPt1, ctrlPt2, targetPos));
         } else {
             d.x += d3.event.dx;
@@ -309,7 +337,7 @@ $(function() {
             nwords = words.length;
         var el = gEl.append('text')
             .attr('text-anchor','middle')
-            .attr('dy', '-' + (nwords-1)*7.5);
+            .attr('dy', '-' + (nwords - 1) * 7.5);
 
         for (var i = 0; i < words.length; i++) {
             var tspan = el.append('tspan').text(words[i]);
@@ -351,14 +379,14 @@ $(function() {
 
     GraphCreator.prototype.removeSelectFromNode = function(){
         var thisGraph = this;
-        thisGraph.circles.filter(function(cd) { return cd.id === thisGraph.state.selectedNode.id; })
+        thisGraph.nodeElements.filter(function(cd) { return cd.id === thisGraph.state.selectedNode.id; })
             .classed(thisGraph.consts.selectedClass, false);
         thisGraph.state.selectedNode = null;
     };
 
     GraphCreator.prototype.removeSelectFromEdge = function(){
         var thisGraph = this;
-        thisGraph.paths.filter(function(cd){
+        thisGraph.edgeElements.filter(function(cd){
             return cd === thisGraph.state.selectedEdge;
         }).classed(thisGraph.consts.selectedClass, false);
         thisGraph.state.selectedEdge = null;
@@ -386,7 +414,6 @@ $(function() {
     GraphCreator.prototype.nodeMouseDown = function(d3node, d) {
         var thisGraph = this,
             state = thisGraph.state;
-        d3.event.stopPropagation();
         state.mouseDownNode = d;
     };
 
@@ -395,11 +422,13 @@ $(function() {
         var thisGraph = this,
             consts = thisGraph.consts,
             state = thisGraph.state;
-        //d3.event.stopImmediatePropagation();
+        //d3.event.stopPropagation();
         state.mouseDownNode = node;
         state.mouseDownPin = pin;
-        state.nodeDrag = true;
-        var sourcePos = add(node, [consts.nodeWidth / 2, (pin - (node.outputs.length - 1) / 2) * consts.pinSpacing]);
+        state.pinDrag = true;
+        var sourcePos = node
+            ? add(node, [consts.nodeWidth / 2, (pin - (node.outputs.length - 1) / 2) * consts.pinSpacing])
+            : [0, pin * 50];
         thisGraph.dragLine.classed('hidden', false)
             .attr('d', moveto(sourcePos) + lineto(sourcePos));
     };
@@ -409,17 +438,14 @@ $(function() {
             state = thisGraph.state,
             consts = thisGraph.consts;
         // reset the states
-        state.nodeDrag = false;
+        state.pinDrag = false;
         d3node.classed(consts.connectClass, false);
 
         var mouseDownNode = state.mouseDownNode;
         var mouseDownPin = state.mouseDownPin;
 
-        if (!mouseDownNode || mouseDownPin === undefined) return;
-
         thisGraph.dragLine.classed('hidden', true);
-
-        if (mouseDownNode !== node) {
+        if (!node || mouseDownNode !== node) {
             // we're in a different node: create new edge for mousedown edge and add to graph
             var newEdge = {
                 sourceNode: mouseDownNode,
@@ -427,30 +453,34 @@ $(function() {
                 targetNode: node,
                 targetPin: pin
             };
-            var redundantEdges = thisGraph.paths.filter(function(d) {
+            var redundantEdges = thisGraph.edgeElements.filter(function(d) {
                 return d.sourceNode === newEdge.sourceNode
                     && d.sourcePin === newEdge.sourcePin
                     && d.targetNode === newEdge.targetNode
                     && d.targetPin === newEdge.targetPin;
             });
-            // Do a BFS to see if target node actually directs to source node.
             var cycleFormed = false;
-            var visitedNodes = [];
-            var frontierNodes = [];
-            frontierNodes.push(newEdge.targetNode);
-            while (frontierNodes.length && !cycleFormed) {
-                var currNode = frontierNodes.shift();
-                visitedNodes.push(currNode);
-                var outgoingEdges = thisGraph.edges.filter(function(edge) { return edge.sourceNode === currNode; });
-                for (var i in outgoingEdges) {
-                    var edge = outgoingEdges[i];
-                    var targetNode = edge.targetNode;
-                    if (targetNode === newEdge.sourceNode) {
-                        cycleFormed = true;
-                        break;
-                    }
-                    if (visitedNodes.indexOf(targetNode) < 0) {
-                        frontierNodes.push(targetNode);
+            if (mouseDownNode && node) {
+                // Do a BFS to see if target node actually directs to source node.
+                var visitedNodes = [];
+                var frontierNodes = [];
+                frontierNodes.push(newEdge.targetNode);
+                while (frontierNodes.length && !cycleFormed) {
+                    var currNode = frontierNodes.shift();
+                    visitedNodes.push(currNode);
+                    var outgoingEdges = thisGraph.edges.filter(function (edge) {
+                        return edge.sourceNode === currNode;
+                    });
+                    for (var i in outgoingEdges) {
+                        var edge = outgoingEdges[i];
+                        var targetNode = edge.targetNode;
+                        if (targetNode === newEdge.sourceNode) {
+                            cycleFormed = true;
+                            break;
+                        }
+                        if (visitedNodes.indexOf(targetNode) < 0) {
+                            frontierNodes.push(targetNode);
+                        }
                     }
                 }
             }
@@ -522,7 +552,7 @@ $(function() {
             state = thisGraph.state,
             consts = thisGraph.consts;
         // reset the states
-        state.nodeDrag = false;
+        state.pinDrag = false;
         d3node.classed(consts.connectClass, false);
 
         var mouseDownNode = state.mouseDownNode;
@@ -534,7 +564,7 @@ $(function() {
         if (mouseDownNode !== d) {
             // we're in a different node: create new edge for mousedown edge and add to graph
             var newEdge = { source: mouseDownNode, target: d };
-            var filtRes = thisGraph.paths.filter(function(d){
+            var filtRes = thisGraph.edgeElements.filter(function(d){
                 if (d.sourceNode === newEdge.targetNode && d.targetNode === newEdge.sourceNode) {
                     thisGraph.edges.splice(thisGraph.edges.indexOf(d), 1);
                 }
@@ -604,15 +634,15 @@ $(function() {
             thisGraph.nodes.push(d);
             thisGraph.updateGraph();
             // make title of text immediently editable
-            var d3txt = thisGraph.changeTextOfNode(thisGraph.circles.filter(function(dval) {
+            var d3txt = thisGraph.changeTextOfNode(thisGraph.nodeElements.filter(function(dval) {
                 return dval.id === d.id;
             }), d),
                 txtNode = d3txt.node();
             thisGraph.selectElementContents(txtNode);
             txtNode.focus();
-        } else if (state.nodeDrag) {
+        } else if (state.pinDrag) {
             // dragged from node
-            state.nodeDrag = false;
+            state.pinDrag = false;
             thisGraph.dragLine.classed('hidden', true);
         }
         state.graphMouseDown = false;
@@ -658,20 +688,24 @@ $(function() {
             consts = thisGraph.consts,
             state = thisGraph.state;
 
-        thisGraph.paths = thisGraph.paths.data(thisGraph.edges, function(d) {
-            return d.sourceNode.id + '/' + d.sourcePin + '+' + d.targetNode.id + '/' + d.targetPin;
+        thisGraph.edgeElements = thisGraph.edgeElements.data(thisGraph.edges, function(d) {
+            return (d.sourceNode ? d.sourceNode.id : '-') + '/' + d.sourcePin + '+' + (d.targetNode ? d.targetNode.id : '-') + '/' + d.targetPin;
         });
-        var paths = thisGraph.paths;
+        var paths = thisGraph.edgeElements;
         // update existing paths
         var pathFn = function(d) {
-            var sourcePos = add(
-                d.sourceNode,
-                [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.outputs.length - 1) / 2) * consts.pinSpacing]
-            );
-            var targetPos = add(
-                d.targetNode,
-                [-consts.nodeWidth / 2, (d.targetPin - (d.targetNode.inputs.length - 1) / 2) * consts.pinSpacing]
-            );
+            var sourcePos = d.sourceNode
+                ? add(
+                    d.sourceNode,
+                    [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.outputs.length - 1) / 2) * consts.pinSpacing]
+                )
+                : [0, 50 * d.sourcePin];
+            var targetPos = d.targetNode
+                ? add(
+                    d.targetNode,
+                    [-consts.nodeWidth / 2, (d.targetPin - (d.targetNode.inputs.length - 1) / 2) * consts.pinSpacing]
+                )
+                : [1000, 50 * d.targetPin];
             var ctrlPt1 = avg(sourcePos, targetPos);
             ctrlPt1[1] = sourcePos[1];
             var ctrlPt2 = avg(sourcePos, targetPos);
@@ -705,19 +739,19 @@ $(function() {
         paths.exit()
             .remove();
 
-        // update existing nodes
-        thisGraph.circles = thisGraph.circles.data(thisGraph.nodes, function(d) { return d.id; });
-        thisGraph.circles.attr('transform', function(d) { return translate(d); });
+        // Update existing nodes.
+        thisGraph.nodeElements = thisGraph.nodeElements.data(thisGraph.nodes, function(d) { return d.id; });
+        thisGraph.nodeElements.attr('transform', function(d) { return translate(d); });
 
-        // add new nodes
-        var newNodes = thisGraph.circles.enter()
+        // Add new nodes.
+        var newNodes = thisGraph.nodeElements.enter()
             .append('g')
             .classed('node', true);
 
-        newNodes.classed(consts.circleGClass, true)
+        newNodes
             .attr('transform', function(d) { return translate(d); })
             .on('mouseover', function(d) {
-                if (state.nodeDrag) {
+                if (state.pinDrag) {
                     d3.select(this).classed(consts.connectClass, true);
                 }
             })
@@ -725,6 +759,7 @@ $(function() {
                 d3.select(this).classed(consts.connectClass, false);
             })
             .on('mousedown', function(d) {
+                d3.event.stopPropagation();
                 thisGraph.nodeMouseDown.call(thisGraph, d3.select(this), d);
             })
             .on('mouseup', function(d) {
@@ -742,16 +777,16 @@ $(function() {
             .attr('stroke-width', 2);
 
         newNodes.append('g')
-            .classed('inputs', true)
+            .classed('node-inputs', true)
             .selectAll()
             .data(function (d) { return d.inputs; });
 
         newNodes.append('g')
-            .classed('outputs', true)
+            .classed('node-outputs', true)
             .selectAll()
             .data(function (d) { return d.outputs; });
 
-        var inputs = thisGraph.circles.selectAll('.inputs').selectAll('circle')
+        var inputs = thisGraph.nodeElements.selectAll('.node-inputs').selectAll('circle')
             .data(function (d) { return d.inputs; });
 
         inputs.enter()
@@ -767,7 +802,7 @@ $(function() {
         inputs.exit()
             .remove();
 
-        var outputs = thisGraph.circles.selectAll('.outputs').selectAll('circle')
+        var outputs = thisGraph.nodeElements.selectAll('.node-outputs').selectAll('circle')
             .data(function (d) {
                 return d.outputs;
             });
@@ -795,18 +830,20 @@ $(function() {
                     -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
             });
 
-        svg.selectAll('.node').selectAll('.inputs').attr('transform', function (d) {
+        svg.selectAll('.node').selectAll('.node-inputs').attr('transform', function (d) {
             return translate(-consts.nodeWidth / 2, -(d.inputs.length - 1) * consts.pinSpacing / 2);
         });
 
-        svg.selectAll('.node').selectAll('.outputs').attr('transform', function (d) {
+        svg.selectAll('.node').selectAll('.node-outputs').attr('transform', function (d) {
             return translate(consts.nodeWidth / 2, -(d.outputs.length - 1) * consts.pinSpacing / 2);
         });
 
         // Remove paths that from or to non-existent nodes.
-        thisGraph.paths
+        thisGraph.edgeElements
             .filter(function (d) {
-                return d.sourcePin >= d.sourceNode.outputs.length || d.targetPin >= d.targetNode.inputs.length;
+                var sourcePins = d.sourceNode ? d.sourceNode.outputs : thisGraph.inputs;
+                var targetPins = d.targetNode ? d.targetNode.inputs : thisGraph.outputs;
+                return d.sourcePin >= sourcePins.length || d.targetPin >= targetPins.length;
             })
             .remove();
 
@@ -814,8 +851,45 @@ $(function() {
             thisGraph.insertTitleLinebreaks(d3.select(this), d.title);
         });
 
-        // remove old nodes
-        thisGraph.circles.exit().remove();
+        // Remove old nodes.
+        thisGraph.nodeElements.exit().remove();
+
+        // Update existing inputs.
+        thisGraph.inputElements = thisGraph.inputElements.data(thisGraph.inputs);
+
+        // Add new inputs.
+        var newInputs = thisGraph.inputElements.enter()
+            .append('g')
+            .classed('input', true);
+
+        newInputs
+            .attr('transform', function (d, i) { return translate(0, 50 * i); })
+            .call(thisGraph.drag)
+            .append('circle')
+            .attr('r', 20)
+            .on('mousedown', function (d, i) {
+                thisGraph.pinMouseDown.call(thisGraph, d3.select(this), null, i);
+            });
+
+        thisGraph.inputElements.exit().remove();
+
+        // Update existing outputs.
+        thisGraph.outputElements = thisGraph.outputElements.data(thisGraph.outputs);
+
+        // Add new outputs.
+        var newOutputs = thisGraph.outputElements.enter()
+            .append('g')
+            .classed('output', true);
+
+        newOutputs
+            .attr('transform', function (d, i) { return translate(0, 50 * i); })
+            .append('circle')
+            .attr('r', 20)
+            .on('mouseup', function (d, i) {
+                thisGraph.pinMouseUp.call(thisGraph, d3.select(this), null, i);
+            });
+
+        thisGraph.outputElements.exit().remove();
     };
 
     GraphCreator.prototype.zoomed = function() {
@@ -900,13 +974,32 @@ $(function() {
             sourcePin: 2,
             targetNode: nodes[0],
             targetPin: 4
+        },
+        {
+            sourcePin: 0,
+            targetNode: nodes[1],
+            targetPin: 0
         }
+    ];
+
+    var inputs = [
+        { x: 0, y: 0 },
+        { x: 0, y: 100 }
+    ];
+
+    var outputs = [
+        { x: 400, y: 0 },
+        { x: 400, y: 50 },
+        { x: 400, y: 100 },
+        { x: 400, y: 150 },
+        { x: 400, y: 200 },
+        { x: 400, y: 250 }
     ];
 
     /** MAIN SVG **/
     //var svg = document.createElementNS(d3.ns.prefix.svg, 'svg');
     var svg = d3.select('body').append('svg');
-    var graph = new GraphCreator(svg, nodes, edges);
+    var graph = new GraphCreator(svg, nodes, edges, inputs, outputs);
     graph.setIdCt(2);
     graph.updateGraph();
     graph.updateWindow(svg);
