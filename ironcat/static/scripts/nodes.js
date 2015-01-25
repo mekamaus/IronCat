@@ -1020,4 +1020,19 @@ $(function() {
     graph.setIdCt(2);
     graph.updateGraph();
     graph.updateWindow(svg);
+
+    var save = function () {
+        console.log('saving... done');
+    };
+
+    $('.save-btn').click(save);
+
+    $(document).keydown(function(e) {
+        if ((e.which == '115' || e.which == '83' ) && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            save();
+            return false;
+        }
+        return true;
+    });
 });
