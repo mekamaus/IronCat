@@ -905,6 +905,9 @@ $(function() {
             });
 
         thisGraph.outputElements.exit().remove();
+
+        // Update displayed function name.
+        $('.function-name').text(graph.function.name);
     };
 
     GraphCreator.prototype.zoomed = function() {
@@ -1026,6 +1029,34 @@ $(function() {
     };
 
     $('.save-btn').click(save);
+
+    $.fn.onSubmit = function(func) {
+        this.bind('keypress', fn = function(e) {
+            if (e.keyCode == 13) {
+                func.apply(this, [$(this).val()]);
+            }
+        });
+        this.blur(function () {
+            func.apply(this, [$(this).val()]);
+        });
+        return this;
+    };
+
+    var editFunctionName = function () {
+        var nameLabel = $('.function-name');
+        var nameTextbox = $('<input type="text" value="' + graph.function.name + '"></input>')
+            .onSubmit(function (value) {
+                graph.function.name = value;
+                $(this).replaceWith(nameLabel);
+                nameLabel
+                    .text(value)
+                    .click(editFunctionName);
+            });
+        nameLabel.replaceWith(nameTextbox);
+        nameTextbox.focus().select();
+    };
+
+    $('.function-name').click(editFunctionName);
 
     $(document).keydown(function(e) {
         if ((e.which == '115' || e.which == '83' ) && (e.ctrlKey || e.metaKey)) {
