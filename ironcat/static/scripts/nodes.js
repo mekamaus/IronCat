@@ -448,6 +448,9 @@ $(function() {
             state = thisGraph.state,
             consts = thisGraph.consts;
         // reset the states
+        if (!state.pinDrag) {
+            return;
+        }
         state.pinDrag = false;
         d3node.classed(consts.connectClass, false);
 
@@ -624,6 +627,7 @@ $(function() {
     GraphCreator.prototype.svgMouseUp = function() {
         var thisGraph = this,
             state = thisGraph.state;
+
         if (state.justScaleTransGraph) {
             // dragged not clicked
             state.justScaleTransGraph = false;
