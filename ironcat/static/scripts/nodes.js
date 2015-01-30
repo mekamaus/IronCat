@@ -999,6 +999,7 @@ $(function() {
 
         // Reposition input and output groups
         thisGraph.inputGroup.attr('transform', translate(0, -25 * (thisGraph.inputs.length - 1)));
+        thisGraph.outputGroup.attr('transform', translate(0, -25 * (thisGraph.outputs.length - 1)));
 
         // Update displayed function name.
         $('.function-name').text(graph.function.name);
