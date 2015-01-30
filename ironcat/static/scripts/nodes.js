@@ -216,11 +216,15 @@ $(function() {
         // svg nodes and edges
         thisGraph.edgeElements = svgG.append('g').selectAll('g');
         thisGraph.nodeElements = svgG.append('g').selectAll('g');
-        thisGraph.inputElements = svgG.append('g')
+
+        thisGraph.inputGroup = svgG.append('g');
+        thisGraph.outputGroup = svgG.append('g');
+
+        thisGraph.inputElements = thisGraph.inputGroup
             .classed('inputs', true)
             .on('mousedown', function () { d3.event.stopPropagation(); })
             .selectAll('g');
-        thisGraph.outputElements = svgG.append('g')
+        thisGraph.outputElements = thisGraph.outputGroup
             .classed('outputs', true)
             .attr('transform', translate(1000, 0))
             .selectAll('g');
@@ -311,7 +315,7 @@ $(function() {
         if (thisGraph.state.pinDrag) {
             var sourcePos = d.outputs
                 ? add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.outputs.length - 1) / 2) * consts.pinSpacing])
-                : [0, i * 50];
+                : [0, -25 * (thisGraph.inputs.length - 1) + i * 50];
             var targetPos = d3.mouse(thisGraph.svgG.node());
             var ctrlPt1 = avg(sourcePos, targetPos);
             ctrlPt1[1] = sourcePos[1];
@@ -714,13 +718,13 @@ $(function() {
                     d.sourceNode,
                     [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.outputs.length - 1) / 2) * consts.pinSpacing]
                 )
-                : [0, 50 * d.sourcePin];
+                : [0, -25 * (thisGraph.inputs.length - 1) + 50 * d.sourcePin];
             var targetPos = d.targetNode
                 ? add(
                     d.targetNode,
                     [-consts.nodeWidth / 2, (d.targetPin - (d.targetNode.inputs.length - 1) / 2) * consts.pinSpacing]
                 )
-                : [1000, 50 * d.targetPin];
+                : [1000, -25 * (thisGraph.outputs.length - 1) + 50 * d.targetPin];
             var ctrlPt1 = avg(sourcePos, targetPos);
             ctrlPt1[1] = sourcePos[1];
             var ctrlPt2 = avg(sourcePos, targetPos);
@@ -891,7 +895,7 @@ $(function() {
         var inputDeleteButtons = newInputs.append('g')
             .attr('transform', translate(-36, 0))
             .classed('pin-delete', true)
-            .on('click', function (d, i) {
+            .on('mousedown', function (d, i) {
                 thisGraph.edges = thisGraph.edges.filter(function (edge) {
                     if (edge.sourceNode) return true;
                     if (edge.sourcePin === i) return false;
@@ -913,13 +917,14 @@ $(function() {
         var inputAddButtons = newInputs.append('g')
             .attr('transform', translate(-24, -25))
             .classed('pin-add', true)
-            .on('click', function (d, i) {
+            .on('mousedown', function (d, i) {
                 thisGraph.inputs.push(1);
                 thisGraph.edges.forEach(function (edge) {
                     if (edge.sourceNode) return;
                     if (edge.sourcePin >= i) edge.sourcePin++;
                 });
                 thisGraph.updateGraph();
+                thisGraph.pinMouseDown.call(thisGraph, null, null, i);
             });
 
         inputAddButtons.append('circle')
@@ -951,7 +956,7 @@ $(function() {
         var outputDeleteButtons = newOutputs.append('g')
             .attr('transform', translate(36, 0))
             .classed('pin-delete', true)
-            .on('click', function (d, i) {
+            .on('mousedown', function (d, i) {
                 thisGraph.edges = thisGraph.edges.filter(function (edge) {
                     if (edge.targetNode) return true;
                     if (edge.targetPin === i) return false;
@@ -973,7 +978,7 @@ $(function() {
         var outputAddButtons = newOutputs.append('g')
             .attr('transform', translate(24, -25))
             .classed('pin-add', true)
-            .on('click', function (d, i) {
+            .on('mousedown', function (d, i) {
                 thisGraph.outputs.push(1);
                 thisGraph.edges.forEach(function (edge) {
                     if (edge.targetNode) return;
@@ -991,6 +996,9 @@ $(function() {
             .text('+');
 
         thisGraph.outputElements.exit().remove();
+
+        // Reposition input and output groups
+        thisGraph.inputGroup.attr('transform', translate(0, -25 * (thisGraph.inputs.length - 1)));
 
         // Update displayed function name.
         $('.function-name').text(graph.function.name);
