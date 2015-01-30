@@ -456,7 +456,7 @@ $(function() {
             return;
         }
         state.pinDrag = false;
-        d3node.classed(consts.connectClass, false);
+        if (d3node) d3node.classed(consts.connectClass, false);
 
         var mouseDownNode = state.mouseDownNode;
         var mouseDownPin = state.mouseDownPin;
@@ -985,6 +985,15 @@ $(function() {
                     if (edge.targetPin >= i) edge.targetPin++;
                 });
                 thisGraph.updateGraph();
+            })
+            .on('mouseup', function (d, i) {
+                thisGraph.outputs.push(1);
+                thisGraph.edges.forEach(function (edge) {
+                    if (edge.targetNode) return;
+                    if (edge.targetPin >= i) edge.targetPin++;
+                });
+                thisGraph.updateGraph();
+                thisGraph.pinMouseUp.call(thisGraph, null, null, i);
             });
 
         outputAddButtons.append('circle')
@@ -999,7 +1008,7 @@ $(function() {
 
         // Reposition input and output groups
         thisGraph.inputGroup.attr('transform', translate(0, -25 * (thisGraph.inputs.length - 1)));
-        thisGraph.outputGroup.attr('transform', translate(0, -25 * (thisGraph.outputs.length - 1)));
+        thisGraph.outputGroup.attr('transform', translate(1000, -25 * (thisGraph.outputs.length - 1)));
 
         // Update displayed function name.
         $('.function-name').text(graph.function.name);
