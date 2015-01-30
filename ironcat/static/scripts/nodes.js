@@ -140,7 +140,7 @@ $(function() {
         } else if (x[0] !== undefined && x[1] !== undefined) {
             return [x[0], x[1]];
         } else {
-            return x, y;
+            return [x, y];
         }
     }
 
@@ -886,6 +886,50 @@ $(function() {
                 thisGraph.pinMouseDown.call(thisGraph, d3.select(this), null, i);
             });
 
+        var pinAddDeleteButtonRadius = 12;
+
+        var inputDeleteButtons = newInputs.append('g')
+            .attr('transform', translate(-36, 0))
+            .classed('pin-delete', true)
+            .on('click', function (d, i) {
+                thisGraph.edges = thisGraph.edges.filter(function (edge) {
+                    if (edge.sourceNode) return true;
+                    if (edge.sourcePin === i) return false;
+                    if (edge.sourcePin > i) edge.sourcePin--;
+                    return true;
+                });
+                thisGraph.inputs.splice(i, 1);
+                thisGraph.updateGraph();
+            });
+
+        inputDeleteButtons.append('circle')
+            .attr('r', pinAddDeleteButtonRadius);
+
+        inputDeleteButtons.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+            .text('-');
+
+        var inputAddButtons = newInputs.append('g')
+            .attr('transform', translate(-24, -25))
+            .classed('pin-add', true)
+            .on('click', function (d, i) {
+                thisGraph.inputs.push(1);
+                thisGraph.edges.forEach(function (edge) {
+                    if (edge.sourceNode) return;
+                    if (edge.sourcePin >= i) edge.sourcePin++;
+                });
+                thisGraph.updateGraph();
+            });
+
+        inputAddButtons.append('circle')
+            .attr('r', pinAddDeleteButtonRadius);
+
+        inputAddButtons.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+            .text('+');
+
         thisGraph.inputElements.exit().remove();
 
         // Update existing outputs.
@@ -903,6 +947,48 @@ $(function() {
             .on('mouseup', function (d, i) {
                 thisGraph.pinMouseUp.call(thisGraph, d3.select(this), null, i);
             });
+
+        var outputDeleteButtons = newOutputs.append('g')
+            .attr('transform', translate(36, 0))
+            .classed('pin-delete', true)
+            .on('click', function (d, i) {
+                thisGraph.edges = thisGraph.edges.filter(function (edge) {
+                    if (edge.targetNode) return true;
+                    if (edge.targetPin === i) return false;
+                    if (edge.targetPin > i) edge.targetPin--;
+                    return true;
+                });
+                thisGraph.outputs.splice(i, 1);
+                thisGraph.updateGraph();
+            });
+
+        outputDeleteButtons.append('circle')
+            .attr('r', pinAddDeleteButtonRadius);
+
+        outputDeleteButtons.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+            .text('-');
+
+        var outputAddButtons = newOutputs.append('g')
+            .attr('transform', translate(24, -25))
+            .classed('pin-add', true)
+            .on('click', function (d, i) {
+                thisGraph.outputs.push(1);
+                thisGraph.edges.forEach(function (edge) {
+                    if (edge.targetNode) return;
+                    if (edge.targetPin >= i) edge.targetPin++;
+                });
+                thisGraph.updateGraph();
+            });
+
+        outputAddButtons.append('circle')
+            .attr('r', pinAddDeleteButtonRadius)
+
+        outputAddButtons.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'middle')
+            .text('+');
 
         thisGraph.outputElements.exit().remove();
 
@@ -1044,7 +1130,7 @@ $(function() {
 
     var editFunctionName = function () {
         var nameLabel = $('.function-name');
-        var nameTextbox = $('<input type="text" value="' + graph.function.name + '"></input>')
+        var nameTextbox = $('<input type="text" class="function-name" value="' + graph.function.name + '"></input>')
             .onSubmit(function (value) {
                 graph.function.name = value;
                 $(this).replaceWith(nameLabel);

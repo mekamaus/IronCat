@@ -96,3 +96,63 @@ path.link.hidden {
 path.link.selected {
     stroke: rgb(229, 172, 247);
 }
+
+a.function-name {
+    cursor: pointer;
+}
+
+input.function-name {
+    margin-left: 12px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+}
+
+.pin-delete {
+    cursor: pointer;
+}
+
+.pin-delete circle {
+    fill: rgba(128, 128, 128, 128);
+    transition: all 0.25s;
+}
+
+.pin-delete:hover circle {
+    fill: rgba(255, 0, 0, 255);
+}
+
+.pin-delete text {
+    fill: #ffffff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+}
+
+.pin-add {
+    cursor: pointer;
+}
+
+.pin-add circle {
+    fill: rgba(128, 128, 128, 128);
+    transition: all 0.25s;
+}
+
+.pin-add:hover circle {
+    fill: rgba(0, 128, 0, 255)
+}
+
+.pin-add text {
+    fill: #ffffff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+}
