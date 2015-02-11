@@ -1,0 +1,196 @@
+p {
+     text-align: center;
+     position: relative;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow:hidden;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-color: rgb(248, 248, 248)
+}
+
+.conceptG text {
+    pointer-events: none;
+}
+
+marker {
+    fill: #333;
+}
+
+.node rect {
+    fill: #F6FBFF;
+    stroke: #333;
+    stroke-width: 2px;
+}
+
+g.node:hover rect {
+    fill: rgb(200, 238, 241);
+}
+g.selected {
+  rect {
+    fill: rgb(250, 232, 255);
+  }
+  &:hover {
+    rect {
+      fill: rgb(250, 232, 255);
+    }
+  }
+}
+
+.link {
+  fill: none;
+  stroke: #ffff00;
+  stroke-width: 6px;
+  cursor: default;
+  transition: all 0.25s;
+  &.hidden {
+    stroke-width: 0;
+  }
+  &.selected {
+    stroke: #fff;
+  }
+  &:hover {
+    stroke: rgb(94, 196, 204);
+  }
+}
+
+.connect-node {
+  rect {
+    fill: #beffff;
+  }
+}
+
+a.function-name {
+    cursor: pointer;
+}
+
+input.function-name {
+    margin-left: 12px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+}
+
+.pin-delete {
+  cursor: pointer;
+  circle {
+    fill: rgba(255, 0, 0, 255);
+    transition: all 0.2s ease-in-out;
+  }
+  text {
+    fill: #ffffff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+    opacity: 1;
+  }
+}
+
+.pin-add {
+  cursor: pointer;
+  circle {
+    fill: rgba(0, 128, 0, 255);
+    transition: all 0.2s ease-in-out;
+  }
+  text {
+    fill: #ffffff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+    opacity: 1;
+  }
+}
+
+.vanish {
+  circle {
+    fill: rgba(255, 255, 255, 0);
+  }
+  text {
+    opacity: 0;
+  }
+}
+
+.editor {
+    background-color: #333;
+}
+
+.input, .output {
+  circle {
+    stroke: white;
+    fill: #999;
+  }
+  &.connected {
+    circle {
+      fill: #993;
+    }
+  }
+}
+
+.node-input, .node-output {
+  circle {
+    stroke: #666;
+    fill: #999;
+  }
+  &.connected {
+    circle {
+      fill: #993;
+    }
+  }
+}
+
+.node-function-name {
+    user-select: none;
+    cursor: default;
+    font-weight: 900;
+    font-family: "Josefin Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
+    color: #fff;
+    fill: #fff;
+}
+
+.node-label path {
+    stroke: black;
+    fill: #666;
+}
+
+.node-delete {
+  cursor: pointer;
+
+  circle {
+    stroke: none;
+    fill: rgba(150, 150, 150, 255);
+    transition: all 0.25s;
+  }
+
+  &:hover circle {
+    fill: rgba(255, 0, 0, 255);
+  }
+
+  text {
+    fill: #666;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 22px;
+    font-weight: bold;
+    user-select: none;
+    transition: all 0.25s;
+  }
+
+  &:hover text {
+    fill: #fff;
+  }
+}

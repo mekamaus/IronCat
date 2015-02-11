@@ -1,19 +1,18 @@
-(function() {
+(function () {
     // CSRF protection
     function csrfSafeMethod(method) {
         // these HTTP methods do not require CSRF protection
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
     $.ajaxSetup({
-        crossDomain: false, // obviates need for sameOrigin test
-        beforeSend: function(xhr, settings) {
+        crossDomain: false,
+        beforeSend: function (xhr, settings) {
             if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
                 xhr.setRequestHeader('X-CSRFToken', $.cookie('csrftoken'));
             }
         }
     });
-
-    $(function() {
+    $(function () {
         /*
         $.get('get_function/', { name: '*' }).success(function(result) {
             var timesFunctionId = result.id;
@@ -172,3 +171,4 @@
         */
     });
 })();
+//# sourceMappingURL=start.js.map
