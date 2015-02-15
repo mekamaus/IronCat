@@ -126,7 +126,8 @@ input.function-name {
 }
 
 .editor {
-    background-color: #333;
+  background-color: #333;
+  cursor: default;
 }
 
 .input, .output {
@@ -153,44 +154,64 @@ input.function-name {
   }
 }
 
-.node-function-name {
-    user-select: none;
-    cursor: default;
-    font-weight: 900;
-    font-family: "Josefin Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-size: 16px;
-    color: #fff;
-    fill: #fff;
-}
-
-.node-label path {
+.node-header {
+  path {
     stroke: black;
     fill: #666;
+  }
+  .node-label {
+    cursor: pointer;
+    .node-function-name {
+      cursor: inherit;
+      user-select: none;
+      font-weight: 900;
+      font-family: 'Josefin Sans','Helvetica Neue',Helvetica,Arial,sans-serif;
+      font-size: 16px;
+      color: #fff;
+      fill: #fff;
+      transition: all 0.25s;
+    }
+    &:hover {
+      .node-function-name {
+        fill: #0ff;
+      }
+    }
+  }
 }
 
-.node-delete {
-  cursor: pointer;
-
-  circle {
-    stroke: none;
-    fill: rgba(150, 150, 150, 255);
-    transition: all 0.25s;
+.node {
+  .node-delete {
+    circle {
+      stroke: none;
+      fill: rgba(150, 150, 150, 0);
+      transition: all 0.25s;
+    }
+    text {
+      fill: rgba(96, 96, 96, 0);
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 22px;
+      font-weight: bold;
+      user-select: none;
+      transition: all 0.25s;
+    }
   }
-
-  &:hover circle {
-    fill: rgba(255, 0, 0, 255);
-  }
-
-  text {
-    fill: #666;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 22px;
-    font-weight: bold;
-    user-select: none;
-    transition: all 0.25s;
-  }
-
-  &:hover text {
-    fill: #fff;
+  &:hover {
+    .node-delete {
+      cursor: pointer;
+      circle {
+        fill: rgba(150, 150, 150, 255);
+      }
+      text {
+        fill: rgba(96, 96, 96, 255);
+      }
+      &:hover {
+        circle {
+          fill: rgba(255, 0, 0, 255);
+        }
+        text {
+          fill: rgba(255, 255, 255, 255);
+        }
+      }
+    }
   }
 }

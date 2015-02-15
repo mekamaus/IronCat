@@ -189,13 +189,29 @@
 
     // define graphcreator object
     var GraphCreator = (function () {
+        var consts = {
+            selectedClass: 'selected',
+            connectClass: 'connect-node',
+            graphClass: 'graph',
+            activeEditId: 'active-editing',
+            BACKSPACE_KEY: 8,
+            DELETE_KEY: 46,
+            ENTER_KEY: 13,
+            nodeWidth: 180,
+            nodeHeight: 100,
+            nodeLabelHeight: 40,
+            nodeCornerRadius: 20,
+            nodeMargin: 40,
+            pinSize: 16,
+            pinSpacing: 24
+        };
         function GraphCreator(svg, nodes, edges, inputs, outputs) {
             var self = this;
             this.setIdCt = function (idct) { return self.idct = idct; };
             this.dragmove = function (d) {
-                var state = self.state, consts = GraphCreator.consts, func = self.func, svgG = self.svgG;
+                var state = self.state, func = self.func, svgG = self.svgG;
                 if (state.pinDrag) {
-                    var sourcePos = d.outputs ? add(d, [GraphCreator.consts.nodeWidth / 2, (state.mouseDownPin - (d.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + state.mouseDownPin * 50];
+                    var sourcePos = d.outputs ? add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + state.mouseDownPin * 50];
                     var targetPos = d3.mouse(svgG.node());
                     var ctrlPt1 = avg(sourcePos, targetPos);
                     ctrlPt1[1] = sourcePos[1];
@@ -212,7 +228,6 @@
                 }
             };
             this.replaceSelectNode = function (d3Node, nodeData) {
-                var consts = GraphCreator.consts;
                 d3Node.classed(consts.selectedClass, true);
                 if (self.state.selectedNode) {
                     self.removeSelectFromNode();
@@ -220,7 +235,7 @@
                 self.state.selectedNode = nodeData;
             };
             this.pinMouseUp = function (d3node, node, pin) {
-                var state = self.state, consts = GraphCreator.consts, func = self.func;
+                var state = self.state, func = self.func;
                 // reset the states
                 if (!state.pinDrag) {
                     return;
@@ -279,31 +294,61 @@
             };
             this.createGuid = function () { return ++self.guid; };
             this.editText = function (d3node, d) {
-                var consts = self.consts, htmlEl = d3node.node();
-                d3node.selectAll('text').remove();
-                var nodeBCR = htmlEl.getBoundingClientRect(), curScale = nodeBCR.width / consts.nodeWidth * 2, placePad = 5 * curScale, useHW = curScale > 1 ? nodeBCR.width * 0.71 : consts.nodeWidth * 0.71;
+                var htmlEl = d3node.node();
+                var svgBCR = self.svg.node().getBoundingClientRect();
+                var nodeBCR = htmlEl.getBoundingClientRect(),
+                    curScale = nodeBCR.width / consts.nodeWidth * 2,
+                    placePad = 5 * curScale,
+                    useHW = curScale > 1 ? nodeBCR.width * 0.71 : consts.nodeWidth * 0.71;
+
+                d3node.selectAll('text').style('display', 'none');
+
                 // replace with editableconent text
-                var d3txt = self.svg.selectAll('foreignObject').data([d]).enter().append('foreignObject').attr('x', nodeBCR.left + placePad).attr('y', nodeBCR.top + placePad).attr('height', 2 * useHW).attr('width', useHW).append('xhtml:p').attr('id', consts.activeEditId).attr('contentEditable', 'true').attr('font-family', 'Josefin Sans').text(d.title).on('mousedown', function (d) {
-                    d3.event.stopPropagation();
-                }).on('keydown', function (d) {
-                    d3.event.stopPropagation();
-                    /*if (d3.event.keyCode == consts.ENTER_KEY && !d3.event.shiftKey) {
-                        this.blur();
-                    }*/
-                }).on('blur', function (d) {
-                    d.title = this.textContent;
-                    d3.select(this.parentElement).remove();
-                    $.when($.getJSON('/get_function/', { name: d.title })).then(function (result) {
-                        if (result.success) {
-                            var fn = result.function;
-                            console.log('Got function', fn);
-                            d.inputs = fn.input_types;
-                            d.outputs = fn.output_types;
-                            d.functionId = fn.id;
-                            self.updateGraph();
+                var d3txt = self.svg
+                    .selectAll('foreignObject')
+                    .data([d]).enter().append('foreignObject')
+                    .attr('x', nodeBCR.left - svgBCR.left)
+                    .attr('y', nodeBCR.top - svgBCR.top - nodeBCR.height / 2 + 28)
+                    .attr('height', nodeBCR.height)
+                    .attr('width', nodeBCR.width)
+                    .append('xhtml:p')
+                    .attr('id', consts.activeEditId)
+                    .attr('contentEditable', 'true')
+                    .style('font-family', "Josefin Sans','Helvetica Neue',Helvetica,Arial,sans-serif")
+                    .style('color', '#ff0')
+                    .style('font-size', '16px')
+                    .style('font-weight', '900')
+                    .text(d.title)
+                    .on('mousedown', function (d) {
+                        d3.event.stopPropagation();
+                    }).on('keydown', function (d) {
+                        d3.event.stopPropagation();
+                        if (d3.event.keyCode == consts.ENTER_KEY) {
+                            this.blur();
                         }
+                    }).on('blur', function (d) {
+                        d.title = this.textContent;
+                            //console.log(d3.select(this));
+                        d3.select(this).remove();
+                        d3node.selectAll('text').text(this.textContent);
+                        d3node.selectAll('text').style('display', null);
+                        $.when($.getJSON('/get_function/', { name: d.title })).then(function (result) {
+                            if (result.success) {
+                                var fn = result.function;
+                                console.log('Got function', fn);
+                                d.inputs = fn.input_types;
+                                d.outputs = fn.output_types;
+                                d.functionId = fn.id;
+                                self.updateGraph();
+                            }
+                        });
                     });
-                });
+                $('#' + consts.activeEditId)
+                    .mouseup(function () { return false; })
+                    .focus();
+                var range = document.createRange();
+                range.selectNodeContents(document.getElementById(consts.activeEditId));
+                window.getSelection().addRange(range);
                 return d3txt;
             };
             this.nodeMouseUp = function (d3node, d) {
@@ -341,7 +386,6 @@
             };
             this.svgKeyDown = function () {
                 var state = self.state,
-                    consts = self.consts,
                     func = self.func;
                 // make sure repeated key presses don't register for each keydown
                 if (state.lastKeyDown !== -1)
@@ -371,11 +415,10 @@
             this.svgKeyUp = function () { return self.state.lastKeyDown = -1; };
             this.updateGraph = function (ioUpdated) {
                 if (ioUpdated === void 0) { ioUpdated = false; }
-                var svg = self.svg, consts = GraphCreator.consts, state = self.state, func = self.func;
+                var svg = self.svg, state = self.state, func = self.func;
                 self.edgeElements = self.edgeElements.data(func.edges, function (d) {
                     return (d.sourceNode ? d.sourceNode.id : '-') + '/' + d.sourcePin + '+' + (d.targetNode ? d.targetNode.id : '-') + '/' + d.targetPin;
                 });
-                var paths = self.edgeElements;
                 // update existing paths
                 var pathFn = function (d) {
                     var sourcePos = d.sourceNode ? add(d.sourceNode, [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + 50 * d.sourcePin];
@@ -389,18 +432,25 @@
                     return moveto(sourcePos) + curveto(ctrlPt1, ctrlPt2, targetPos);
                 };
                 // add new paths
-                paths.enter().append('path').style('marker-end', 'url(#end-arrow)').classed('link', true).on('mousedown', function (d) {
-                    this.pathMouseDown.call(this, d3.select(this), d);
-                }).on('mouseup', function () { return state.mouseDownLink = null; });
-                paths.style('marker-end', 'url(#end-arrow)').classed(consts.selectedClass, function (d) { return d === state.selectedEdge; });
+                self.edgeElements.enter()
+                    .append('path')
+                    .style('marker-end', 'url(#end-arrow)')
+                    .classed('link', true)
+                    .on('mousedown', function (d) {
+                        this.pathMouseDown.call(this, d3.select(this), d);
+                    })
+                    .on('mouseup', function () { state.mouseDownLink = null; });
+                self.edgeElements.style('marker-end', 'url(#end-arrow)').classed(consts.selectedClass, function (d) { return d === state.selectedEdge; });
                 if (ioUpdated) {
-                    paths.transition().attr('d', pathFn);
-                }
-                else {
-                    paths.attr('d', pathFn);
+                    self.edgeElements.transition().attr('d', pathFn);
+                } else {
+                    self.edgeElements.attr('d', pathFn);
                 }
                 // remove old links
-                paths.exit().remove();
+                self.edgeElements.exit()
+                    .style('stroke-width', 0)
+                    .transition()
+                    .remove();
                 // Update existing nodes.
                 self.nodeElements = self.nodeElements.data(func.nodes, function (d) { return d.id; });
                 self.nodeElements.attr('transform', function (d) { return translate(d); });
@@ -421,25 +471,53 @@
                 newNodes.append('rect').classed('node-shape', true).attr('width', consts.nodeWidth).attr('rx', consts.nodeCornerRadius).attr('ry', consts.nodeCornerRadius).attr('fill', '#ddd').attr('stroke', '#000').attr('stroke-width', 2);
                 newNodes.append('g').classed('node-inputs', true).selectAll().data(function (d) { return d.inputs; });
                 newNodes.append('g').classed('node-outputs', true).selectAll().data(function (d) { return d.inputs; });
-                var inputs = self.nodeElements.selectAll('.node-inputs').selectAll().data(function (d) { return d.inputs; });
-                inputs.enter().append('g').classed('pin', true).classed('node-input', true).attr('transform', function (d, i) { return translate(0, i * consts.pinSpacing); }).on('mouseup', function (d, i) {
-                    self.pinMouseUp.call(this, d3.select(this), d3.select(this.parentNode).datum(), i);
-                }).append('circle').attr('r', consts.pinSize / 2);
-                inputs.classed('connected', function (d, i) {
-                    var node = d3.select(this.parentNode).datum();
-                    for (var iEdge in func.edges) {
-                        var edge = func.edges[iEdge];
-                        if (edge.targetNode === node && edge.targetPin === i) {
-                            return true;
+                var inputs = self.nodeElements
+                    .select('.node-inputs')
+                    .selectAll('.node-input')
+                    .data(function (d) { return d.inputs; });
+
+                inputs.enter()
+                    .append('g')
+                    .classed('pin', true)
+                    .classed('node-input', true)
+                    .attr('transform', function (d, i) {
+                        return translate(0, i * consts.pinSpacing);
+                    })
+                    .on('mouseup', function (d, i) {
+                        self.pinMouseUp.call(this, d3.select(this), d3.select(this.parentNode).datum(), i);
+                    })
+                    .append('circle')
+                    .attr('r', consts.pinSize / 2);
+                    inputs.classed('connected', function (d, i) {
+                        var node = d3.select(this.parentNode).datum();
+                        for (var iEdge in func.edges) {
+                            var edge = func.edges[iEdge];
+                            if (edge.targetNode === node && edge.targetPin === i) {
+                                return true;
+                            }
                         }
-                    }
-                    return false;
-                });
+                        return false;
+                    });
+
                 inputs.exit().remove();
-                var outputs = self.nodeElements.selectAll('.node-outputs').selectAll().data(function (d) { return d.outputs; });
-                outputs.enter().append('g').classed('pin', true).classed('node-output', true).attr('transform', function (d, i) { return translate(0, i * consts.pinSpacing); }).on('mousedown', function (d, i) {
-                    self.pinMouseDown.call(self, d3.select(this.parentNode).datum(), i);
-                }).append('circle').attr('r', consts.pinSize / 2);
+
+                var outputs = self.nodeElements
+                    .select('.node-outputs')
+                    .selectAll('.node-output')
+                    .data(function (d) { return d.outputs; });
+
+                outputs.enter()
+                    .append('g')
+                    .classed('pin', true)
+                    .classed('node-output', true)
+                    .attr('transform', function (d, i) {
+                        return translate(0, i * consts.pinSpacing);
+                    })
+                    .on('mousedown', function (d, i) {
+                        self.pinMouseDown.call(self, d3.select(this.parentNode).datum(), i);
+                    })
+                    .append('circle').attr('r', consts.pinSize / 2);
+
                 outputs.classed('connected', function (d, i) {
                     var node = d3.select(this.parentNode).datum();
                     for (var iEdge in func.edges) {
@@ -450,7 +528,9 @@
                     }
                     return false;
                 });
+
                 outputs.exit().remove();
+
                 svg.selectAll('.node').selectAll('.node-shape').attr('height', function (d) {
                     return Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
                 }).attr('transform', function (d) {
@@ -469,19 +549,58 @@
                     return d.sourcePin >= sourcePins.length || d.targetPin >= targetPins.length;
                 }).remove();
                 newNodes.each(function (d) {
-                    var label = d3.select(this).append('g').classed('node-label', true).attr('transform', function (d, i) {
+                    var header = d3.select(this)
+                        .append('g')
+                        .classed('node-header', true);
+                    header.append('path')
+                        .attr('d', topRoundedRect(0, 0, consts.nodeWidth, consts.nodeLabelHeight, consts.nodeCornerRadius));
+                    var label = header.append('g')
+                        .classed('node-label', true)
+                        .on('mousedown', function () {
+                            d3.event.stopPropagation();
+                        })
+                        .on('click', function (d, i) {
+                            self.editText(d3.select(this), d);
+                        });
+                    label.append('rect')
+                        .attr('x', -(consts.nodeWidth - consts.nodeCornerRadius * 4) / 2)
+                        .attr('width', consts.nodeWidth - consts.nodeCornerRadius * 4)
+                        .attr('height', consts.nodeLabelHeight)
+                        .style('fill', 'rgba(255, 255, 255, 0)')
+                        .style('stroke', 'rgba(255, 255, 255, 0)');
+                    label.append('text').attr('transform', translate(0, consts.nodeLabelHeight / 2)).classed('node-function-name', true).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').text(d.title);
+                    var deleteBtn = header.append('g')
+                        .classed('node-delete', true)
+                        .attr('transform', function (d, i) {
+                            return translate(consts.nodeWidth / 2 - consts.nodeCornerRadius, consts.nodeCornerRadius);
+                        })
+                        .on('click', function (d) {
+                            self.deleteNode.call(self, d.id);
+                        });
+                    deleteBtn
+                        .append('circle')
+                        .attr('r', 12);
+                    deleteBtn
+                        .append('text')
+                        .attr('text-anchor', 'middle')
+                        .attr('dominant-baseline', 'middle')
+                        .html('&times;');
+                });
+
+                self.nodeElements.select('.node-header')
+                    .attr('transform', function (d, i) {
                         return translate(0, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
                     });
-                    label.append('path').attr('d', topRoundedRect(0, 0, consts.nodeWidth, consts.nodeLabelHeight, consts.nodeCornerRadius));
-                    label.append('text').attr('transform', translate(0, consts.nodeLabelHeight / 2)).classed('node-function-name', true).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').text(d.title);
-                    var deleteBtn = d3.select(this).append('g').classed('node-delete', true).attr('transform', function (d, i) {
-                        return translate(consts.nodeWidth / 2 - consts.nodeCornerRadius, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2 + consts.nodeCornerRadius);
-                    });
-                    deleteBtn.append('circle').attr('r', 12);
-                    deleteBtn.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').html('&times;');
-                });
+
                 // Remove old nodes.
-                self.nodeElements.exit().remove();
+                var oldNodes = self.nodeElements.exit();
+                oldNodes.selectAll('rect, g')
+                    .transition()
+                    .style('opacity', 0);
+                oldNodes
+                    .transition()
+                    .attr('transform', function (d, i) { return translate(d) + scale(0.75); })
+                    .remove();
                 // Inputs
                 self.inputElements = self.inputElements.data(func.inputs, function (d) { return d; });
                 var newInputs = self.inputElements.enter().insert('g').classed('input', true).attr('transform', function (d, i) { return translate(0, -25 * (func.inputs.length - 1) + 50 * i); }).call(self.drag);
@@ -608,7 +727,6 @@
                 // Update displayed function name.
                 $('.function-name').text(func.name);
             };
-            var consts = GraphCreator.consts;
             this.guid = 800;
             this.func = {
                 name: 'New Function',
@@ -702,14 +820,14 @@
             toSplice.map(function (l) { return func.edges.splice(func.edges.indexOf(l), 1); });
         };
         GraphCreator.prototype.removeSelectFromNode = function () {
-            var state = this.state, consts = GraphCreator.consts;
+            var state = this.state;
             this.nodeElements.filter(function (cd) {
                 return cd.id === state.selectedNode.id;
             }).classed(consts.selectedClass, false);
             state.selectedNode = null;
         };
         GraphCreator.prototype.removeSelectFromEdge = function () {
-            var state = this.state, consts = GraphCreator.consts;
+            var state = this.state;
             this.edgeElements.filter(function (cd) { return cd === state.selectedEdge; }).classed(consts.selectedClass, false);
             state.selectedEdge = null;
         };
@@ -730,7 +848,7 @@
         GraphCreator.prototype.nodeMouseDown = function (d) {
         };
         GraphCreator.prototype.pinMouseDown = function (node, pin) {
-            var consts = GraphCreator.consts, state = this.state, func = this.func;
+            var state = this.state, func = this.func;
             //d3.event.stopPropagation();
             state.mouseDownNode = node;
             state.mouseDownPin = pin;
@@ -739,7 +857,6 @@
             this.dragLine.classed('hidden', false).attr('d', moveto(sourcePos) + lineto(sourcePos));
         };
         GraphCreator.prototype.zoomed = function () {
-            var consts = GraphCreator.consts;
             this.state.justScaleTransGraph = true;
             this.translate = point(d3.event.translate);
             this.zoom = d3.event.scale;
@@ -751,21 +868,25 @@
             var y = window.innerHeight || docEl.clientHeight || bodyEl.clientHeight;
             svg.attr('width', x).attr('height', y);
         };
-        GraphCreator.consts = {
-            selectedClass: 'selected',
-            connectClass: 'connect-node',
-            graphClass: 'graph',
-            activeEditId: 'active-editing',
-            BACKSPACE_KEY: 8,
-            DELETE_KEY: 46,
-            ENTER_KEY: 13,
-            nodeWidth: 150,
-            nodeHeight: 100,
-            nodeLabelHeight: 40,
-            nodeCornerRadius: 20,
-            nodeMargin: 40,
-            pinSize: 16,
-            pinSpacing: 24
+        GraphCreator.prototype.deleteNode = function (nodeId) {
+            var nodeIndex = -1;
+            var func = this.func;
+            for (var i = 0; i < func.nodes.length; i++) {
+                var node = func.nodes[i];
+                if (node.id === nodeId) {
+                    nodeIndex = i;
+                    break;
+                }
+            }
+            if (nodeIndex < 0) {
+                return;
+            }
+            func.nodes.splice(nodeIndex, 1);
+            func.edges = func.edges.filter(function (edge) {
+                return (!edge.sourceNode || edge.sourceNode.id !== nodeId)
+                    && (!edge.targetNode || edge.targetNode.id !== nodeId);
+            });
+            this.updateGraph();
         };
         return GraphCreator;
     })();
