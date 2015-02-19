@@ -197,6 +197,7 @@
             BACKSPACE_KEY: 8,
             DELETE_KEY: 46,
             ENTER_KEY: 13,
+            ESCAPE_KEY: 27,
             nodeWidth: 180,
             nodeHeight: 100,
             nodeLabelHeight: 40,
@@ -220,8 +221,7 @@
                     ctrlPt1[0] = sourcePos[0] + Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt1[0] - sourcePos[0]));
                     ctrlPt2[0] = targetPos[0] - Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt2[0] - targetPos[0]));
                     self.dragLine.attr('d', moveto(sourcePos) + curveto(ctrlPt1, ctrlPt2, targetPos));
-                }
-                else {
+                } else {
                     d.x += d3.event.dx;
                     d.y += d3.event.dy;
                     self.updateGraph();
@@ -293,7 +293,7 @@
                 state.mouseDownNode = null;
             };
             this.createGuid = function () { return ++self.guid; };
-            this.editText = function (d3node, d) {
+            this.editText = function (d3node, d, onStart, onDone) {
                 var htmlEl = d3node.node();
                 var svgBCR = self.svg.node().getBoundingClientRect();
                 var nodeBCR = htmlEl.getBoundingClientRect(),
@@ -302,6 +302,8 @@
                     useHW = curScale > 1 ? nodeBCR.width * 0.71 : consts.nodeWidth * 0.71;
 
                 d3node.selectAll('text').style('display', 'none');
+
+                var oldTitle = d3node.selectAll('text').text();
 
                 // replace with editableconent text
                 var d3txt = self.svg
@@ -321,14 +323,21 @@
                     .text(d.title)
                     .on('mousedown', function (d) {
                         d3.event.stopPropagation();
-                    }).on('keydown', function (d) {
+                    })
+                    .on('keydown', function (d) {
                         d3.event.stopPropagation();
                         if (d3.event.keyCode == consts.ENTER_KEY) {
                             this.blur();
+                        } else if (d3.event.keyCode == consts.ESCAPE_KEY) {
+                            $(this).text(oldTitle);
+                            this.blur();
                         }
-                    }).on('blur', function (d) {
+                    })
+                    .on('blur', function (d) {
+                        if (onDone) {
+                            onDone();
+                        }
                         d.title = this.textContent;
-                            //console.log(d3.select(this));
                         d3.select(this).remove();
                         d3node.selectAll('text').text(this.textContent);
                         d3node.selectAll('text').style('display', null);
@@ -343,6 +352,11 @@
                             }
                         });
                     });
+
+                if (onStart) {
+                    onStart();
+                }
+
                 $('#' + consts.activeEditId)
                     .mouseup(function () { return false; })
                     .focus();
@@ -416,58 +430,29 @@
             this.updateGraph = function (ioUpdated) {
                 if (ioUpdated === void 0) { ioUpdated = false; }
                 var svg = self.svg, state = self.state, func = self.func;
-                self.edgeElements = self.edgeElements.data(func.edges, function (d) {
-                    return (d.sourceNode ? d.sourceNode.id : '-') + '/' + d.sourcePin + '+' + (d.targetNode ? d.targetNode.id : '-') + '/' + d.targetPin;
-                });
-                // update existing paths
-                var pathFn = function (d) {
-                    var sourcePos = d.sourceNode ? add(d.sourceNode, [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + 50 * d.sourcePin];
-                    var targetPos = d.targetNode ? add(d.targetNode, [-consts.nodeWidth / 2, (d.targetPin - (d.targetNode.inputs.length - 1) / 2) * consts.pinSpacing]) : [1000, -25 * (func.outputs.length - 1) + 50 * d.targetPin];
-                    var ctrlPt1 = avg(sourcePos, targetPos);
-                    ctrlPt1[1] = sourcePos[1];
-                    var ctrlPt2 = avg(sourcePos, targetPos);
-                    ctrlPt2[1] = targetPos[1];
-                    ctrlPt1[0] = sourcePos[0] + Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt1[0] - sourcePos[0]));
-                    ctrlPt2[0] = targetPos[0] - Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt2[0] - targetPos[0]));
-                    return moveto(sourcePos) + curveto(ctrlPt1, ctrlPt2, targetPos);
-                };
-                // add new paths
-                self.edgeElements.enter()
-                    .append('path')
-                    .style('marker-end', 'url(#end-arrow)')
-                    .classed('link', true)
-                    .on('mousedown', function (d) {
-                        this.pathMouseDown.call(this, d3.select(this), d);
-                    })
-                    .on('mouseup', function () { state.mouseDownLink = null; });
-                self.edgeElements.style('marker-end', 'url(#end-arrow)').classed(consts.selectedClass, function (d) { return d === state.selectedEdge; });
-                if (ioUpdated) {
-                    self.edgeElements.transition().attr('d', pathFn);
-                } else {
-                    self.edgeElements.attr('d', pathFn);
-                }
-                // remove old links
-                self.edgeElements.exit()
-                    .style('stroke-width', 0)
-                    .transition()
-                    .remove();
+
                 // Update existing nodes.
                 self.nodeElements = self.nodeElements.data(func.nodes, function (d) { return d.id; });
                 self.nodeElements.attr('transform', function (d) { return translate(d); });
                 // Add new nodes.
                 var newNodes = self.nodeElements.enter().append('g').classed('node', true);
-                newNodes.attr('transform', function (d) { return translate(d); }).on('mouseover', function (d) {
-                    if (state.pinDrag) {
-                        d3.select(this).classed(consts.connectClass, true);
-                    }
-                }).on('mouseout', function (d) {
-                    d3.select(this).classed(consts.connectClass, false);
-                }).on('mousedown', function (d) {
-                    d3.event.stopPropagation();
-                    self.nodeMouseDown.call(this, d3.select(this), d);
-                }).on('mouseup', function (d) {
-                    self.nodeMouseUp.call(this, d3.select(this), d);
-                }).call(self.drag);
+                newNodes
+                    .attr('transform', function (d) { return translate(d); }).on('mouseover', function (d) {
+                        if (state.pinDrag) {
+                            d3.select(this).classed(consts.connectClass, true);
+                        }
+                    })
+                    .on('mouseout', function (d) {
+                        d3.select(this).classed(consts.connectClass, false);
+                    })
+                    .on('mousedown', function (d) {
+                        d3.event.stopPropagation();
+                        self.nodeMouseDown.call(this, d3.select(this), d);
+                    })
+                    .on('mouseup', function (d) {
+                        self.nodeMouseUp.call(this, d3.select(this), d);
+                    })
+                    .call(self.drag);
                 newNodes.append('rect').classed('node-shape', true).attr('width', consts.nodeWidth).attr('rx', consts.nodeCornerRadius).attr('ry', consts.nodeCornerRadius).attr('fill', '#ddd').attr('stroke', '#000').attr('stroke-width', 2);
                 newNodes.append('g').classed('node-inputs', true).selectAll().data(function (d) { return d.inputs; });
                 newNodes.append('g').classed('node-outputs', true).selectAll().data(function (d) { return d.inputs; });
@@ -488,16 +473,6 @@
                     })
                     .append('circle')
                     .attr('r', consts.pinSize / 2);
-                    inputs.classed('connected', function (d, i) {
-                        var node = d3.select(this.parentNode).datum();
-                        for (var iEdge in func.edges) {
-                            var edge = func.edges[iEdge];
-                            if (edge.targetNode === node && edge.targetPin === i) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    });
 
                 inputs.exit().remove();
 
@@ -518,38 +493,38 @@
                     })
                     .append('circle').attr('r', consts.pinSize / 2);
 
-                outputs.classed('connected', function (d, i) {
-                    var node = d3.select(this.parentNode).datum();
-                    for (var iEdge in func.edges) {
-                        var edge = func.edges[iEdge];
-                        if (edge.sourceNode === node && edge.sourcePin === i) {
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-
                 outputs.exit().remove();
 
-                svg.selectAll('.node').selectAll('.node-shape').attr('height', function (d) {
-                    return Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
-                }).attr('transform', function (d) {
-                    return translate(-consts.nodeWidth / 2, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
-                });
-                svg.selectAll('.node').selectAll('.node-inputs').attr('transform', function (d) {
-                    return translate(-consts.nodeWidth / 2, -(d.inputs.length - 1) * consts.pinSpacing / 2);
-                });
-                svg.selectAll('.node').selectAll('.node-outputs').attr('transform', function (d) {
-                    return translate(consts.nodeWidth / 2, -(d.outputs.length - 1) * consts.pinSpacing / 2);
-                });
+                svg.selectAll('.node')
+                    .selectAll('.node-shape')
+                    .attr('height', function (d) {
+                        return Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
+                    })
+                    .attr('transform', function (d) {
+                        return translate(-consts.nodeWidth / 2, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+                    });
+                svg.selectAll('.node')
+                    .selectAll('.node-inputs').attr('transform', function (d) {
+                        return translate(-consts.nodeWidth / 2, -(d.inputs.length - 1) * consts.pinSpacing / 2);
+                    });
+                svg.selectAll('.node')
+                    .selectAll('.node-outputs')
+                    .attr('transform', function (d) {
+                        return translate(consts.nodeWidth / 2, -(d.outputs.length - 1) * consts.pinSpacing / 2);
+                    });
                 // Remove paths that from or to non-existent nodes.
-                self.edgeElements.filter(function (d) {
-                    var sourcePins = d.sourceNode ? d.sourceNode.outputs : func.inputs;
-                    var targetPins = d.targetNode ? d.targetNode.inputs : func.outputs;
-                    return d.sourcePin >= sourcePins.length || d.targetPin >= targetPins.length;
-                }).remove();
+                self.edgeElements
+                    .filter(function (d) {
+                        var sourcePins = d.sourceNode ? d.sourceNode.outputs : func.inputs;
+                        var targetPins = d.targetNode ? d.targetNode.inputs : func.outputs;
+                        return d.sourcePin >= sourcePins.length || d.targetPin >= targetPins.length;
+                    })
+                    .remove();
+
+                // Add crap to all the new nodes.
                 newNodes.each(function (d) {
-                    var header = d3.select(this)
+                    var node = d3.select(this);
+                    var header = node
                         .append('g')
                         .classed('node-header', true);
                     header.append('path')
@@ -560,7 +535,13 @@
                             d3.event.stopPropagation();
                         })
                         .on('click', function (d, i) {
-                            self.editText(d3.select(this), d);
+                            self.editText(d3.select(this), d,
+                                function () {
+                                    state.editNode = i;
+                                },
+                                function () {
+                                    state.editNode = null;
+                                });
                         });
                     label.append('rect')
                         .attr('x', -(consts.nodeWidth - consts.nodeCornerRadius * 4) / 2)
@@ -568,7 +549,12 @@
                         .attr('height', consts.nodeLabelHeight)
                         .style('fill', 'rgba(255, 255, 255, 0)')
                         .style('stroke', 'rgba(255, 255, 255, 0)');
-                    label.append('text').attr('transform', translate(0, consts.nodeLabelHeight / 2)).classed('node-function-name', true).attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').text(d.title);
+                    label.append('text')
+                        .attr('transform', translate(0, consts.nodeLabelHeight / 2))
+                        .classed('node-function-name', true)
+                        .attr('text-anchor', 'middle')
+                        .attr('dominant-baseline', 'middle')
+                        .text(d.title);
                     var deleteBtn = header.append('g')
                         .classed('node-delete', true)
                         .attr('transform', function (d, i) {
@@ -585,7 +571,26 @@
                         .attr('text-anchor', 'middle')
                         .attr('dominant-baseline', 'middle')
                         .html('&times;');
+
+                    header.append('g')
+                        .classed('node-results', true)
+                        .selectAll('.node-result')
+                        .data([ 'result1', 'result2', 'result3' ])
+                        .enter()
+                        .append('g')
+                        .classed('.node-result', true)
+                        .attr('transform', function (d, i) { return translate(0, 20 * i); })
+                        .append('rect')
+                        .attr('width', 15)
+                        .attr('height', 15);
                 });
+
+                // Update all the existing nodes.
+                self.nodeElements.select('.node-results')
+                    .style('visibility', function (d, i) {
+                        var state = self.state;
+                        return i === state.editNode ? 'visible' : 'hidden';
+                    });
 
                 self.nodeElements.select('.node-header')
                     .attr('transform', function (d, i) {
@@ -605,15 +610,14 @@
                 self.inputElements = self.inputElements.data(func.inputs, function (d) { return d; });
                 var newInputs = self.inputElements.enter().insert('g').classed('input', true).attr('transform', function (d, i) { return translate(0, -25 * (func.inputs.length - 1) + 50 * i); }).call(self.drag);
                 newInputs.append('circle').attr('r', 0).transition().attr('r', 20);
-                self.inputElements.classed('connected', function (d, i) {
-                    for (var iEdge in func.edges) {
-                        var edge = func.edges[iEdge];
-                        if (!edge.sourceNode && edge.sourcePin === i) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }).on('mousedown', function (d, i) { return self.pinMouseDown.call(self, null, i); }).transition().attr('transform', function (d, i) { return translate(0, -25 * (func.inputs.length - 1) + 50 * i); });
+                self.inputElements
+                    .on('mousedown', function (d, i) {
+                        return self.pinMouseDown.call(self, null, i);
+                    })
+                    .transition()
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.inputs.length - 1) + 50 * i);
+                    });
                 self.inputElements.exit().selectAll('circle').transition().attr('r', 0).remove();
                 // Outputs
                 self.outputElements = self.outputElements.data(func.outputs, function (d) { return d; });
@@ -621,17 +625,14 @@
                     return translate(0, -25 * (func.outputs.length - 1) + 50 * i);
                 });
                 newOutputs.append('circle').attr('r', 0).transition().attr('r', 20);
-                self.outputElements.classed('connected', function (d, i) {
-                    for (var iEdge in func.edges) {
-                        var edge = func.edges[iEdge];
-                        if (!edge.targetNode && edge.targetPin === i) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }).on('mouseup', function (d, i) {
-                    self.pinMouseUp.call(self, d3.select(this), null, i);
-                }).transition().attr('transform', function (d, i) { return translate(0, -25 * (func.outputs.length - 1) + 50 * i); });
+                self.outputElements
+                    .on('mouseup', function (d, i) {
+                        self.pinMouseUp.call(self, d3.select(this), null, i);
+                    })
+                    .transition()
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.outputs.length - 1) + 50 * i);
+                    });
                 self.outputElements.exit().selectAll('circle').transition().attr('r', 0).remove();
                 // IO add/delete buttons
                 var pinAddDeleteButtonRadius = 12;
@@ -697,22 +698,11 @@
                 var newOutputAddButtons = self.outputAddButtons.enter().append('g').classed('pin-add-delete', true).classed('pin-add', true).classed('vanish', true);
                 newOutputAddButtons.append('circle').attr('r', pinAddDeleteButtonRadius);
                 newOutputAddButtons.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').text('+');
-                self.outputAddButtons.on('mousedown', function (d) {
-                    d3.event.stopPropagation();
-                    var i = func.outputs.indexOf(d);
-                    i = i < 0 ? func.outputs.length : i;
-                    func.outputs.splice(i, 0, self.createGuid());
-                    func.edges.forEach(function (edge) {
-                        if (edge.targetNode)
-                            return;
-                        if (edge.targetPin >= i)
-                            edge.targetPin++;
-                    });
-                    self.updateGraph(true);
-                }).on('mouseup', function (d) {
-                    var i = func.outputs.indexOf(d);
-                    i = i < 0 ? func.outputs.length : i;
-                    if (self.state.pinDrag) {
+                self.outputAddButtons
+                    .on('mousedown', function (d) {
+                        d3.event.stopPropagation();
+                        var i = func.outputs.indexOf(d);
+                        i = i < 0 ? func.outputs.length : i;
                         func.outputs.splice(i, 0, self.createGuid());
                         func.edges.forEach(function (edge) {
                             if (edge.targetNode)
@@ -720,10 +710,117 @@
                             if (edge.targetPin >= i)
                                 edge.targetPin++;
                         });
-                        self.pinMouseUp.call(self, null, null, i);
-                    }
-                }).transition().attr('transform', function (d, i) { return translate(0, 25 * (2 * i - func.outputs.length)); });
+                        self.updateGraph(true);
+                    })
+                    .on('mouseup', function (d) {
+                        var i = func.outputs.indexOf(d);
+                        i = i < 0 ? func.outputs.length : i;
+                        if (self.state.pinDrag) {
+                            func.outputs.splice(i, 0, self.createGuid());
+                            func.edges.forEach(function (edge) {
+                                if (edge.targetNode)
+                                    return;
+                                if (edge.targetPin >= i)
+                                    edge.targetPin++;
+                            });
+                            self.pinMouseUp.call(self, null, null, i);
+                        }
+                    })
+                    .transition()
+                    .attr('transform', function (d, i) { return translate(0, 25 * (2 * i - func.outputs.length)); });
                 self.outputAddButtons.exit().remove();
+
+                // Remove edges to pins that no longer exist.
+                var originalNumEdges = func.edges.length;
+                func.edges = func.edges.filter(function (edge) {
+                    var validSource = edge.sourceNode ? edge.sourcePin < edge.sourceNode.outputs.length : edge.sourcePin < func.inputs.length;
+                    var validTarget = edge.targetNode ? edge.targetPin < edge.targetNode.inputs.length : edge.targetPin < func.outputs.length;
+                    return validSource && validTarget;
+                });
+
+                var nowNumEdges = func.edges.length;
+
+                self.edgeElements = self.edgeElements.data(func.edges, function (d) {
+                    return (d.sourceNode ? d.sourceNode.id : '-') + '/' + d.sourcePin + '+' + (d.targetNode ? d.targetNode.id : '-') + '/' + d.targetPin;
+                });
+                // update existing paths
+                var pathFn = function (d) {
+                    var sourcePos = d.sourceNode ? add(d.sourceNode, [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + 50 * d.sourcePin];
+                    var targetPos = d.targetNode ? add(d.targetNode, [-consts.nodeWidth / 2, (d.targetPin - (d.targetNode.inputs.length - 1) / 2) * consts.pinSpacing]) : [1000, -25 * (func.outputs.length - 1) + 50 * d.targetPin];
+                    var ctrlPt1 = avg(sourcePos, targetPos);
+                    ctrlPt1[1] = sourcePos[1];
+                    var ctrlPt2 = avg(sourcePos, targetPos);
+                    ctrlPt2[1] = targetPos[1];
+                    ctrlPt1[0] = sourcePos[0] + Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt1[0] - sourcePos[0]));
+                    ctrlPt2[0] = targetPos[0] - Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt2[0] - targetPos[0]));
+                    return moveto(sourcePos) + curveto(ctrlPt1, ctrlPt2, targetPos);
+                };
+                // add new paths
+                self.edgeElements.enter()
+                    .append('path')
+                    .classed('link', true)
+                    .on('mousedown', function (d) {
+                        this.pathMouseDown.call(this, d3.select(this), d);
+                    })
+                    .on('mouseup', function () { state.mouseDownLink = null; });
+                self.edgeElements
+                    .classed(consts.selectedClass, function (d) { return d === state.selectedEdge; });
+                if (ioUpdated) {
+                    self.edgeElements.transition().attr('d', pathFn);
+                } else {
+                    self.edgeElements.attr('d', pathFn);
+                }
+
+                // remove old links
+                self.edgeElements.exit()
+                    .style('stroke-width', 0)
+                    .transition()
+                    .remove();
+
+                inputs.classed('connected', function (d, i) {
+                    var node = d3.select(this.parentNode).datum();
+                    for (var iEdge in func.edges) {
+                        var edge = func.edges[iEdge];
+                        if (edge.targetNode === node && edge.targetPin === i) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                outputs.classed('connected', function (d, i) {
+                    var node = d3.select(this.parentNode).datum();
+                    for (var iEdge in func.edges) {
+                        var edge = func.edges[iEdge];
+                        if (edge.sourceNode === node && edge.sourcePin === i) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                self.inputElements
+                    .classed('connected', function (d, i) {
+                        for (var iEdge in func.edges) {
+                            var edge = func.edges[iEdge];
+                            if (!edge.sourceNode && edge.sourcePin === i) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+
+                self.outputElements
+                    .classed('connected', function (d, i) {
+                        for (var iEdge in func.edges) {
+                            var edge = func.edges[iEdge];
+                            if (!edge.targetNode && edge.targetPin === i) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+
                 // Update displayed function name.
                 $('.function-name').text(func.name);
             };
