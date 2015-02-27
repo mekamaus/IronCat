@@ -1,5 +1,3 @@
-/// <reference path="../lib/jquery.d.ts" />
-/// <reference path="../lib/d3.d.ts" />
 (function () {
     function _pointFromArgs(args) {
         return point.apply(window, args);
@@ -208,6 +206,7 @@
         };
         function GraphCreator(svg, nodes, edges, inputs, outputs) {
             var self = this;
+            self.state = {};
             this.setIdCt = function (idct) { return self.idct = idct; };
             this.dragmove = function (d) {
                 var state = self.state, func = self.func, svgG = self.svgG;
@@ -522,7 +521,7 @@
                     .remove();
 
                 // Add crap to all the new nodes.
-                newNodes.each(function (d) {
+                newNodes.each(function (d, i) {
                     var node = d3.select(this);
                     var header = node
                         .append('g')
@@ -534,13 +533,15 @@
                         .on('mousedown', function () {
                             d3.event.stopPropagation();
                         })
-                        .on('click', function (d, i) {
+                        .on('click', function () {
                             self.editText(d3.select(this), d,
                                 function () {
                                     state.editNode = i;
+                                    self.updateGraph();
                                 },
                                 function () {
                                     state.editNode = null;
+                                    self.updateGraph();
                                 });
                         });
                     label.append('rect')
@@ -572,17 +573,26 @@
                         .attr('dominant-baseline', 'middle')
                         .html('&times;');
 
-                    header.append('g')
+                    var results = header.append('g')
                         .classed('node-results', true)
                         .selectAll('.node-result')
                         .data([ 'result1', 'result2', 'result3' ])
                         .enter()
                         .append('g')
                         .classed('.node-result', true)
-                        .attr('transform', function (d, i) { return translate(0, 20 * i); })
-                        .append('rect')
-                        .attr('width', 15)
+                        .attr('transform', function (d, i) { return translate(0, 2 * consts.nodeCornerRadius + 20 * i); });
+
+                    results.append('rect')
+                        .style('fill', 'black')
+                        .attr('x', -consts.nodeWidth / 2)
+                        .attr('width', consts.nodeWidth)
                         .attr('height', 15);
+                    results
+                        .append('text')
+                        .attr('y', 7.5)
+                        .attr('text-anchor', 'middle')
+                        .attr('dominant-baseline', 'middle')
+                        .text('asdf');
                 });
 
                 // Update all the existing nodes.
@@ -608,7 +618,14 @@
                     .remove();
                 // Inputs
                 self.inputElements = self.inputElements.data(func.inputs, function (d) { return d; });
-                var newInputs = self.inputElements.enter().insert('g').classed('input', true).attr('transform', function (d, i) { return translate(0, -25 * (func.inputs.length - 1) + 50 * i); }).call(self.drag);
+                var newInputs = self.inputElements
+                    .enter()
+                    .insert('g')
+                    .classed('input', true)
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.inputs.length - 1) + 50 * i);
+                    })
+                    .call(self.drag);
                 newInputs.append('circle').attr('r', 0).transition().attr('r', 20);
                 self.inputElements
                     .on('mousedown', function (d, i) {
@@ -621,9 +638,13 @@
                 self.inputElements.exit().selectAll('circle').transition().attr('r', 0).remove();
                 // Outputs
                 self.outputElements = self.outputElements.data(func.outputs, function (d) { return d; });
-                var newOutputs = self.outputElements.enter().insert('g').classed('output', true).attr('transform', function (d, i) {
-                    return translate(0, -25 * (func.outputs.length - 1) + 50 * i);
-                });
+                var newOutputs = self.outputElements
+                    .enter()
+                    .insert('g')
+                    .classed('output', true)
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.outputs.length - 1) + 50 * i);
+                    });
                 newOutputs.append('circle').attr('r', 0).transition().attr('r', 20);
                 self.outputElements
                     .on('mouseup', function (d, i) {
@@ -637,23 +658,36 @@
                 // IO add/delete buttons
                 var pinAddDeleteButtonRadius = 12;
                 self.inputDeleteButtons = self.inputDeleteButtons.data(func.inputs, function (d) { return d; });
-                var newInputDeleteButtons = self.inputDeleteButtons.enter().append('g').classed('pin-add-delete', true).classed('pin-delete', true).classed('vanish', true);
+                var newInputDeleteButtons = self.inputDeleteButtons
+                    .enter()
+                    .append('g')
+                    .classed('pin-add-delete', true)
+                    .classed('pin-delete', true)
+                    .classed('vanish', true);
                 newInputDeleteButtons.append('circle').attr('r', pinAddDeleteButtonRadius);
-                newInputDeleteButtons.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').html('&times;');
-                self.inputDeleteButtons.on('mousedown', function (d, i) {
-                    d3.event.stopPropagation();
-                    func.edges = func.edges.filter(function (edge) {
-                        if (edge.sourceNode)
+                newInputDeleteButtons.append('text')
+                    .attr('text-anchor', 'middle')
+                    .attr('dominant-baseline', 'middle')
+                    .html('&times;');
+                self.inputDeleteButtons
+                    .on('mousedown', function (d, i) {
+                        d3.event.stopPropagation();
+                        func.edges = func.edges.filter(function (edge) {
+                            if (edge.sourceNode)
+                                return true;
+                            if (edge.sourcePin === i)
+                                return false;
+                            if (edge.sourcePin > i)
+                                edge.sourcePin--;
                             return true;
-                        if (edge.sourcePin === i)
-                            return false;
-                        if (edge.sourcePin > i)
-                            edge.sourcePin--;
-                        return true;
+                        });
+                        func.inputs.splice(i, 1);
+                        self.updateGraph(true);
+                    })
+                    .transition()
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.inputs.length - 1) + 50 * i);
                     });
-                    func.inputs.splice(i, 1);
-                    self.updateGraph(true);
-                }).transition().attr('transform', function (d, i) { return translate(0, -25 * (func.inputs.length - 1) + 50 * i); });
                 self.inputDeleteButtons.exit().remove();
                 var inputAddSpots = func.inputs.concat(['end']);
                 self.inputAddButtons = self.inputAddButtons.data(inputAddSpots, function (d) { return d; });
