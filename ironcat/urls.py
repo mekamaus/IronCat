@@ -17,4 +17,5 @@ urlpatterns = patterns(
     url(r'^evaluate/', 'evaluate'),
     url(r'^contribute/', 'contribute'),
     url(r'^search/', 'search'),
+    url(r'^save_function/', 'save_function'),
 )

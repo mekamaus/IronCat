@@ -258,4 +258,9 @@ def search(request):
     except Exception as e:
         return json_error(e)
 
+
+def save_function(request):
+    function = json.loads(request.GET['function'])
+    function_engine.save_function(function)
+
 # endregion

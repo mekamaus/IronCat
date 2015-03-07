@@ -423,3 +423,12 @@ def search(q):
 
 def get_function_by_id(function_id):
     return Function.objects.get(id=function_id)
+
+
+def save_function(function):
+    if 'id' in function:
+        # TODO: save the function
+        pass
+    else:
+        # TODO: create new function
+        pass
