@@ -175,6 +175,35 @@ text {
 .node:hover .node-delete:hover text {
   fill: #ffffff;
 }
-.node .node-results text {
+.node .search-results .search-result.selected rect {
+  fill: #606060;
+  stroke: #000000;
+}
+.node .search-results .search-result.selected text {
+  fill: #ffff00;
+}
+.node .search-results .search-result rect {
+  fill: #000000;
+  stroke: #d0d0d0;
+  stroke-width: 1px;
+  transition: all 0.15s;
+}
+.node .search-results .search-result text {
   fill: #ffffff;
+  transition: all 0.15s;
+}
+p:focus {
+  outline: none;
+}
+p::-moz-selection {
+  background: rgba(0, 0, 255, 0.99);
+  color: #00ff88;
+}
+p::-webkit-selection {
+  background: rgba(0, 0, 255, 0.99);
+  color: #00ff88;
+}
+p::selection {
+  background: rgba(0, 0, 255, 0.99);
+  color: #00ff88;
 }

@@ -114,7 +114,8 @@ def json_encoder_default(o):
             'description': o.description,
             'input_types': json.loads(o.input_types_json or '[]'),
             'output_types': json.loads(o.output_types_json or '[]'),
-            'primitive': o.primitive
+            'primitive': o.primitive,
+            'id': o.id
         }
     if isinstance(o, Photon):
         return {

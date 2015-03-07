@@ -16,4 +16,5 @@ urlpatterns = patterns(
     url(r'^delete_wire/', 'delete_wire'),
     url(r'^evaluate/', 'evaluate'),
     url(r'^contribute/', 'contribute'),
+    url(r'^search/', 'search'),
 )

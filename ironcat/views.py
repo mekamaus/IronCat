@@ -153,15 +153,20 @@ def create_function(request):
 
 
 def get_function(request):
-
-    name = request.GET['name']
-
-    try:
-        function = function_engine.get_function(name)
-    except Exception as e:
-        return json_error(e)
-
-    return json_success({'function': function})
+    if 'name' in request.GET:
+        name = request.GET['name']
+        try:
+            function = function_engine.get_function(name)
+        except Exception as e:
+            return json_error(e)
+        return json_success({'function': function})
+    elif 'id' in request.GET:
+        function_id = request.GET['id']
+        try:
+            results = function_engine.get_function_by_id(function_id)
+            return json_success({'results': results})
+        except Exception as e:
+            return json_error(e)
 
 
 def delete_function(request):
@@ -243,5 +248,14 @@ def create_wire(request):
 
 def delete_wire(request):
     return delete_object(Wire, request)
+
+
+def search(request):
+    q = request.GET['q']
+    try:
+        results = function_engine.search(q)
+        return json_success({'results': results})
+    except Exception as e:
+        return json_error(e)
 
 # endregion

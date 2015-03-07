@@ -413,3 +413,13 @@ def evaluate_node(node, inputs):
         if not inputs[i] or (isinstance(inputs[i], Photon) and inputs[i].type == PhotonTypes.none):
             inputs[i] = Photon(default_inputs[i])
     return evaluate_function(node.inner_function, inputs)
+
+
+def search(q):
+    results = Function.objects.filter(name__icontains=q)
+    results = [result for result in results if result.name.startswith(q)]
+    return results
+
+
+def get_function_by_id(function_id):
+    return Function.objects.get(id=function_id)

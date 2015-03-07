@@ -207,6 +207,7 @@
         function GraphCreator(svg, nodes, edges, inputs, outputs) {
             var self = this;
             self.state = {};
+            self.searchResults = [];
             this.setIdCt = function (idct) { return self.idct = idct; };
             this.dragmove = function (d) {
                 var state = self.state, func = self.func, svgG = self.svgG;
@@ -292,7 +293,7 @@
                 state.mouseDownNode = null;
             };
             this.createGuid = function () { return ++self.guid; };
-            this.editText = function (d3node, d, onStart, onDone) {
+            this.editText = function (d3node, d, onStart, onDone, onUpdate, onKeyDown) {
                 var htmlEl = d3node.node();
                 var svgBCR = self.svg.node().getBoundingClientRect();
                 var nodeBCR = htmlEl.getBoundingClientRect(),
@@ -304,18 +305,18 @@
 
                 var oldTitle = d3node.selectAll('text').text();
 
-                // replace with editableconent text
+                // replace with editable text
                 var d3txt = self.svg
                     .selectAll('foreignObject')
                     .data([d]).enter().append('foreignObject')
                     .attr('x', nodeBCR.left - svgBCR.left)
-                    .attr('y', nodeBCR.top - svgBCR.top - nodeBCR.height / 2 + 28)
+                    .attr('y', nodeBCR.top - svgBCR.top - nodeBCR.height / 2 + 8)
                     .attr('height', nodeBCR.height)
                     .attr('width', nodeBCR.width)
                     .append('xhtml:p')
                     .attr('id', consts.activeEditId)
                     .attr('contentEditable', 'true')
-                    .style('font-family', "Josefin Sans','Helvetica Neue',Helvetica,Arial,sans-serif")
+                    .style('font-family', '"Josefin Sans","Helvetica Neue",Helvetica,Arial,sans-serif')
                     .style('color', '#ff0')
                     .style('font-size', '16px')
                     .style('font-weight', '900')
@@ -331,25 +332,34 @@
                             $(this).text(oldTitle);
                             this.blur();
                         }
+
+                        if (!$(this).is(':focus')) return;
+
+                        if (onKeyDown) {
+                            onKeyDown(d3.event.keyCode, this);
+                        }
+
+                        if (onUpdate) {
+                            var $this = $(this);
+                            clearTimeout(window.pendingSearch);
+                            window.pendingSearch = setTimeout(function () {
+                                window.pendingSearch = null;
+                                var newText = $this.text();
+                                if (newText === window.oldText) return;
+                                window.oldText = newText;
+                                onUpdate(newText);
+                            }, 250);
+                        }
                     })
                     .on('blur', function (d) {
-                        if (onDone) {
-                            onDone();
-                        }
-                        d.title = this.textContent;
+                        window.oldText = null;
+                        var text = this.textContent;
+                        d.title = text;
                         d3.select(this).remove();
                         d3node.selectAll('text').text(this.textContent);
                         d3node.selectAll('text').style('display', null);
-                        $.when($.getJSON('/get_function/', { name: d.title })).then(function (result) {
-                            if (result.success) {
-                                var fn = result.function;
-                                console.log('Got function', fn);
-                                d.inputs = fn.input_types;
-                                d.outputs = fn.output_types;
-                                d.functionId = fn.id;
-                                self.updateGraph();
-                            }
-                        });
+                        clearTimeout(window.pendingSearch);
+                        if (onDone) onDone(text);
                     });
 
                 if (onStart) {
@@ -458,7 +468,7 @@
                 var inputs = self.nodeElements
                     .select('.node-inputs')
                     .selectAll('.node-input')
-                    .data(function (d) { return d.inputs; });
+                    .data(function (d) { console.log(d); return d.inputs; });
 
                 inputs.enter()
                     .append('g')
@@ -521,9 +531,9 @@
                     .remove();
 
                 // Add crap to all the new nodes.
-                newNodes.each(function (d, i) {
-                    var node = d3.select(this);
-                    var header = node
+                newNodes.each(function (node, i) {
+                    var nodeElement = d3.select(this);
+                    var header = nodeElement
                         .append('g')
                         .classed('node-header', true);
                     header.append('path')
@@ -534,28 +544,73 @@
                             d3.event.stopPropagation();
                         })
                         .on('click', function () {
-                            self.editText(d3.select(this), d,
-                                function () {
+                            self.editText(d3.select(this), node,
+                                function (value) {
                                     state.editNode = i;
+                                    self.searchResults = [];
                                     self.updateGraph();
                                 },
-                                function () {
+                                function (value) {
                                     state.editNode = null;
+
+                                    fn = self.searchResults[self.selectedSearchResult];
+                                    node.inputs = fn.input_types;
+                                    node.outputs = fn.output_types;
+                                    node.functionId = fn.id;
+                                    node.title = fn.name;
+                                    nodeElement.select('.node-function-name').text(fn.name);
                                     self.updateGraph();
+                                },
+                                function (value) {
+                                    if (!value) {
+                                        self.searchResults = [];
+                                        self.updateGraph();
+                                        return;
+                                    }
+                                    $.when($.getJSON('/search/', { q: value })).then(function (data) {
+                                        self.searchResults = data.results;
+                                        self.selectedSearchResult = 0;
+                                        self.updateGraph();
+                                        nodeElement.select('.search-result')
+                                            .classed('selected', function (d, i) {
+                                                return i === self.selectedSearchResult;
+                                            });
+                                    });
+                                },
+                                function (keyCode, textbox) {
+                                    if (keyCode === 38) {
+                                        self.selectedSearchResult = (((self.selectedSearchResult - 1) % self.searchResults.length) + self.searchResults.length) % self.searchResults.length;
+                                        nodeElement.selectAll('.search-result')
+                                            .classed('selected', function (d, i) {
+                                                console.log(i, self.selectedSearchResult);
+                                                return i === self.selectedSearchResult;
+                                            });
+                                    } else if (keyCode === 40) {
+                                        self.selectedSearchResult = (self.selectedSearchResult + 1) % self.searchResults.length;
+                                        nodeElement.selectAll('.search-result')
+                                            .classed('selected', function (d, i) {
+                                                console.log(i, self.selectedSearchResult);
+                                                return i === self.selectedSearchResult;
+                                            });
+                                    }
                                 });
                         });
                     label.append('rect')
                         .attr('x', -(consts.nodeWidth - consts.nodeCornerRadius * 4) / 2)
+                        .attr('y', 10)
+                        .attr('rx', 10)
+                        .attr('ry', 10)
                         .attr('width', consts.nodeWidth - consts.nodeCornerRadius * 4)
-                        .attr('height', consts.nodeLabelHeight)
+                        .attr('height', consts.nodeLabelHeight * 0.5)
                         .style('fill', 'rgba(255, 255, 255, 0)')
-                        .style('stroke', 'rgba(255, 255, 255, 0)');
+                        .style('stroke', 'rgba(255, 255, 255, 255)')
+                        .style('stroke-width', 1);
                     label.append('text')
-                        .attr('transform', translate(0, consts.nodeLabelHeight / 2))
+                        .attr('transform', translate(0, consts.nodeLabelHeight * 0.5))
                         .classed('node-function-name', true)
                         .attr('text-anchor', 'middle')
                         .attr('dominant-baseline', 'middle')
-                        .text(d.title);
+                        .text(node.title);
                     var deleteBtn = header.append('g')
                         .classed('node-delete', true)
                         .attr('transform', function (d, i) {
@@ -573,30 +628,93 @@
                         .attr('dominant-baseline', 'middle')
                         .html('&times;');
 
-                    var results = header.append('g')
-                        .classed('node-results', true)
-                        .selectAll('.node-result')
-                        .data([ 'result1', 'result2', 'result3' ])
-                        .enter()
-                        .append('g')
-                        .classed('.node-result', true)
-                        .attr('transform', function (d, i) { return translate(0, 2 * consts.nodeCornerRadius + 20 * i); });
-
-                    results.append('rect')
-                        .style('fill', 'black')
-                        .attr('x', -consts.nodeWidth / 2)
-                        .attr('width', consts.nodeWidth)
-                        .attr('height', 15);
-                    results
-                        .append('text')
-                        .attr('y', 7.5)
-                        .attr('text-anchor', 'middle')
-                        .attr('dominant-baseline', 'middle')
-                        .text('asdf');
+                    header.append('g')
+                        .classed('search-results', true)
+                        .attr('transform', translate(0, 0));
                 });
 
+                self.nodeElements.each(function (d, i) {
+
+                    var nodeElement = d3.select(this);
+
+                    var node = nodeElement.datum();
+
+                    if (i !== self.state.editNode) return;
+
+                    var results = nodeElement.select('.search-results').selectAll('.search-result')
+                        .data(self.searchResults, function (d) { return d.name; });
+
+                    var newResults = results.enter()
+                        .append('g')
+                        .classed('search-result', true)
+                        .on('click', function (fn) {
+                            console.log('Got function', fn);
+                            d.inputs = fn.input_types;
+                            d.outputs = fn.output_types;
+                            d.functionId = fn.id;
+                            node.title = fn.name;
+                            nodeElement.select('.node-function-name').text(fn.name);
+                            self.updateGraph();
+                        });
+
+                    results
+                        .attr('transform', function (d, i) {
+                            return translate(0, 2 * consts.nodeCornerRadius + 20 * i);
+                        })
+                        .on('mouseover', function(d, i) {
+                            self.selectedSearchResult = i;
+                            results.classed('selected', function(d, i) {
+                                return i === self.selectedSearchResult;
+                            });
+                        });
+
+                    newResults.append('rect')
+                        .attr('x', -consts.nodeWidth / 2 + 15)
+                        .attr('width', consts.nodeWidth - 30)
+                        .attr('height', 20)
+                        .attr('rx', 10)
+                        .attr('ry', 10);
+
+                    newResults.append('text')
+                        .attr('y', 10)
+                        .attr('text-anchor', 'middle')
+                        .attr('dominant-baseline', 'middle')
+                        .text(function (d) { return d.name; });
+
+                    results.exit().remove();
+                });
+
+                var editNodeData = self.func.nodes[self.state.editNode];
+
+                var results = d3.select('.search-results').selectAll('.search-result')
+                    .data(self.searchResults, function (d) { return d.name; });
+
+                var newResults = results.enter()
+                    .append('g')
+                    .classed('search-result', true)
+                    .attr('transform', function (d, i) {
+                        return translate(0, 2 * consts.nodeCornerRadius + 20 * i);
+                    });
+
+                newResults.append('rect')
+                    .style('fill', 'black')
+                    .attr('x', -consts.nodeWidth / 2)
+                    .attr('width', consts.nodeWidth)
+                    .attr('height', 15);
+
+                newResults
+                    .append('text')
+                    .attr('y', 7.5)
+                    .attr('text-anchor', 'middle')
+                    .attr('dominant-baseline', 'middle')
+                    .text(function (d) { return d.name; });
+
+                var oldResults = results.exit();
+
+                oldResults.remove();
+
                 // Update all the existing nodes.
-                self.nodeElements.select('.node-results')
+                self.nodeElements.select('.search-results')
                     .style('visibility', function (d, i) {
                         var state = self.state;
                         return i === state.editNode ? 'visible' : 'hidden';
@@ -907,27 +1025,34 @@
             }).on('dragend', function () {
             });
             // listen for key events
-            d3.select(window).on('keydown', function () { return self.svgKeyDown.call(self); }).on('keyup', function () { return self.svgKeyUp.call(self); });
-            svg.on('mousedown', function (d) { return self.svgMouseDown.call(self, d); }).on('mouseup', function (d) { return self.svgMouseUp.call(self, d); });
+            d3.select(window)
+                .on('keydown', function () {
+                    return self.svgKeyDown.call(self);
+                })
+                .on('keyup', function () {
+                    return self.svgKeyUp.call(self);
+                });
+            svg
+                .on('mousedown', function (d) {
+                    return self.svgMouseDown.call(self, d);
+                })
+                .on('mouseup', function (d) {
+                    return self.svgMouseUp.call(self, d);
+                });
             // listen for pinDrag
-            var dragSvg = d3.behavior.zoom().on('zoom', function () {
-                /*if (d3.event.sourceEvent.shiftKey) {
-                    // TODO  the internal d3 state is still changing
-                    return false;
-                } else {*/
-                self.zoomed.call(self);
-                /*}*/
-                return true;
-            }).on('zoomstart', function () {
-                var ael = d3.select('#' + consts.activeEditId).node();
-                if (ael) {
-                }
-                /*if (!d3.event.sourceEvent.shiftKey) {
-                    d3.select('body').style('cursor', 'move');
-                }*/
-            }).on('zoomend', function () {
-                d3.select('body').style('cursor', 'auto');
-            });
+            var dragSvg = d3.behavior.zoom()
+                .on('zoom', function () {
+                    //if (d3.event.sourceEvent.shiftKey) {
+                    //    // TODO  the internal d3 state is still changing
+                    //    return false;
+                    //} else {
+                    self.zoomed.call(self);
+                    //}
+                    return true;
+                })
+                .on('zoomend', function () {
+                    d3.select('body').style('cursor', 'auto');
+                });
             svg.call(dragSvg).on('dblclick.zoom', null);
             // listen for resize
             window.onresize = function () { return self.updateWindow(svg); };
@@ -947,7 +1072,8 @@
             sel.addRange(range);
         };
         GraphCreator.prototype.spliceLinksForNode = function (node) {
-            var func = this.func, toSplice = func.edges.filter(function (l) { return l.sourceNode === node || l.targetNode === node; });
+            var func = this.func,
+                toSplice = func.edges.filter(function (l) { return l.sourceNode === node || l.targetNode === node; });
             toSplice.map(function (l) { return func.edges.splice(func.edges.indexOf(l), 1); });
         };
         GraphCreator.prototype.removeSelectFromNode = function () {
@@ -984,7 +1110,9 @@
             state.mouseDownNode = node;
             state.mouseDownPin = pin;
             state.pinDrag = true;
-            var sourcePos = node ? add(node, [consts.nodeWidth / 2, (pin - (node.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + pin * 50];
+            var sourcePos = node
+                ? add(node, [consts.nodeWidth / 2, (pin - (node.outputs.length - 1) / 2) * consts.pinSpacing])
+                : [0, -25 * (func.inputs.length - 1) + pin * 50];
             this.dragLine.classed('hidden', false).attr('d', moveto(sourcePos) + lineto(sourcePos));
         };
         GraphCreator.prototype.zoomed = function () {
@@ -1161,4 +1289,3 @@
         });
     });
 })();
-//# sourceMappingURL=nodes.js.map
