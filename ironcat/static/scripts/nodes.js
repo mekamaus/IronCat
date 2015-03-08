@@ -212,7 +212,7 @@
             this.dragmove = function (d) {
                 var state = self.state, func = self.func, svgG = self.svgG;
                 if (state.pinDrag) {
-                    var sourcePos = d.outputs ? add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + state.mouseDownPin * 50];
+                    var sourcePos = (d.func && d.func.outputs) ? add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.func.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + state.mouseDownPin * 50];
                     var targetPos = d3.mouse(svgG.node());
                     var ctrlPt1 = avg(sourcePos, targetPos);
                     ctrlPt1[1] = sourcePos[1];
@@ -320,7 +320,7 @@
                     .style('color', '#ff0')
                     .style('font-size', '16px')
                     .style('font-weight', '900')
-                    .text(d.title)
+                    .text(d.func.name)
                     .on('mousedown', function (d) {
                         d3.event.stopPropagation();
                     })
@@ -345,18 +345,16 @@
                             window.pendingSearch = setTimeout(function () {
                                 window.pendingSearch = null;
                                 var newText = $this.text();
-                                if (newText === window.oldText) return;
-                                window.oldText = newText;
+                                if (newText === this.textContent) return;
+                                this.textContent = newText;
                                 onUpdate(newText);
                             }, 250);
                         }
                     })
                     .on('blur', function (d) {
-                        window.oldText = null;
                         var text = this.textContent;
-                        d.title = text;
+                        this.textContent = null;
                         d3.select(this).remove();
-                        d3node.selectAll('text').text(this.textContent);
                         d3node.selectAll('text').style('display', null);
                         clearTimeout(window.pendingSearch);
                         if (onDone) onDone(text);
@@ -387,15 +385,18 @@
                     // clicked not dragged from svg
                     var xycoords = d3.mouse(self.svgG.node()), d = {
                         id: self.idct++,
-                        title: 'new concept',
+                        func: {
+                            id: null,
+                            name: '(click here)',
+                            inputs: [
+                                1
+                            ],
+                            outputs: [
+                                1
+                            ]
+                        },
                         x: xycoords[0],
-                        y: xycoords[1],
-                        inputs: [
-                            1
-                        ],
-                        outputs: [
-                            1
-                        ]
+                        y: xycoords[1]
                     };
                     func.nodes.push(d);
                     self.updateGraph();
@@ -463,12 +464,12 @@
                     })
                     .call(self.drag);
                 newNodes.append('rect').classed('node-shape', true).attr('width', consts.nodeWidth).attr('rx', consts.nodeCornerRadius).attr('ry', consts.nodeCornerRadius).attr('fill', '#ddd').attr('stroke', '#000').attr('stroke-width', 2);
-                newNodes.append('g').classed('node-inputs', true).selectAll().data(function (d) { return d.inputs; });
-                newNodes.append('g').classed('node-outputs', true).selectAll().data(function (d) { return d.inputs; });
+                newNodes.append('g').classed('node-inputs', true).selectAll().data(function (d) { return d.func.inputs; });
+                newNodes.append('g').classed('node-outputs', true).selectAll().data(function (d) { return d.func.inputs; });
                 var inputs = self.nodeElements
                     .select('.node-inputs')
                     .selectAll('.node-input')
-                    .data(function (d) { console.log(d); return d.inputs; });
+                    .data(function (d) { return d.func.inputs; });
 
                 inputs.enter()
                     .append('g')
@@ -488,7 +489,7 @@
                 var outputs = self.nodeElements
                     .select('.node-outputs')
                     .selectAll('.node-output')
-                    .data(function (d) { return d.outputs; });
+                    .data(function (d) { return d.func.outputs; });
 
                 outputs.enter()
                     .append('g')
@@ -507,25 +508,25 @@
                 svg.selectAll('.node')
                     .selectAll('.node-shape')
                     .attr('height', function (d) {
-                        return Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
+                        return Math.max(d.func.inputs.length, d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
                     })
                     .attr('transform', function (d) {
-                        return translate(-consts.nodeWidth / 2, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+                        return translate(-consts.nodeWidth / 2, -(Math.max(d.func.inputs.length, d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
                     });
                 svg.selectAll('.node')
                     .selectAll('.node-inputs').attr('transform', function (d) {
-                        return translate(-consts.nodeWidth / 2, -(d.inputs.length - 1) * consts.pinSpacing / 2);
+                        return translate(-consts.nodeWidth / 2, -(d.func.inputs.length - 1) * consts.pinSpacing / 2);
                     });
                 svg.selectAll('.node')
                     .selectAll('.node-outputs')
                     .attr('transform', function (d) {
-                        return translate(consts.nodeWidth / 2, -(d.outputs.length - 1) * consts.pinSpacing / 2);
+                        return translate(consts.nodeWidth / 2, -(d.func.outputs.length - 1) * consts.pinSpacing / 2);
                     });
                 // Remove paths that from or to non-existent nodes.
                 self.edgeElements
                     .filter(function (d) {
-                        var sourcePins = d.sourceNode ? d.sourceNode.outputs : func.inputs;
-                        var targetPins = d.targetNode ? d.targetNode.inputs : func.outputs;
+                        var sourcePins = d.sourceNode ? d.sourceNode.func.outputs : func.inputs;
+                        var targetPins = d.targetNode ? d.targetNode.func.inputs : func.outputs;
                         return d.sourcePin >= sourcePins.length || d.targetPin >= targetPins.length;
                     })
                     .remove();
@@ -553,12 +554,9 @@
                                 function (value) {
                                     state.editNode = null;
 
-                                    fn = self.searchResults[self.selectedSearchResult];
-                                    node.inputs = fn.input_types;
-                                    node.outputs = fn.output_types;
-                                    node.functionId = fn.id;
-                                    node.title = fn.name;
-                                    nodeElement.select('.node-function-name').text(fn.name);
+                                    var fn = self.searchResults[self.selectedSearchResult];
+                                    node.func = fn || node.func;
+                                    nodeElement.select('.node-function-name').text(node.func.name);
                                     self.updateGraph();
                                 },
                                 function (value) {
@@ -582,14 +580,12 @@
                                         self.selectedSearchResult = (((self.selectedSearchResult - 1) % self.searchResults.length) + self.searchResults.length) % self.searchResults.length;
                                         nodeElement.selectAll('.search-result')
                                             .classed('selected', function (d, i) {
-                                                console.log(i, self.selectedSearchResult);
                                                 return i === self.selectedSearchResult;
                                             });
                                     } else if (keyCode === 40) {
                                         self.selectedSearchResult = (self.selectedSearchResult + 1) % self.searchResults.length;
                                         nodeElement.selectAll('.search-result')
                                             .classed('selected', function (d, i) {
-                                                console.log(i, self.selectedSearchResult);
                                                 return i === self.selectedSearchResult;
                                             });
                                     }
@@ -610,7 +606,7 @@
                         .classed('node-function-name', true)
                         .attr('text-anchor', 'middle')
                         .attr('dominant-baseline', 'middle')
-                        .text(node.title);
+                        .text(node.func.name);
                     var deleteBtn = header.append('g')
                         .classed('node-delete', true)
                         .attr('transform', function (d, i) {
@@ -633,11 +629,9 @@
                         .attr('transform', translate(0, 0));
                 });
 
-                self.nodeElements.each(function (d, i) {
+                self.nodeElements.each(function (node, i) {
 
                     var nodeElement = d3.select(this);
-
-                    var node = nodeElement.datum();
 
                     if (i !== self.state.editNode) return;
 
@@ -648,11 +642,7 @@
                         .append('g')
                         .classed('search-result', true)
                         .on('click', function (fn) {
-                            console.log('Got function', fn);
-                            d.inputs = fn.input_types;
-                            d.outputs = fn.output_types;
-                            d.functionId = fn.id;
-                            node.title = fn.name;
+                            node.func = fn || node.func;
                             nodeElement.select('.node-function-name').text(fn.name);
                             self.updateGraph();
                         });
@@ -722,7 +712,7 @@
 
                 self.nodeElements.select('.node-header')
                     .attr('transform', function (d, i) {
-                        return translate(0, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+                        return translate(0, -(Math.max(d.func.inputs.length, d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
                     });
 
                 // Remove old nodes.
@@ -885,8 +875,8 @@
                 // Remove edges to pins that no longer exist.
                 var originalNumEdges = func.edges.length;
                 func.edges = func.edges.filter(function (edge) {
-                    var validSource = edge.sourceNode ? edge.sourcePin < edge.sourceNode.outputs.length : edge.sourcePin < func.inputs.length;
-                    var validTarget = edge.targetNode ? edge.targetPin < edge.targetNode.inputs.length : edge.targetPin < func.outputs.length;
+                    var validSource = edge.sourceNode ? edge.sourcePin < edge.sourceNode.func.outputs.length : edge.sourcePin < func.inputs.length;
+                    var validTarget = edge.targetNode ? edge.targetPin < edge.targetNode.func.inputs.length : edge.targetPin < func.outputs.length;
                     return validSource && validTarget;
                 });
 
@@ -897,8 +887,8 @@
                 });
                 // update existing paths
                 var pathFn = function (d) {
-                    var sourcePos = d.sourceNode ? add(d.sourceNode, [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + 50 * d.sourcePin];
-                    var targetPos = d.targetNode ? add(d.targetNode, [-consts.nodeWidth / 2, (d.targetPin - (d.targetNode.inputs.length - 1) / 2) * consts.pinSpacing]) : [1000, -25 * (func.outputs.length - 1) + 50 * d.targetPin];
+                    var sourcePos = d.sourceNode ? add(d.sourceNode, [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.func.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + 50 * d.sourcePin];
+                    var targetPos = d.targetNode ? add(d.targetNode, [-consts.nodeWidth / 2, (d.targetPin - (d.targetNode.func.inputs.length - 1) / 2) * consts.pinSpacing]) : [1000, -25 * (func.outputs.length - 1) + 50 * d.targetPin];
                     var ctrlPt1 = avg(sourcePos, targetPos);
                     ctrlPt1[1] = sourcePos[1];
                     var ctrlPt2 = avg(sourcePos, targetPos);
@@ -1111,7 +1101,7 @@
             state.mouseDownPin = pin;
             state.pinDrag = true;
             var sourcePos = node
-                ? add(node, [consts.nodeWidth / 2, (pin - (node.outputs.length - 1) / 2) * consts.pinSpacing])
+                ? add(node, [consts.nodeWidth / 2, (pin - (node.func.outputs.length - 1) / 2) * consts.pinSpacing])
                 : [0, -25 * (func.inputs.length - 1) + pin * 50];
             this.dragLine.classed('hidden', false).attr('d', moveto(sourcePos) + lineto(sourcePos));
         };
@@ -1156,42 +1146,46 @@
     // initial node data
     var nodes = [
         {
-            title: 'new concept',
             id: 0,
+            func: {
+                id: null,
+                name: 'new concept',
+                inputs: [
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                    1
+                ],
+                outputs: [
+                    1,
+                    1
+                ]
+            },
             x: xLoc + 300,
-            y: yLoc,
-            functionId: 'asdf',
-            inputs: [
-                1,
-                1,
-                1,
-                1,
-                1,
-                1
-            ],
-            outputs: [
-                1,
-                1
-            ]
+            y: yLoc
         },
         {
-            title: 'new concept',
             id: 1,
+            func: {
+                id: null,
+                name: 'old concept',
+                inputs: [
+                    1,
+                    1
+                ],
+                outputs: [
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                    1
+                ]
+            },
             x: xLoc,
-            y: yLoc,
-            functionId: '1234',
-            inputs: [
-                1,
-                1
-            ],
-            outputs: [
-                1,
-                1,
-                1,
-                1,
-                1,
-                1
-            ]
+            y: yLoc
         }
     ];
     var edges = [

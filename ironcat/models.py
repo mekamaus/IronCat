@@ -1,6 +1,6 @@
 from django.db.models import Model, ForeignKey, IntegerField, CharField, ManyToManyField, BooleanField, TextField
 import json
-from django.contrib.auth.models import UserManager as BaseUserManager
+#from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.auth.models import AbstractUser
 
 """
