@@ -538,7 +538,8 @@
                         .append('g')
                         .classed('node-header', true);
                     header.append('path')
-                        .attr('d', topRoundedRect(0, 0, consts.nodeWidth, consts.nodeLabelHeight, consts.nodeCornerRadius));
+                        .attr('d', topRoundedRect(0, 0, consts.nodeWidth, consts.nodeLabelHeight,
+                            consts.nodeCornerRadius));
                     var label = header.append('g')
                         .classed('node-label', true)
                         .on('mousedown', function () {
@@ -577,13 +578,16 @@
                                 },
                                 function (keyCode, textbox) {
                                     if (keyCode === 38) {
-                                        self.selectedSearchResult = (((self.selectedSearchResult - 1) % self.searchResults.length) + self.searchResults.length) % self.searchResults.length;
+                                        self.selectedSearchResult = (((self.selectedSearchResult - 1)
+                                            % self.searchResults.length) + self.searchResults.length)
+                                            % self.searchResults.length;
                                         nodeElement.selectAll('.search-result')
                                             .classed('selected', function (d, i) {
                                                 return i === self.selectedSearchResult;
                                             });
                                     } else if (keyCode === 40) {
-                                        self.selectedSearchResult = (self.selectedSearchResult + 1) % self.searchResults.length;
+                                        self.selectedSearchResult = (self.selectedSearchResult + 1)
+                                            % self.searchResults.length;
                                         nodeElement.selectAll('.search-result')
                                             .classed('selected', function (d, i) {
                                                 return i === self.selectedSearchResult;
@@ -712,7 +716,9 @@
 
                 self.nodeElements.select('.node-header')
                     .attr('transform', function (d, i) {
-                        return translate(0, -(Math.max(d.func.inputs.length, d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+                        return translate(0, -(Math.max(
+                            d.func.inputs.length,
+                            d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
                     });
 
                 // Remove old nodes.
@@ -725,7 +731,7 @@
                     .attr('transform', function (d, i) { return translate(d) + scale(0.75); })
                     .remove();
                 // Inputs
-                self.inputElements = self.inputElements.data(func.inputs, function (d) { return d; });
+                self.inputElements = self.inputElements.data(func.inputs, function (d) { return d.id; });
                 var newInputs = self.inputElements
                     .enter()
                     .insert('g')
@@ -745,7 +751,7 @@
                     });
                 self.inputElements.exit().selectAll('circle').transition().attr('r', 0).remove();
                 // Outputs
-                self.outputElements = self.outputElements.data(func.outputs, function (d) { return d; });
+                self.outputElements = self.outputElements.data(func.outputs, function (d) { return d.id; });
                 var newOutputs = self.outputElements
                     .enter()
                     .insert('g')
@@ -765,7 +771,7 @@
                 self.outputElements.exit().selectAll('circle').transition().attr('r', 0).remove();
                 // IO add/delete buttons
                 var pinAddDeleteButtonRadius = 12;
-                self.inputDeleteButtons = self.inputDeleteButtons.data(func.inputs, function (d) { return d; });
+                self.inputDeleteButtons = self.inputDeleteButtons.data(func.inputs, function (d) { return d.id; });
                 var newInputDeleteButtons = self.inputDeleteButtons
                     .enter()
                     .append('g')
@@ -798,54 +804,86 @@
                     });
                 self.inputDeleteButtons.exit().remove();
                 var inputAddSpots = func.inputs.concat(['end']);
-                self.inputAddButtons = self.inputAddButtons.data(inputAddSpots, function (d) { return d; });
-                var newInputAddButtons = self.inputAddButtons.enter().append('g').classed('pin-add-delete', true).classed('pin-add', true).classed('vanish', true);
+                self.inputAddButtons = self.inputAddButtons.data(inputAddSpots, function (d) { return d.id; });
+                var newInputAddButtons = self.inputAddButtons.enter().append('g')
+                    .classed('pin-add-delete', true)
+                    .classed('pin-add', true)
+                    .classed('vanish', true);
                 newInputAddButtons.append('circle').attr('r', pinAddDeleteButtonRadius);
-                newInputAddButtons.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').text('+');
-                self.inputAddButtons.call(self.drag).on('mousedown', function (d, i) {
-                    func.inputs.splice(i, 0, self.createGuid());
-                    func.edges.forEach(function (edge) {
-                        if (!edge.sourceNode && edge.sourcePin >= i)
-                            edge.sourcePin++;
+                newInputAddButtons.append('text')
+                    .attr('text-anchor', 'middle')
+                    .attr('dominant-baseline', 'middle')
+                    .text('+');
+                self.inputAddButtons
+                    .call(self.drag).on('mousedown', function (d, i) {
+                        func.inputs.splice(i, 0, {
+                            id: self.createGuid(),
+                            types: [3]
+                        });
+                        func.edges.forEach(function (edge) {
+                            if (!edge.sourceNode && edge.sourcePin >= i)
+                                edge.sourcePin++;
+                        });
+                        self.updateGraph(true);
+                        self.pinMouseDown.call(self, null, i);
+                    })
+                    .transition()
+                    .attr('transform', function (d, i) {
+                        return translate(0, 25 * (2 * i - func.inputs.length));
                     });
-                    self.updateGraph(true);
-                    self.pinMouseDown.call(self, null, i);
-                }).transition().attr('transform', function (d, i) {
-                    return translate(0, 25 * (2 * i - func.inputs.length));
-                });
                 self.inputAddButtons.exit().remove();
-                self.outputDeleteButtons = self.outputDeleteButtons.data(func.outputs, function (d) { return d; });
-                var newOutputDeleteButtons = self.outputDeleteButtons.enter().append('g').classed('pin-add-delete', true).classed('pin-delete', true).classed('vanish', true);
-                newOutputDeleteButtons.append('circle').attr('r', pinAddDeleteButtonRadius);
-                newOutputDeleteButtons.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').html('&times;');
-                self.outputDeleteButtons.on('mousedown', function (d) {
-                    var i = func.outputs.indexOf(d);
-                    func.edges = func.edges.filter(function (edge) {
-                        if (edge.targetNode)
+                self.outputDeleteButtons = self.outputDeleteButtons.data(func.outputs, function (d) { return d.id; });
+                var newOutputDeleteButtons = self.outputDeleteButtons.enter().append('g')
+                    .classed('pin-add-delete', true)
+                    .classed('pin-delete', true)
+                    .classed('vanish', true);
+                newOutputDeleteButtons.append('circle')
+                    .attr('r', pinAddDeleteButtonRadius);
+                newOutputDeleteButtons.append('text')
+                    .attr('text-anchor', 'middle')
+                    .attr('dominant-baseline', 'middle')
+                    .html('&times;');
+                self.outputDeleteButtons
+                    .on('mousedown', function (d) {
+                        var i = func.outputs.indexOf(d);
+                        func.edges = func.edges.filter(function (edge) {
+                            if (edge.targetNode)
+                                return true;
+                            if (edge.targetPin === i)
+                                return false;
+                            if (edge.targetPin > i)
+                                edge.targetPin--;
                             return true;
-                        if (edge.targetPin === i)
-                            return false;
-                        if (edge.targetPin > i)
-                            edge.targetPin--;
-                        return true;
+                        });
+                        func.outputs.splice(i, 1);
+                        self.updateGraph(true);
+                    })
+                    .transition()
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.outputs.length - 1) + 50 * i);
                     });
-                    func.outputs.splice(i, 1);
-                    self.updateGraph(true);
-                }).transition().attr('transform', function (d, i) {
-                    return translate(0, -25 * (func.outputs.length - 1) + 50 * i);
-                });
                 self.outputDeleteButtons.exit().remove();
-                var outputAddSpots = func.outputs.concat(['end']);
-                self.outputAddButtons = self.outputAddButtons.data(outputAddSpots, function (d) { return d; });
-                var newOutputAddButtons = self.outputAddButtons.enter().append('g').classed('pin-add-delete', true).classed('pin-add', true).classed('vanish', true);
-                newOutputAddButtons.append('circle').attr('r', pinAddDeleteButtonRadius);
-                newOutputAddButtons.append('text').attr('text-anchor', 'middle').attr('dominant-baseline', 'middle').text('+');
+                var outputAddSpots = func.outputs.concat([{ id: -1 }]);
+                self.outputAddButtons = self.outputAddButtons.data(outputAddSpots, function (d) { return d.id; });
+                var newOutputAddButtons = self.outputAddButtons.enter().append('g')
+                    .classed('pin-add-delete', true)
+                    .classed('pin-add', true)
+                    .classed('vanish', true);
+                newOutputAddButtons.append('circle')
+                    .attr('r', pinAddDeleteButtonRadius);
+                newOutputAddButtons.append('text')
+                    .attr('text-anchor', 'middle')
+                    .attr('dominant-baseline', 'middle')
+                    .text('+');
                 self.outputAddButtons
                     .on('mousedown', function (d) {
                         d3.event.stopPropagation();
                         var i = func.outputs.indexOf(d);
                         i = i < 0 ? func.outputs.length : i;
-                        func.outputs.splice(i, 0, self.createGuid());
+                        func.outputs.splice(i, 0, {
+                            id: self.createGuid(),
+                            types: [3]
+                        });
                         func.edges.forEach(function (edge) {
                             if (edge.targetNode)
                                 return;
@@ -858,7 +896,10 @@
                         var i = func.outputs.indexOf(d);
                         i = i < 0 ? func.outputs.length : i;
                         if (self.state.pinDrag) {
-                            func.outputs.splice(i, 0, self.createGuid());
+                            func.outputs.splice(i, 0, {
+                                id: self.createGuid(),
+                                types: [3]
+                            });
                             func.edges.forEach(function (edge) {
                                 if (edge.targetNode)
                                     return;
@@ -875,26 +916,43 @@
                 // Remove edges to pins that no longer exist.
                 var originalNumEdges = func.edges.length;
                 func.edges = func.edges.filter(function (edge) {
-                    var validSource = edge.sourceNode ? edge.sourcePin < edge.sourceNode.func.outputs.length : edge.sourcePin < func.inputs.length;
-                    var validTarget = edge.targetNode ? edge.targetPin < edge.targetNode.func.inputs.length : edge.targetPin < func.outputs.length;
+                    var validSource = edge.sourceNode
+                        ? edge.sourcePin < edge.sourceNode.func.outputs.length
+                        : edge.sourcePin < func.inputs.length;
+                    var validTarget = edge.targetNode
+                        ? edge.targetPin < edge.targetNode.func.inputs.length
+                        : edge.targetPin < func.outputs.length;
                     return validSource && validTarget;
                 });
 
                 var nowNumEdges = func.edges.length;
 
                 self.edgeElements = self.edgeElements.data(func.edges, function (d) {
-                    return (d.sourceNode ? d.sourceNode.id : '-') + '/' + d.sourcePin + '+' + (d.targetNode ? d.targetNode.id : '-') + '/' + d.targetPin;
+                    return (d.sourceNode ? d.sourceNode.id : '-')
+                        + '/' + d.sourcePin + '+'
+                        + (d.targetNode ? d.targetNode.id : '-') + '/' + d.targetPin;
                 });
                 // update existing paths
                 var pathFn = function (d) {
-                    var sourcePos = d.sourceNode ? add(d.sourceNode, [consts.nodeWidth / 2, (d.sourcePin - (d.sourceNode.func.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + 50 * d.sourcePin];
-                    var targetPos = d.targetNode ? add(d.targetNode, [-consts.nodeWidth / 2, (d.targetPin - (d.targetNode.func.inputs.length - 1) / 2) * consts.pinSpacing]) : [1000, -25 * (func.outputs.length - 1) + 50 * d.targetPin];
+                    var sourcePos = d.sourceNode
+                        ? add(d.sourceNode, [
+                            consts.nodeWidth / 2,
+                            (d.sourcePin - (d.sourceNode.func.outputs.length - 1) / 2) * consts.pinSpacing
+                        ])
+                        : [0, -25 * (func.inputs.length - 1) + 50 * d.sourcePin];
+                    var targetPos = d.targetNode
+                        ? add(d.targetNode, [
+                            -consts.nodeWidth / 2,
+                            (d.targetPin - (d.targetNode.func.inputs.length - 1) / 2) * consts.pinSpacing])
+                        : [1000, -25 * (func.outputs.length - 1) + 50 * d.targetPin];
                     var ctrlPt1 = avg(sourcePos, targetPos);
                     ctrlPt1[1] = sourcePos[1];
                     var ctrlPt2 = avg(sourcePos, targetPos);
                     ctrlPt2[1] = targetPos[1];
-                    ctrlPt1[0] = sourcePos[0] + Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt1[0] - sourcePos[0]));
-                    ctrlPt2[0] = targetPos[0] - Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt2[0] - targetPos[0]));
+                    ctrlPt1[0] = sourcePos[0]
+                        + Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt1[0] - sourcePos[0]));
+                    ctrlPt2[0] = targetPos[0]
+                        - Math.max(Math.abs(sourcePos[1] - targetPos[1]), Math.abs(ctrlPt2[0] - targetPos[0]));
                     return moveto(sourcePos) + curveto(ctrlPt1, ctrlPt2, targetPos);
                 };
                 // add new paths
@@ -1214,16 +1272,16 @@
         }
     ];
     var inputs = [
-        1,
-        2
+        { id: 0, types: [3] },
+        { id: 1, types: [3] }
     ];
     var outputs = [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6
+        { id: 0, types: [3] },
+        { id: 1, types: [3] },
+        { id: 2, types: [3] },
+        { id: 3, types: [3] },
+        { id: 4, types: [3] },
+        { id: 5, types: [3] }
     ];
     /** MAIN SVG **/
     $(function () {
@@ -1232,7 +1290,34 @@
         graph.setIdCt(2);
         graph.updateGraph();
         graph.updateWindow(svg);
-        var save = function () { return console.log('saving... done'); };
+        var save = function () {
+            var func = graph.func;
+            var funcData = {
+                id: func.id,
+                name: func.name,
+                inputs: func.inputs.map(function (pin) { return pin.types; }),
+                outputs: func.outputs.map(function (pin) { return pin.types; }),
+                nodes: func.nodes.map(function (node) {
+                    return {
+                        id: node.id,
+                        functionId: node.func.id
+                    };
+                }),
+                edges: func.edges.map(function (edge) {
+                    return {
+                        sourceNode: edge.sourceNode ? edge.sourceNode.id : null,
+                        sourcePin: edge.sourcePin,
+                        targetNode: edge.targetNode ? edge.targetNode.id : null,
+                        targetPin: edge.targetPin
+                    };
+                })
+            };
+            $.when($.post('/save_function/', JSON.stringify(funcData))).then(function (result) {
+                console.log(result);
+                graph.func.id = result.result;
+            });
+        };
+
         $('.save-btn').click(save);
         $.prototype.onSubmit = function (fn) {
             var self = this;
@@ -1261,14 +1346,16 @@
         };
         var editFunctionName = function () {
             var nameLabel = $('.function-name');
-            var nameTextbox = $('<input type="text" class="function-name" value="' + graph.func.name + '"></input>').onSubmit(function (value) {
-                graph.func.name = value.trim().replace(/\s+/g, ' ');
-                $(this).replaceWith(nameLabel);
-                nameLabel.text(value).click(editFunctionName);
-            }).onEscape(function () {
-                $(this).replaceWith(nameLabel);
-                nameLabel.click(editFunctionName);
-            });
+            var nameTextbox = $('<input type="text" class="function-name" value="' + graph.func.name + '"></input>')
+                .onSubmit(function (value) {
+                    graph.func.name = value.trim().replace(/\s+/g, ' ');
+                    $(this).replaceWith(nameLabel);
+                    nameLabel.text(value).click(editFunctionName);
+                })
+                .onEscape(function () {
+                    $(this).replaceWith(nameLabel);
+                    nameLabel.click(editFunctionName);
+                });
             nameLabel.replaceWith(nameTextbox);
             nameTextbox.focus().select();
         };

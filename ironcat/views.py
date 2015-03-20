@@ -249,6 +249,10 @@ def create_wire(request):
 def delete_wire(request):
     return delete_object(Wire, request)
 
+# endregion
+
+# region search
+
 
 def search(request):
     q = request.GET['q']
@@ -258,9 +262,18 @@ def search(request):
     except Exception as e:
         return json_error(e)
 
+# endregion
+
+
+# region function
+
 
 def save_function(request):
-    function = json.loads(request.GET['function'])
-    function_engine.save_function(function)
+    try:
+        function = json.loads(request.body.decode())
+        result = function_engine.save_function(function)
+        return json_success({'result': result})
+    except Exception as e:
+        return json_error(e)
 
 # endregion

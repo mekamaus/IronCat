@@ -112,6 +112,7 @@ input.function-name {
 .output circle {
   stroke: white;
   fill: #999;
+  transition: fill 0.25s;
 }
 .input.connected circle,
 .output.connected circle {
@@ -121,6 +122,7 @@ input.function-name {
 .node-output circle {
   stroke: #666;
   fill: #999;
+  transition: fill 0.25s;
 }
 .node-input.connected circle,
 .node-output.connected circle {

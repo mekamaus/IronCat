@@ -90,8 +90,6 @@ def get_function(name):
     except Function.DoesNotExist:
         if name in _primitives:
             input_types, output_types = _primitives[name]
-            print(json.dumps(input_types))
-            print(json.dumps(output_types))
             function = Function(name=name,
                                 input_types_json=json.dumps(input_types),
                                 output_types_json=json.dumps(output_types),
@@ -416,6 +414,9 @@ def evaluate_node(node, inputs):
 
 
 def search(q):
+    # Ensure that all the primitives exist before we go searching for them.
+    for key in _primitives.keys():
+        get_function(key)
     results = Function.objects.filter(name__icontains=q)
     results = [result for result in results if result.name.startswith(q)]
     return results
@@ -426,9 +427,20 @@ def get_function_by_id(function_id):
 
 
 def save_function(function):
-    if 'id' in function:
-        # TODO: save the function
-        pass
+    input_types = [PhotonTypes.multiple(inputs) for inputs in function['inputs']]
+    output_types = [PhotonTypes.multiple(outputs) for outputs in function['outputs']]
+    if 'id' not in function or (not function['id'] and function['id'] != 0):
+        fn = Function(
+            name=function['name'],
+            description=function['description'] if 'description' in function else '',
+            input_types_json=json.dumps(input_types),
+            output_types_json=json.dumps(input_types),
+            primitive=False)
     else:
-        # TODO: create new function
-        pass
+        fn = Function.objects.get(id=function['id'])
+        fn.name = function['name']
+        fn.description = function['description'] if 'description' in function else ''
+        fn.input_types_json = json.dumps(input_types)
+        fn.output_types_json = json.dumps(output_types)
+    fn.save()
+    return fn.id

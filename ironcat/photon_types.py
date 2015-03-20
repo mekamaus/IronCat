@@ -14,7 +14,14 @@ class PhotonTypes(IntEnum):
 
     @staticmethod
     def multiple(*type_names):
-        return set(PhotonTypes.__getattr__(name) for name in type_names if hasattr(PhotonTypes, name))
+        types = []
+        for name in type_names:
+            if isinstance(name, str):
+                types.append(PhotonTypes.__getattr__(name))
+            elif isinstance(name, int):
+                types.append(PhotonTypes(name))
+
+        return types
 
 
 # region type collections
