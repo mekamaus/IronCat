@@ -35,7 +35,15 @@ class TestNet(TestCase):
                     ]))
         nd4a = Node(containing_function=rect_to_polar, inner_function=get_fn('atan2'))
 
-        [node.save() for node in (nd1a, nd1b, nd2a, nd3a, nd4a)]
+        nodes = (
+            nd1a,
+            nd1b,
+            nd2a,
+            nd3a,
+            nd4a
+        )
+
+        [node.save() for node in nodes]
 
         wire_in0_1a0 = Wire(source_node=None, source_pin=0, target_node=nd1a, target_pin=0)
         wire_in0_1a1 = Wire(source_node=None, source_pin=0, target_node=nd1a, target_pin=1)
@@ -49,8 +57,21 @@ class TestNet(TestCase):
         wire_3a0_ou0 = Wire(source_node=nd3a, source_pin=0, target_node=None, target_pin=0)
         wire_4a0_ou1 = Wire(source_node=nd4a, source_pin=0, target_node=None, target_pin=1)
 
-        [wire.save() for wire in (wire_in0_1a0, wire_in0_1a1, wire_in1_1b0, wire_in1_1b1, wire_1a0_2a0, wire_1b0_2a1,
-                                  wire_2a0_3a0, wire_in0_4a1, wire_in1_4a0, wire_3a0_ou0, wire_4a0_ou1)]
+        wires = (
+            wire_in0_1a0,
+            wire_in0_1a1,
+            wire_in1_1b0,
+            wire_in1_1b1,
+            wire_1a0_2a0,
+            wire_1b0_2a1,
+            wire_2a0_3a0,
+            wire_in0_4a1,
+            wire_in1_4a0,
+            wire_3a0_ou0,
+            wire_4a0_ou1,
+        )
+
+        [wire.save() for wire in wires]
 
         # rect_to_polar = Function(net=rect_to_polar_net)
 
