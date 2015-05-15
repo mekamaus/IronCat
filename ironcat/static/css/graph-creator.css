@@ -212,3 +212,6 @@ p::selection {
   background: #009090;
   color: #00ffff;
 }
+p {
+  font-family: 'Menlo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}

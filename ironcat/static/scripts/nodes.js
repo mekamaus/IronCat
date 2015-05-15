@@ -316,7 +316,6 @@
                     .append('xhtml:p')
                     .attr('id', consts.activeEditId)
                     .attr('contentEditable', 'true')
-                    .style('font-family', '"Menlo","Helvetica Neue",Helvetica,Arial,sans-serif')
                     .style('color', '#ff0')
                     .style('font-size', '16px')
                     .text(d.func.name)
