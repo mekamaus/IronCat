@@ -541,9 +541,9 @@
                     var header = nodeElement
                         .append('g')
                         .classed('node-header', true);
-                    header.append('path')
+                    /*header.append('path')
                         .attr('d', topRoundedRect(0, 0, consts.nodeWidth, consts.nodeLabelHeight,
-                            consts.nodeCornerRadius));
+                            consts.nodeCornerRadius));*/
                     var label = header.append('g')
                         .classed('node-label', true)
                         .on('mousedown', function () {

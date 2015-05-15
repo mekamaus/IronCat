@@ -3,6 +3,8 @@
 @fill-fg-primary:    #000000;
 @pin-fill-inactive:  #007070;
 @pin-fill-active:    @stroke-primary;
+@select-color:       @stroke-primary;
+@select-hilite:      #009090;
 @font-primary:       'Menlo','Helvetica Neue',Helvetica,Arial,sans-serif;
 
 p {
@@ -258,16 +260,16 @@ p:focus {
 }
 
 p::-moz-selection {
-  background: rgba(0, 0, 255, 0.99);
-  color: #00ff88;
+  background: @select-hilite;
+  color: @select-color;
 }
 
 p::-webkit-selection {
-  background: rgba(0, 0, 255, 0.99);
-  color: #00ff88;
+  background: @select-hilite;
+  color: @select-color;
 }
 
 p::selection {
-  background: rgba(0, 0, 255, 0.99);
-  color: #00ff88;
+  background: @select-hilite;
+  color: @select-color;
 }

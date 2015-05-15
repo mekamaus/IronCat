@@ -201,14 +201,14 @@ p:focus {
   outline: none;
 }
 p::-moz-selection {
-  background: rgba(0, 0, 255, 0.99);
-  color: #00ff88;
+  background: #009090;
+  color: #00ffff;
 }
 p::-webkit-selection {
-  background: rgba(0, 0, 255, 0.99);
-  color: #00ff88;
+  background: #009090;
+  color: #00ffff;
 }
 p::selection {
-  background: rgba(0, 0, 255, 0.99);
-  color: #00ff88;
+  background: #009090;
+  color: #00ffff;
 }
