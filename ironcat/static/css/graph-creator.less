@@ -11,6 +11,8 @@
 @text-hover:         #ff0000;
 @text-editing:       #ff8080;
 
+@modal-width:  400px;
+
 /**
  * Main body stuff.
  */
@@ -20,6 +22,14 @@ body {
 
 a {
   transition: all 0.25s;
+}
+
+.modal-header, .modal-body, .modal-footer {
+  /*position: fixed;
+  left: calc(0.5 * (100% - @modal-width));
+  top: 0;
+  width: @modal-width;*/
+  z-index: 1040;
 }
 
 .container {

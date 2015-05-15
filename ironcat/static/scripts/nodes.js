@@ -494,7 +494,9 @@
                     .classed('pin-value', true)
                     .attr('transform', translate(-consts.pinSize / 2, 0))
                     .on('click', function(d, i, j) {
-                        
+                        $('#valueModal').modal('show');
+                        self.editNodeIndex = j;
+                        self.editPinIndex = i;
                     });
 
                 newValueIndicators.append('rect')
