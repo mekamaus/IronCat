@@ -446,7 +446,8 @@
                 // Add new nodes.
                 var newNodes = self.nodeElements.enter().append('g').classed('node', true);
                 newNodes
-                    .attr('transform', function (d) { return translate(d); }).on('mouseover', function (d) {
+                    .attr('transform', function (d) { return translate(d); })
+                    .on('mouseover', function (d) {
                         if (state.pinDrag) {
                             d3.select(this).classed(consts.connectClass, true);
                         }
@@ -1289,6 +1290,53 @@
     /** MAIN SVG **/
     $(function () {
         var svg = d3.select('body').append('svg').classed('editor', true);
+
+        // Set up filters
+        var defs = svg.append('defs');
+
+        // create filter with id #drop-shadow
+        // height=130% so that the shadow is not clipped
+        var filter = defs.append('filter')
+            .attr('id', 'borderGlow')
+            .attr('height', '130%');
+
+        // SourceAlpha refers to opacity of graphic that this filter will be applied to
+        // convolve that with a Gaussian with standard deviation 3 and store result
+        // in blur
+        filter.append('feGaussianBlur')
+            .attr('in', 'StrokePaint')
+            .attr('stdDeviation', 8)
+            .attr('result', 'blur');
+
+        filter.append('feMorphology')
+            .attr('in', 'blur')
+            .attr('operator', 'dilate')
+            .attr('radius', 8)
+            .attr('result', 'dilatedBlur');
+
+        filter.append('feMorphology')
+            .attr('in', 'dilatedBlur')
+            .attr('operator', 'erode')
+            .attr('radius', 3)
+            .attr('result', 'erodedDilatedBlur');
+
+        // translate output of Gaussian blur to the right and downwards with 2px
+        // store result in offsetBlur
+        /*filter.append('feOffset')
+            .attr('in', 'blur')
+            .attr('dx', 5)
+            .attr('dy', 5)
+            .attr('result', 'offsetBlur');*/
+
+        // overlay original SourceGraphic over translated blurred opacity by using
+        // feMerge filter. Order of specifying inputs is important!
+        var feMerge = filter.append('feMerge');
+
+        feMerge.append('feMergeNode')
+            .attr('in', 'erodedDilatedBlur');
+        feMerge.append('feMergeNode')
+            .attr('in', 'SourceGraphic');
+
         var graph = new GraphCreator(svg, nodes, edges, inputs, outputs);
         graph.setIdCt(2);
         graph.updateGraph();

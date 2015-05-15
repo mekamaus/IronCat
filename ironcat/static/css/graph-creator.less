@@ -1,5 +1,9 @@
-@connected-pin-fill: #007070;
 @stroke-primary:     #00ffff;
+@fill-bg:            #000000;
+@fill-fg-primary:    #000000;
+@pin-fill-inactive:  #007070;
+@pin-fill-active:    @stroke-primary;
+@font-primary:       'Menlo','Helvetica Neue',Helvetica,Arial,sans-serif;
 
 p {
   text-align: center;
@@ -32,9 +36,6 @@ marker {
   stroke-width: 2px;
 }
 
-g.node:hover rect {
-  fill: rgb(200, 238, 241);
-}
 g.selected {
   rect {
     fill: rgb(250, 232, 255);
@@ -129,19 +130,19 @@ input.function-name {
 }
 
 .editor {
-  background-color: #000;
+  background-color: @fill-bg;
   cursor: default;
 }
 
 .input, .output {
   circle {
     stroke: @stroke-primary;
-    fill: #000;
+    fill: @pin-fill-inactive;
     transition: fill 0.25s;
   }
   &.connected {
     circle {
-      fill: @connected-pin-fill;
+      fill: @pin-fill-active;
     }
   }
 }
@@ -149,12 +150,12 @@ input.function-name {
 .node-input, .node-output {
   circle {
     stroke: @stroke-primary;
-    fill: #000;
+    fill: @pin-fill-inactive;
     transition: fill 0.25s;
   }
   &.connected {
     circle {
-      fill: @connected-pin-fill;
+      fill: @pin-fill-active;
     }
   }
 }
@@ -184,14 +185,15 @@ input.function-name {
 }
 
 text {
-  font-family: 'Menlo','Helvetica Neue',Helvetica,Arial,sans-serif;
+  font-family: @font-primary;
 }
 
 .node {
   .node-shape {
-    fill: #000;
+    fill: @fill-fg-primary;
     stroke: @stroke-primary;
     stroke-width: 2;
+    filter: url(#borderGlow);
   }
   .node-delete {
     circle {

@@ -24,9 +24,6 @@ marker {
   stroke: #333;
   stroke-width: 2px;
 }
-g.node:hover rect {
-  fill: #c8eef1;
-}
 g.selected rect {
   fill: #fae8ff;
 }
@@ -105,28 +102,28 @@ input.function-name {
   opacity: 0;
 }
 .editor {
-  background-color: #000;
+  background-color: #000000;
   cursor: default;
 }
 .input circle,
 .output circle {
   stroke: #00ffff;
-  fill: #000;
+  fill: #007070;
   transition: fill 0.25s;
 }
 .input.connected circle,
 .output.connected circle {
-  fill: #007070;
+  fill: #00ffff;
 }
 .node-input circle,
 .node-output circle {
   stroke: #00ffff;
-  fill: #000;
+  fill: #007070;
   transition: fill 0.25s;
 }
 .node-input.connected circle,
 .node-output.connected circle {
-  fill: #007070;
+  fill: #00ffff;
 }
 .node-header path {
   stroke: #00ffff;
@@ -151,9 +148,10 @@ text {
   font-family: 'Menlo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 .node .node-shape {
-  fill: #000;
+  fill: #000000;
   stroke: #00ffff;
   stroke-width: 2;
+  filter: url(#borderGlow);
 }
 .node .node-delete circle {
   stroke: none;
