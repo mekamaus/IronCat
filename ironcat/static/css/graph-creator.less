@@ -6,7 +6,51 @@
 @select-color:       @stroke-primary;
 @select-hilite:      #009090;
 @fill-value:         #a0ffff;
-@font-primary:       'Menlo','Helvetica Neue',Helvetica,Arial,sans-serif;
+@font-primary:       'Ubuntu','Menlo','Helvetica Neue',Helvetica,Arial,sans-serif;
+@text-primary:       #ffffff;
+@text-hover:         #ff0000;
+@text-editing:       #ff8080;
+
+/**
+ * Main body stuff.
+ */
+body {
+  background-color: @fill-bg !important;
+}
+
+a {
+  transition: all 0.25s;
+}
+
+.container {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+.navbar {
+  background-color: @fill-bg !important;
+  border: none;
+  margin: 0 !important;
+  padding: 0 !important;
+  &.editor-toolbar {
+    border-bottom: 1px solid white;
+  }
+  a {
+    color: @text-primary !important;
+    &:hover {
+      color: @text-hover !important;
+    }
+  }
+}
+
+input.function-name {
+  background: transparent !important;
+  color: @text-editing !important;
+  outline: none !important;
+  border: none !important;
+  padding: 3px !important;
+}
 
 p {
   text-align: center;
@@ -162,7 +206,7 @@ input.function-name {
     }
     .pin-value {
       rect {
-        opacity: 0;
+        display: none;
       }
     }
   }
@@ -180,13 +224,13 @@ input.function-name {
       cursor: inherit;
       user-select: none;
       font-size: 16px;
-      color: #fff;
-      fill: #fff;
+      color: @text-primary;
+      fill: @text-primary;
       transition: all 0.25s;
     }
     &:hover {
       .node-function-name {
-        fill: #0ff;
+        fill: @text-hover;
       }
     }
   }
@@ -266,9 +310,6 @@ text {
       transition: all 0.25s;
     }
   }
-  .node-title-edit {
-    color: #ff0;
-  }
 }
 
 p:focus {
@@ -278,11 +319,13 @@ p:focus {
 p::-moz-selection {
   background: @select-hilite;
   color: @select-color;
+  font-weight: 900;
 }
 
 p::-webkit-selection {
   background: @select-hilite;
   color: @select-color;
+  font-weight: 900;
 }
 
 p::selection {
@@ -292,4 +335,8 @@ p::selection {
 
 p {
   font-family: @font-primary;
+}
+
+.node-title-edit {
+  color: @text-editing;
 }

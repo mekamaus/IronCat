@@ -492,7 +492,10 @@
                 var newValueIndicators = newInputs
                     .append('g')
                     .classed('pin-value', true)
-                    .attr('transform', translate(-consts.pinSize / 2, 0));
+                    .attr('transform', translate(-consts.pinSize / 2, 0))
+                    .on('click', function(d, i) {
+                        console.log(d3.select(this).datum());
+                    });
 
                 newValueIndicators.append('rect')
                     .attr('width', 50)
@@ -1227,16 +1230,16 @@
                 id: null,
                 name: 'new concept',
                 inputs: [
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1
+                    { type: 3, value: 11 },
+                    { type: 3, value: 22 },
+                    { type: 3, value: 33 },
+                    { type: 3, value: 44 },
+                    { type: 3, value: 55 },
+                    { type: 3, value: 66 }
                 ],
                 outputs: [
-                    1,
-                    1
+                    { type: 3, value: 0 },
+                    { type: 3, value: 0 }
                 ]
             },
             x: xLoc + 300,
@@ -1248,16 +1251,16 @@
                 id: null,
                 name: 'old concept',
                 inputs: [
-                    1,
-                    1
+                    { type: 3, value: 111 },
+                    { type: 3, value: 222 }
                 ],
                 outputs: [
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1
+                    { type: 3, value: 0 },
+                    { type: 3, value: 0 },
+                    { type: 3, value: 0 },
+                    { type: 3, value: 0 },
+                    { type: 3, value: 0 },
+                    { type: 3, value: 0 }
                 ]
             },
             x: xLoc,
