@@ -493,8 +493,8 @@
                     .append('g')
                     .classed('pin-value', true)
                     .attr('transform', translate(-consts.pinSize / 2, 0))
-                    .on('click', function(d, i) {
-                        console.log(d3.select(this).datum());
+                    .on('click', function(d, i, j) {
+                        
                     });
 
                 newValueIndicators.append('rect')
@@ -1221,7 +1221,7 @@
     /**** MAIN ****/
     var docEl = document.documentElement, bodyEl = document.getElementsByTagName('body')[0];
     var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth, height = window.innerHeight || docEl.clientHeight || bodyEl.clientHeight;
-    var xLoc = width / 2 - 25, yLoc = 100;
+    var xLoc = 300, yLoc = 0;
     // initial node data
     var nodes = [
         {
@@ -1315,7 +1315,8 @@
         // height=130% so that the shadow is not clipped
         var filter = defs.append('filter')
             .attr('id', 'borderGlow')
-            .attr('height', '130%');
+            .attr('height', '130%')
+            .attr('width', '130%');
 
         // SourceAlpha refers to opacity of graphic that this filter will be applied to
         // convolve that with a Gaussian with standard deviation 3 and store result
