@@ -314,9 +314,9 @@
                     .attr('height', nodeBCR.height)
                     .attr('width', nodeBCR.width)
                     .append('xhtml:p')
+                    .classed('node-title-edit', true)
                     .attr('id', consts.activeEditId)
                     .attr('contentEditable', 'true')
-                    .style('color', '#ff0')
                     .style('font-size', '16px')
                     .text(d.func.name)
                     .on('mousedown', function (d) {
@@ -474,7 +474,7 @@
                     .selectAll('.node-input')
                     .data(function (d) { return d.func.inputs; });
 
-                inputs.enter()
+                var newInputs = inputs.enter()
                     .append('g')
                     .classed('pin', true)
                     .classed('node-input', true)
@@ -483,9 +483,24 @@
                     })
                     .on('mouseup', function (d, i) {
                         self.pinMouseUp.call(this, d3.select(this), d3.select(this.parentNode).datum(), i);
-                    })
+                    });
+
+                newInputs
                     .append('circle')
                     .attr('r', consts.pinSize / 2);
+
+                var newValueIndicators = newInputs
+                    .append('g')
+                    .classed('pin-value', true)
+                    .attr('transform', translate(-consts.pinSize / 2, 0));
+
+                newValueIndicators.append('rect')
+                    .attr('width', 50)
+                    .attr('height', 20)
+                    .attr('x', -55)
+                    .attr('y', -10)
+                    .attr('rx', 5)
+                    .attr('ry', 5);
 
                 inputs.exit().remove();
 

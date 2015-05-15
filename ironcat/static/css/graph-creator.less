@@ -5,6 +5,7 @@
 @pin-fill-active:    @stroke-primary;
 @select-color:       @stroke-primary;
 @select-hilite:      #009090;
+@fill-value:         #a0ffff;
 @font-primary:       'Menlo','Helvetica Neue',Helvetica,Arial,sans-serif;
 
 p {
@@ -159,6 +160,11 @@ input.function-name {
     circle {
       fill: @pin-fill-active;
     }
+    .pin-value {
+      rect {
+        opacity: 0;
+      }
+    }
   }
 }
 
@@ -252,6 +258,16 @@ text {
         transition: all 0.15s;
       }
     }
+  }
+  .pin-value {
+    rect {
+      fill: @fill-value;
+      stroke-width: 0;
+      transition: all 0.25s;
+    }
+  }
+  .node-title-edit {
+    color: #ff0;
   }
 }
 

@@ -125,6 +125,10 @@ input.function-name {
 .node-output.connected circle {
   fill: #00ffff;
 }
+.node-input.connected .pin-value rect,
+.node-output.connected .pin-value rect {
+  opacity: 0;
+}
 .node-header path {
   stroke: #00ffff;
   stroke-width: 2;
@@ -196,6 +200,14 @@ text {
 .node .search-results .search-result text {
   fill: #ffffff;
   transition: all 0.15s;
+}
+.node .pin-value rect {
+  fill: #a0ffff;
+  stroke-width: 0;
+  transition: all 0.25s;
+}
+.node .node-title-edit {
+  color: #ff0;
 }
 p:focus {
   outline: none;
