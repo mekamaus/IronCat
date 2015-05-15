@@ -316,10 +316,9 @@
                     .append('xhtml:p')
                     .attr('id', consts.activeEditId)
                     .attr('contentEditable', 'true')
-                    .style('font-family', '"Josefin Sans","Helvetica Neue",Helvetica,Arial,sans-serif')
+                    .style('font-family', '"Menlo","Helvetica Neue",Helvetica,Arial,sans-serif')
                     .style('color', '#ff0')
                     .style('font-size', '16px')
-                    .style('font-weight', '900')
                     .text(d.func.name)
                     .on('mousedown', function (d) {
                         d3.event.stopPropagation();
@@ -463,7 +462,11 @@
                         self.nodeMouseUp.call(this, d3.select(this), d);
                     })
                     .call(self.drag);
-                newNodes.append('rect').classed('node-shape', true).attr('width', consts.nodeWidth).attr('rx', consts.nodeCornerRadius).attr('ry', consts.nodeCornerRadius).attr('fill', '#ddd').attr('stroke', '#000').attr('stroke-width', 2);
+                newNodes.append('rect')
+                    .classed('node-shape', true)
+                    .attr('width', consts.nodeWidth)
+                    .attr('rx', consts.nodeCornerRadius)
+                    .attr('ry', consts.nodeCornerRadius);
                 newNodes.append('g').classed('node-inputs', true).selectAll().data(function (d) { return d.func.inputs; });
                 newNodes.append('g').classed('node-outputs', true).selectAll().data(function (d) { return d.func.inputs; });
                 var inputs = self.nodeElements
@@ -547,12 +550,12 @@
                         })
                         .on('click', function () {
                             self.editText(d3.select(this), node,
-                                function (value) {
+                                function () {
                                     state.editNode = i;
                                     self.searchResults = [];
                                     self.updateGraph();
                                 },
-                                function (value) {
+                                function () {
                                     state.editNode = null;
 
                                     var fn = self.searchResults[self.selectedSearchResult];
@@ -576,7 +579,7 @@
                                             });
                                     });
                                 },
-                                function (keyCode, textbox) {
+                                function (keyCode) {
                                     if (keyCode === 38) {
                                         self.selectedSearchResult = (((self.selectedSearchResult - 1)
                                             % self.searchResults.length) + self.searchResults.length)
@@ -595,7 +598,7 @@
                                     }
                                 });
                         });
-                    label.append('rect')
+                    /*label.append('rect')
                         .attr('x', -(consts.nodeWidth - consts.nodeCornerRadius * 4) / 2)
                         .attr('y', 10)
                         .attr('rx', 10)
@@ -604,7 +607,7 @@
                         .attr('height', consts.nodeLabelHeight * 0.5)
                         .style('fill', 'rgba(255, 255, 255, 0)')
                         .style('stroke', 'rgba(255, 255, 255, 255)')
-                        .style('stroke-width', 1);
+                        .style('stroke-width', 1);*/
                     label.append('text')
                         .attr('transform', translate(0, consts.nodeLabelHeight * 0.5))
                         .classed('node-function-name', true)

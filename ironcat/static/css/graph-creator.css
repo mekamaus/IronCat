@@ -35,7 +35,7 @@ g.selected:hover rect {
 }
 .link {
   fill: none;
-  stroke: #ffff00;
+  stroke: #00ffff;
   stroke-width: 6px;
   cursor: default;
   transition: all 0.25s;
@@ -47,7 +47,7 @@ g.selected:hover rect {
   stroke: #fff;
 }
 .link:hover {
-  stroke: #5ec4cc;
+  stroke: #fff;
 }
 .connect-node rect {
   fill: #beffff;
@@ -105,32 +105,33 @@ input.function-name {
   opacity: 0;
 }
 .editor {
-  background-color: #333;
+  background-color: #000;
   cursor: default;
 }
 .input circle,
 .output circle {
-  stroke: white;
-  fill: #999;
+  stroke: #00ffff;
+  fill: #000;
   transition: fill 0.25s;
 }
 .input.connected circle,
 .output.connected circle {
-  fill: #993;
+  fill: #007070;
 }
 .node-input circle,
 .node-output circle {
-  stroke: #666;
-  fill: #999;
+  stroke: #00ffff;
+  fill: #000;
   transition: fill 0.25s;
 }
 .node-input.connected circle,
 .node-output.connected circle {
-  fill: #993;
+  fill: #007070;
 }
 .node-header path {
-  stroke: black;
-  fill: #666;
+  stroke: #00ffff;
+  stroke-width: 2;
+  fill: #000;
 }
 .node-header .node-label {
   cursor: pointer;
@@ -138,7 +139,6 @@ input.function-name {
 .node-header .node-label .node-function-name {
   cursor: inherit;
   user-select: none;
-  font-weight: 900;
   font-size: 16px;
   color: #fff;
   fill: #fff;
@@ -148,7 +148,12 @@ input.function-name {
   fill: #0ff;
 }
 text {
-  font-family: 'Josefin Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Menlo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+.node .node-shape {
+  fill: #000;
+  stroke: #00ffff;
+  stroke-width: 2;
 }
 .node .node-delete circle {
   stroke: none;

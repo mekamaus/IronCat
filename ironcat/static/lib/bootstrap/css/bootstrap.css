@@ -475,7 +475,7 @@ h6,
 .h4,
 .h5,
 .h6 {
-  font-family: "Josefin Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Menlo", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 500;
   line-height: 1.1;
   color: inherit;
@@ -7486,7 +7486,7 @@ td.visible-print {
 }
 
 .navbar {
-  font-family: "Josefin Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Menlo", "Helvetica Neue", Helvetica, Arial, sans-serif;
   border-bottom: 1px solid #dfdfdf;
 }
 
@@ -7500,7 +7500,7 @@ td.visible-print {
 }
 
 .btn {
-  font-family: "Josefin Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Menlo", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .btn-default,
