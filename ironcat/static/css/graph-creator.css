@@ -113,8 +113,20 @@ input.function-name {
   cursor: pointer;
 }
 .pin-delete circle {
-  fill: #ff0000;
   transition: all 0.2s ease-in-out;
+  fill: #000000;
+  stroke: #00ffff;
+  stroke-width: 1px;
+}
+.pin-delete:hover circle {
+  fill: #f00;
+}
+.pin-delete:active:not(.vanish) circle {
+  fill: #fff;
+  stroke: #000;
+}
+.pin-delete:active:not(.vanish) text {
+  fill: #000;
 }
 .pin-delete text {
   fill: #ffffff;
@@ -132,8 +144,20 @@ input.function-name {
   cursor: pointer;
 }
 .pin-add circle {
-  fill: #008000;
   transition: all 0.2s ease-in-out;
+  fill: #000000;
+  stroke: #00ffff;
+  stroke-width: 1px;
+}
+.pin-add:hover circle {
+  fill: #080;
+}
+.pin-add:active:not(.vanish) circle {
+  fill: #fff;
+  stroke: #000;
+}
+.pin-add:active:not(.vanish) text {
+  fill: #000;
 }
 .pin-add text {
   fill: #ffffff;
@@ -149,6 +173,11 @@ input.function-name {
 }
 .vanish circle {
   fill: rgba(255, 255, 255, 0);
+  stroke-width: 0;
+}
+.vanish rect {
+  fill: rgba(255, 255, 255, 0);
+  stroke-width: 0;
 }
 .vanish text {
   opacity: 0;
@@ -207,33 +236,36 @@ text {
   fill: #000000;
   stroke: #00ffff;
   stroke-width: 2;
+  transition: all 0.25s;
 }
 .node .node-delete circle {
   stroke: none;
-  fill: rgba(150, 150, 150, 0);
+  fill: rgba(0, 0, 0, 0);
   transition: all 0.25s;
 }
 .node .node-delete text {
-  fill: rgba(96, 96, 96, 0);
+  fill: rgba(0, 255, 255, 0);
   font-size: 22px;
   font-weight: bold;
   user-select: none;
   transition: all 0.25s;
 }
+.node:hover .node-shape {
+  fill: #203030;
+}
 .node:hover .node-delete {
   cursor: pointer;
 }
 .node:hover .node-delete circle {
-  fill: #969696;
+  fill: #000000;
+  stroke: #00ffff;
+  stroke-width: 1px;
 }
 .node:hover .node-delete text {
-  fill: #606060;
+  fill: #ffffff;
 }
 .node:hover .node-delete:hover circle {
   fill: #ff0000;
-}
-.node:hover .node-delete:hover text {
-  fill: #ffffff;
 }
 .node .search-results .search-result.selected rect {
   fill: #606060;

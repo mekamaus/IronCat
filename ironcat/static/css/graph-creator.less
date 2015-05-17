@@ -1,6 +1,7 @@
 @stroke-primary:     #00ffff;
 @fill-bg:            #000000;
 @fill-fg-primary:    #000000;
+@fill-fg-hover:      #203030;
 @pin-fill-inactive:  #007070;
 @pin-fill-active:    @stroke-primary;
 @select-color:       @stroke-primary;
@@ -148,8 +149,24 @@ input.function-name {
 .pin-delete {
   cursor: pointer;
   circle {
-    fill: rgba(255, 0, 0, 255);
     transition: all 0.2s ease-in-out;
+    fill: @fill-fg-primary;
+    stroke: @stroke-primary;
+    stroke-width: 1px;
+  }
+  &:hover {
+    circle {
+      fill: #f00;
+    }
+  }
+  &:active:not(.vanish) {
+    circle {
+      fill: #fff;
+      stroke: #000;
+    }
+    text {
+      fill: #000;
+    }
   }
   text {
     fill: #ffffff;
@@ -168,8 +185,24 @@ input.function-name {
 .pin-add {
   cursor: pointer;
   circle {
-    fill: rgba(0, 128, 0, 255);
     transition: all 0.2s ease-in-out;
+    fill: @fill-fg-primary;
+    stroke: @stroke-primary;
+    stroke-width: 1px;
+  }
+  &:hover {
+    circle {
+      fill: #080;
+    }
+  }
+  &:active:not(.vanish) {
+    circle {
+      fill: #fff;
+      stroke: #000;
+    }
+    text {
+      fill: #000;
+    }
   }
   text {
     fill: #ffffff;
@@ -188,6 +221,11 @@ input.function-name {
 .vanish {
   circle {
     fill: rgba(255, 255, 255, 0);
+    stroke-width: 0;
+  }
+  rect {
+    fill: rgba(255, 255, 255, 0);
+    stroke-width: 0;
   }
   text {
     opacity: 0;
@@ -263,15 +301,16 @@ text {
     fill: @fill-fg-primary;
     stroke: @stroke-primary;
     stroke-width: 2;
+    transition: all 0.25s;
   }
   .node-delete {
     circle {
       stroke: none;
-      fill: rgba(150, 150, 150, 0);
+      fill: rgba(0, 0, 0, 0);
       transition: all 0.25s;
     }
     text {
-      fill: rgba(96, 96, 96, 0);
+      fill: rgba(0, 255, 255, 0);
       font-size: 22px;
       font-weight: bold;
       user-select: none;
@@ -279,20 +318,22 @@ text {
     }
   }
   &:hover {
+    .node-shape {
+      fill: @fill-fg-hover;
+    }
     .node-delete {
       cursor: pointer;
       circle {
-        fill: rgba(150, 150, 150, 255);
+        fill: @fill-fg-primary;
+        stroke: @stroke-primary;
+        stroke-width: 1px;
       }
       text {
-        fill: rgba(96, 96, 96, 255);
+        fill: rgba(255, 255, 255, 255);
       }
       &:hover {
         circle {
           fill: rgba(255, 0, 0, 255);
-        }
-        text {
-          fill: rgba(255, 255, 255, 255);
         }
       }
     }
