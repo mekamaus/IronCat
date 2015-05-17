@@ -307,8 +307,8 @@
 
                 // replace with editable text
                 var x = (nodeBCR.left + nodeBCR.right) / 2;
-                var y = nodeBCR.top - nodeBCR.height / 2 + 7;
-                var w = consts.nodeWidth;
+                var y = nodeBCR.top - nodeBCR.height / 2 + 8 * self.zoom;
+                var w = consts.nodeWidth * self.zoom;
                 var d3txt = d3.select('body')
                     .selectAll('input.node-title-edit')
                     .data([1])
@@ -321,6 +321,7 @@
                     .style('top', y + 'px')
                     .style('height', nodeBCR.height)
                     .style('width', w + 'px')
+                    .style('font-size', (16 * self.zoom) + 'px')
                     .on('mousedown', function (d) {
                         d3.event.stopPropagation();
                     })
