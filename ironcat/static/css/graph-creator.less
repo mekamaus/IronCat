@@ -26,12 +26,31 @@ a {
   transition: all 0.25s;
 }
 
-.modal-header, .modal-body, .modal-footer {
-  /*position: fixed;
-  left: calc(0.5 * (100% - @modal-width));
-  top: 0;
-  width: @modal-width;*/
-  z-index: 1040;
+.modal {
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  top: 50%;
+  left: 50%;
+  margin-top: -150px;
+  margin-left: -150px;
+  border-radius: 20px;
+  border: 2px solid @stroke-primary;
+  .modal-header, .modal-body, .modal-footer {
+    background: @fill-fg-primary;
+    .btn {
+      outline: none;
+    }
+  }
+  .modal-header {
+    height: 50px;
+  }
+  .modal-body {
+    height: 200px;
+  }
+  .modal-footer {
+    height: 50px;
+  }
 }
 
 .container {

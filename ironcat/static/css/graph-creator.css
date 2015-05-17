@@ -8,14 +8,35 @@ body {
 a {
   transition: all 0.25s;
 }
-.modal-header,
-.modal-body,
-.modal-footer {
-  /*position: fixed;
-  left: calc(0.5 * (100% - @modal-width));
-  top: 0;
-  width: @modal-width;*/
-  z-index: 1040;
+.modal {
+  position: fixed;
+  width: 300px;
+  height: 300px;
+  top: 50%;
+  left: 50%;
+  margin-top: -150px;
+  margin-left: -150px;
+  border-radius: 20px;
+  border: 2px solid #00ffff;
+}
+.modal .modal-header,
+.modal .modal-body,
+.modal .modal-footer {
+  background: #000000;
+}
+.modal .modal-header .btn,
+.modal .modal-body .btn,
+.modal .modal-footer .btn {
+  outline: none;
+}
+.modal .modal-header {
+  height: 50px;
+}
+.modal .modal-body {
+  height: 200px;
+}
+.modal .modal-footer {
+  height: 50px;
 }
 .container {
   margin: 0 !important;
