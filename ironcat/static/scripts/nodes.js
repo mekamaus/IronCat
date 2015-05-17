@@ -1444,11 +1444,6 @@
                 this.parentNode.appendChild(this);
             });
         };
-        d3.selection.prototype.sendToBack = function () {
-            return this.each(function () {
-                this.parentNode.prependChild(this);
-            });
-        };
 
         var graph = new GraphCreator(svg, nodes, edges, inputs, outputs);
         graph.setIdCt(2);
