@@ -3,6 +3,7 @@
  */
 body {
   background-color: #000000 !important;
+  font-family: 'Ubuntu', 'Menlo', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
 }
 a {
   transition: all 0.25s;
@@ -23,6 +24,7 @@ a {
 }
 .navbar {
   background-color: #000000 !important;
+  height: 40px !important;
   border: none;
   margin: 0 !important;
   padding: 0 !important;
@@ -36,12 +38,17 @@ a {
 .navbar a:hover {
   color: #ff0000 !important;
 }
+a.function-name {
+  width: 200px;
+  display: block;
+}
 input.function-name {
   background: transparent !important;
   color: #ff8080 !important;
   outline: none !important;
   border: none !important;
-  padding: 3px !important;
+  padding-left: 3px !important;
+  padding-top: 5px !important;
 }
 p {
   text-align: center;
@@ -200,7 +207,6 @@ text {
   fill: #000000;
   stroke: #00ffff;
   stroke-width: 2;
-  filter: url(#borderGlow);
 }
 .node .node-delete circle {
   stroke: none;
@@ -273,4 +279,13 @@ p {
 }
 .node-title-edit {
   color: #ff8080;
+  background: transparent;
+  outline: none;
+  border: none;
+  position: fixed;
+  z-index: 1090;
+  font-size: 16px;
+  text-align: center;
+  padding: 0;
+  margin: 0;
 }

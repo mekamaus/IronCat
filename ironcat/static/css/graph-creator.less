@@ -18,6 +18,7 @@
  */
 body {
   background-color: @fill-bg !important;
+  font-family: @font-primary !important;
 }
 
 a {
@@ -40,6 +41,7 @@ a {
 
 .navbar {
   background-color: @fill-bg !important;
+  height: 40px !important;
   border: none;
   margin: 0 !important;
   padding: 0 !important;
@@ -54,12 +56,18 @@ a {
   }
 }
 
+a.function-name {
+  width: 200px;
+  display: block;
+}
+
 input.function-name {
   background: transparent !important;
   color: @text-editing !important;
   outline: none !important;
   border: none !important;
-  padding: 3px !important;
+  padding-left: 3px !important;
+  padding-top: 5px !important;
 }
 
 p {
@@ -255,7 +263,6 @@ text {
     fill: @fill-fg-primary;
     stroke: @stroke-primary;
     stroke-width: 2;
-    filter: url(#borderGlow);
   }
   .node-delete {
     circle {
@@ -349,4 +356,13 @@ p {
 
 .node-title-edit {
   color: @text-editing;
+  background: transparent;
+  outline: none;
+  border: none;
+  position: fixed;
+  z-index: 1090;
+  font-size: 16px;
+  text-align: center;
+  padding: 0;
+  margin: 0;
 }
