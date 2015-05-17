@@ -18,11 +18,15 @@ a {
   margin-left: -150px;
   border-radius: 20px;
   border: 2px solid #00ffff;
+  color: #fff;
+}
+.modal h3 {
+  margin: 0;
 }
 .modal .modal-header,
 .modal .modal-body,
 .modal .modal-footer {
-  background: #000000;
+  background: #203030;
 }
 .modal .modal-header .btn,
 .modal .modal-body .btn,
@@ -222,6 +226,14 @@ input.function-name {
   stroke: #00ffff;
   fill: #007070;
   transition: fill 0.25s;
+}
+.node-input .pin-value:hover rect,
+.node-output .pin-value:hover rect,
+.node-input .pin-value:active rect,
+.node-output .pin-value:active rect {
+  fill: #203030;
+  stroke: #00ffff;
+  stroke-width: 2px;
 }
 .node-input.connected circle,
 .node-output.connected circle {

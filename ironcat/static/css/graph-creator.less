@@ -36,8 +36,12 @@ a {
   margin-left: -150px;
   border-radius: 20px;
   border: 2px solid @stroke-primary;
+  color: #fff;
+  h3 {
+    margin: 0;
+  }
   .modal-header, .modal-body, .modal-footer {
-    background: @fill-fg-primary;
+    background: @fill-fg-hover;
     .btn {
       outline: none;
     }
@@ -274,6 +278,15 @@ input.function-name {
     stroke: @stroke-primary;
     fill: @pin-fill-inactive;
     transition: fill 0.25s;
+  }
+  .pin-value {
+    &:hover, &:active {
+      rect {
+        fill: @fill-fg-hover;
+        stroke: @stroke-primary;
+        stroke-width: 2px;
+      }
+    }
   }
   &.connected {
     circle {
