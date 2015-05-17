@@ -16,7 +16,31 @@
                 <option>List</option>
                 <option>Function</option>
             </select>
-            <input type="text" class="form-control" placeholder="Value" aria-describedby="valueType"/>
+            <span data-type="none">
+            </span>
+            <span data-type="error">
+            </span>
+            <span data-type="string">
+                <input type="text" class="form-control" placeholder="Value"/>
+            </span>
+            <span data-type="number">
+                <input type="text" class="form-control" placeholder="Value"/>
+            </span>
+            <span data-type="boolean">
+                <input type="checkbox" checked data-toggle="toggle" data-on=" " data-off=" "/>
+            </span>
+            <span data-type="object">
+                <input type="text" class="form-control" placeholder="Value"/>
+            </span>
+            <span data-type="set">
+                <input type="text" class="form-control" placeholder="Value"/>
+            </span>
+            <span data-type="list">
+                <input type="text" class="form-control" placeholder="Value"/>
+            </span>
+            <span data-type="function">
+                <input type="text" class="form-control" placeholder="Value"/>
+            </span>
         </div>
     </div>
     <div class="modal-footer">

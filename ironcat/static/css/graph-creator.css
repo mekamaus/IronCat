@@ -42,6 +42,40 @@ a {
 .modal .modal-footer {
   height: 50px;
 }
+.modal button.selectpicker {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+  background-color: #000000;
+  color: #ffffff;
+  transition: all 0.25s;
+}
+.modal button.selectpicker:hover,
+.modal button.selectpicker:active,
+.modal button.selectpicker:focus {
+  background-color: #203030 !important;
+  color: #ffffff !important;
+}
+.modal .bootstrap-select .dropdown-menu {
+  background-color: #000000;
+}
+.modal .bootstrap-select .dropdown-menu li a {
+  color: #ffffff;
+}
+.modal .bootstrap-select .dropdown-menu li.selected a,
+.modal .bootstrap-select .dropdown-menu li:hover a {
+  background-color: #00ffff;
+  color: #000000;
+}
+.modal .bootstrap-select * {
+  outline: none !important;
+}
+.modal input[type="text"] {
+  background-color: #000000;
+  color: #ffffff;
+}
+.modal input[type="text"]:focus {
+  outline: none;
+}
 .container {
   margin: 0 !important;
   padding: 0 !important;

@@ -1421,14 +1421,6 @@
             .attr('radius', 3)
             .attr('result', 'erodedDilatedBlur');
 
-        // translate output of Gaussian blur to the right and downwards with 2px
-        // store result in offsetBlur
-        /*filter.append('feOffset')
-            .attr('in', 'blur')
-            .attr('dx', 5)
-            .attr('dy', 5)
-            .attr('result', 'offsetBlur');*/
-
         // overlay original SourceGraphic over translated blurred opacity by using
         // feMerge filter. Order of specifying inputs is important!
         var feMerge = filter.append('feMerge');
@@ -1444,6 +1436,13 @@
                 this.parentNode.appendChild(this);
             });
         };
+
+        $('[data-type]').hide();
+        $('#valueType').on('change', function () {
+            var selected = $(this).find('option:selected').val().toLowerCase();
+            $('[data-type]').hide();
+            $('[data-type="' + selected + '"]').show();
+        });
 
         var graph = new GraphCreator(svg, nodes, edges, inputs, outputs);
         graph.setIdCt(2);

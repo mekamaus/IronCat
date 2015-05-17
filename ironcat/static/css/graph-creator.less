@@ -55,6 +55,45 @@ a {
   .modal-footer {
     height: 50px;
   }
+  button.selectpicker {
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    background-color: @fill-fg-primary;
+    color: @text-primary;
+    transition: all 0.25s;
+    &:hover, &:active, &:focus {
+      background-color: @fill-fg-hover !important;
+      color: @text-primary !important;
+    }
+  }
+  .bootstrap-select {
+    .dropdown-menu {
+      background-color: @fill-fg-primary;
+      li {
+        a {
+          color: @text-primary;
+        }
+      }
+      li {
+        &.selected, &:hover {
+          a {
+            background-color: @stroke-primary;
+            color: @fill-fg-primary;
+          }
+        }
+      }
+    }
+    * {
+      outline: none !important;
+    }
+  }
+  input[type="text"] {
+    &:focus {
+      outline: none;
+    }
+    background-color: @fill-fg-primary;
+    color: @text-primary;
+  }
 }
 
 .container {
