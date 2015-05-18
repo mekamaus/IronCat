@@ -27,7 +27,7 @@
             this.dragmove = function (d) {
                 var state = self.state, func = self.func, svgG = self.svgG;
                 if (state.pinDrag) {
-                    var sourcePos = (d.func && d.func.outputs) ? add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.func.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + state.mouseDownPin * 50];
+                    var sourcePos = d.outputs ? add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + state.mouseDownPin * 50];
                     var targetPos = d3.mouse(svgG.node());
                     var ctrlPt1 = avg(sourcePos, targetPos);
                     ctrlPt1[1] = sourcePos[1];
@@ -125,14 +125,32 @@
                             id: null,
                             name: '(click here)',
                             inputs: [
-                                1
+                                {
+                                    type: 3,
+                                    value: '1'
+                                }
                             ],
                             outputs: [
-                                1
+                                {
+                                    type: 3,
+                                    value: '1'
+                                }
                             ]
                         },
                         x: xycoords[0],
-                        y: xycoords[1]
+                        y: xycoords[1],
+                        inputs: [
+                            {
+                                type: 3,
+                                value: '1'
+                            }
+                        ],
+                        outputs: [
+                            {
+                                type: 3,
+                                value: '1'
+                            }
+                        ]
                     };
                     func.nodes.push(d);
                     self.updateGraph();
@@ -214,12 +232,19 @@
                     nodeShapes.style('-webkit-svg-shadow', '0px 0px 16px #00ffff');
                 }
 
-                newNodes.append('g').classed('node-inputs', true).selectAll().data(function (d) { return d.func.inputs; });
-                newNodes.append('g').classed('node-outputs', true).selectAll().data(function (d) { return d.func.inputs; });
+                newNodes.append('g')
+                    .classed('node-inputs', true)
+                    .selectAll()
+                    .data(function (d) { return d.inputs; });
+                newNodes.append('g')
+                    .classed('node-outputs', true)
+                    .selectAll()
+                    .data(function (d) { return d.outputs; });
+
                 var inputs = self.nodeElements
                     .select('.node-inputs')
                     .selectAll('.node-input')
-                    .data(function (d) { return d.func.inputs; });
+                    .data(function (d) { return d.inputs; });
 
                 var newInputs = inputs.enter()
                     .append('g')
@@ -284,7 +309,7 @@
                 var outputs = self.nodeElements
                     .select('.node-outputs')
                     .selectAll('.node-output')
-                    .data(function (d) { return d.func.outputs; });
+                    .data(function (d) { return d.outputs; });
 
                 outputs.enter()
                     .append('g')
@@ -303,19 +328,19 @@
                 svg.selectAll('.node')
                     .selectAll('.node-shape')
                     .attr('height', function (d) {
-                        return Math.max(d.func.inputs.length, d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
+                        return Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
                     })
                     .attr('transform', function (d) {
-                        return translate(-consts.nodeWidth / 2, -(Math.max(d.func.inputs.length, d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+                        return translate(-consts.nodeWidth / 2, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
                     });
                 svg.selectAll('.node')
                     .selectAll('.node-inputs').attr('transform', function (d) {
-                        return translate(-consts.nodeWidth / 2, -(d.func.inputs.length - 1) * consts.pinSpacing / 2);
+                        return translate(-consts.nodeWidth / 2, -(d.inputs.length - 1) * consts.pinSpacing / 2);
                     });
                 svg.selectAll('.node')
                     .selectAll('.node-outputs')
                     .attr('transform', function (d) {
-                        return translate(consts.nodeWidth / 2, -(d.func.outputs.length - 1) * consts.pinSpacing / 2);
+                        return translate(consts.nodeWidth / 2, -(d.outputs.length - 1) * consts.pinSpacing / 2);
                     });
                 // Remove paths that from or to non-existent nodes.
                 self.edgeElements
@@ -349,9 +374,12 @@
                                 done: function () {
                                     state.editNode = null;
 
-                                    var fn = self.searchResults[self.selectedSearchResult];
-                                    node.func = fn || node.func;
-                                    nodeElement.select('.node-function-name').text(node.func.name);
+                                    var fn = self.searchResults[self.selectedSearchResult] || node.func;
+                                    node.func = fn;
+                                    // Give the node a shallow copy of the function's inputs and outputs.
+                                    node.inputs = fn.inputs.slice(0);
+                                    node.outputs = fn.outputs.slice(0);
+                                    nodeElement.select('.node-function-name').text(fn.name);
                                     self.updateGraph();
                                 },
                                 update: function (d, value) {
@@ -501,8 +529,8 @@
                 self.nodeElements.select('.node-header')
                     .attr('transform', function (d, i) {
                         return translate(0, -(Math.max(
-                            d.func.inputs.length,
-                            d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+                            d.inputs.length,
+                            d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
                     });
 
                 // Remove old nodes.
@@ -1007,7 +1035,19 @@
                 ]
             },
             x: xLoc + 300,
-            y: yLoc
+            y: yLoc,
+            inputs: [
+                { type: 3, value: '11' },
+                { type: 3, value: '22' },
+                { type: 3, value: '33' },
+                { type: 3, value: '44' },
+                { type: 3, value: '55' },
+                { type: 3, value: '66' }
+            ],
+            outputs: [
+                { type: 3, value: '0' },
+                { type: 3, value: '0' }
+            ]
         },
         {
             id: 1,
@@ -1028,7 +1068,19 @@
                 ]
             },
             x: xLoc,
-            y: yLoc
+            y: yLoc,
+            inputs: [
+                { type: 3, value: '111' },
+                { type: 3, value: '222' }
+            ],
+            outputs: [
+                { type: 3, value: '0' },
+                { type: 3, value: '0' },
+                { type: 3, value: '0' },
+                { type: 3, value: '0' },
+                { type: 3, value: '0' },
+                { type: 3, value: '0' }
+            ]
         }
     ];
     var edges = [

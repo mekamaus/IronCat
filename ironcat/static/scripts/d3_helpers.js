@@ -16,7 +16,7 @@
             var text = d3node.select('text');
             var oldTitle = text.text();
 
-            // If text is empty, put an invisible hyphen in there to correct the top position.
+            // If text is empty, insert an invisible hyphen to correct the top position.
             text.text(oldTitle || '&#173;');
 
             var htmlEl = text.node();
