@@ -312,33 +312,6 @@ input.function-name {
   }
 }
 
-.node-input, .node-output {
-  circle {
-    stroke: @stroke-primary;
-    fill: @pin-fill-inactive;
-    transition: fill 0.25s;
-  }
-  .pin-value {
-    &:hover, &:active {
-      rect {
-        fill: @fill-fg-hover;
-        stroke: @stroke-primary;
-        stroke-width: 2px;
-      }
-    }
-  }
-  &.connected {
-    circle {
-      fill: @pin-fill-active;
-    }
-    .pin-value {
-      rect {
-        display: none;
-      }
-    }
-  }
-}
-
 .node-header {
   path {
     stroke: @stroke-primary;
@@ -432,11 +405,33 @@ text {
       }
     }
   }
-  .pin-value {
-    rect {
-      fill: @fill-value;
-      stroke-width: 0;
-      transition: all 0.25s;
+  .node-input, .node-output {
+    circle {
+      stroke: @stroke-primary;
+      fill: @pin-fill-inactive;
+      transition: fill 0.25s;
+    }
+    .pin-value {
+      rect {
+        fill: @fill-value;
+        stroke-width: 0;
+        transition: all 0.25s;
+      }
+      &:hover, &:active, &.editing {
+        rect {
+          fill: @fill-fg-hover;
+          stroke: @stroke-primary;
+          stroke-width: 2px;
+        }
+      }
+    }
+    &.connected {
+      circle {
+        fill: @pin-fill-active;
+      }
+      .pin-value {
+        display: none;
+      }
     }
   }
 }

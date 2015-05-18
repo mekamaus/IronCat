@@ -240,10 +240,15 @@
                     .append('g')
                     .classed('pin-value', true)
                     .attr('transform', translate(-consts.pinSize / 2, 0))
-                    .on('click', function(d, i, j) {
-                        /*$('#valueModal').modal('show');
-                        self.editNodeIndex = j;
-                        self.editPinIndex = i;*/
+                    .clickToEdit({
+                        handlers: {
+                            start: function () {
+                                d3.select(this).classed('editing', true);
+                            },
+                            done: function () {
+                                d3.select(this).classed('editing', false);
+                            }
+                        }
                     });
 
                 newValueIndicators.append('rect')
@@ -255,9 +260,9 @@
                     .attr('ry', 5);
 
                 newValueIndicators.append('text')
-                    .attr('text-anchor', 'right')
+                    .attr('text-anchor', 'end')
                     .attr('dominant-baseline', 'middle')
-                    .attr('transform', translate(-26, 0))
+                    .attr('transform', translate(-10, 0))
                     .text(function (d) {
                         return d.value;
                     });
@@ -322,7 +327,6 @@
                         })
                         .clickToEdit({
                             width: consts.nodeWidth,
-                            zoom: self.zoom,
                             class: 'node-title-edit',
                             handlers: {
                                 start: function () {
@@ -876,7 +880,7 @@
                 d3.selectAll('.pin-add-delete').classed('vanish', function () {
                     var buttonPosition = screenPosition(this);
                     var d = dist(buttonPosition, d3.event);
-                    return d > 50 * self.zoom;
+                    return d > 50 * (window.editorZoom || 1);
                 });
             });
         }
@@ -934,7 +938,7 @@
         GraphCreator.prototype.zoomed = function () {
             this.state.justScaleTransGraph = true;
             this.translate = point(d3.event.translate);
-            this.zoom = d3.event.scale;
+            window.editorZoom = d3.event.scale;
             $('.node-title-edit').blur();
             d3.select('.' + consts.graphClass).attr('transform', translate(d3.event.translate) + scale(d3.event.scale));
         };

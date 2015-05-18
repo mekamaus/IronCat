@@ -255,28 +255,6 @@ input.function-name {
 .output.connected circle {
   fill: #00ffff;
 }
-.node-input circle,
-.node-output circle {
-  stroke: #00ffff;
-  fill: #007070;
-  transition: fill 0.25s;
-}
-.node-input .pin-value:hover rect,
-.node-output .pin-value:hover rect,
-.node-input .pin-value:active rect,
-.node-output .pin-value:active rect {
-  fill: #203030;
-  stroke: #00ffff;
-  stroke-width: 2px;
-}
-.node-input.connected circle,
-.node-output.connected circle {
-  fill: #00ffff;
-}
-.node-input.connected .pin-value rect,
-.node-output.connected .pin-value rect {
-  display: none;
-}
 .node-header path {
   stroke: #00ffff;
   stroke-width: 2;
@@ -351,10 +329,35 @@ text {
   fill: #ffffff;
   transition: all 0.15s;
 }
-.node .pin-value rect {
+.node .node-input circle,
+.node .node-output circle {
+  stroke: #00ffff;
+  fill: #007070;
+  transition: fill 0.25s;
+}
+.node .node-input .pin-value rect,
+.node .node-output .pin-value rect {
   fill: #a0ffff;
   stroke-width: 0;
   transition: all 0.25s;
+}
+.node .node-input .pin-value:hover rect,
+.node .node-output .pin-value:hover rect,
+.node .node-input .pin-value:active rect,
+.node .node-output .pin-value:active rect,
+.node .node-input .pin-value.editing rect,
+.node .node-output .pin-value.editing rect {
+  fill: #203030;
+  stroke: #00ffff;
+  stroke-width: 2px;
+}
+.node .node-input.connected circle,
+.node .node-output.connected circle {
+  fill: #00ffff;
+}
+.node .node-input.connected .pin-value,
+.node .node-output.connected .pin-value {
+  display: none;
 }
 p:focus {
   outline: none;

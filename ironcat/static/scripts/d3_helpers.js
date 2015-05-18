@@ -1,18 +1,20 @@
 (function () {
     d3.selection.prototype.editText = function (options) {
+        options = options || {};
         var handlers = options.handlers || {};
         var width = options.width;
         var align = options.align;
         var cls = options.class || '';
-        var zoom = options.zoom || 1;
+        var zoom = window.editorZoom || 1;
         return this.each(function () {
-            var d3node = d3.select(this);
-            var htmlEl = d3node.node();
+            var self = this;
+            var d3node = d3.select(self);
+            var htmlEl = d3node.select('text').node();
             var nodeBCR = htmlEl.getBoundingClientRect();
 
             d3node.selectAll('text').style('display', 'none');
 
-            var oldTitle = d3node.selectAll('text').text();
+            var oldTitle = d3node.select('text').text();
 
             // replace with editable text
             var x = (nodeBCR.left + nodeBCR.right) / 2;
@@ -28,6 +30,7 @@
                 .enter()
                 .append('input')
                 .attr('value', oldTitle)
+                .attr('id', 'extraUniqueIdToPutOnEditingTextElementSoThatItIsDefinitelyUnique')
                 .classed(cls, true)
                 .style('position', 'fixed')
                 .style('left', (x - w / 2) + 'px')
@@ -56,7 +59,7 @@
                     if (!$(this).is(':focus')) return;
 
                     if (handlers.keyDown) {
-                        handlers.keyDown(d3.event.keyCode, this);
+                        handlers.keyDown.call(self, d3.event.keyCode, this);
                     }
 
                     if (handlers.update) {
@@ -67,7 +70,7 @@
                             var newText = $this.val();
                             if (newText === this.textContent) return;
                             this.textContent = newText;
-                            handlers.update(newText);
+                            handlers.update.call(self, newText);
                         }, 250);
                     }
                 })
@@ -77,13 +80,13 @@
                     d3.select(this).remove();
                     d3node.selectAll('text').style('display', null);
                     clearTimeout(window.pendingSearch);
-                    if (handlers.done) handlers.done(text);
+                    if (handlers.done) handlers.done.call(self, text);
                 });
 
-            $('.node-title-edit').select();
+            $('#extraUniqueIdToPutOnEditingTextElementSoThatItIsDefinitelyUnique').select();
 
             if (handlers.start) {
-                handlers.start();
+                handlers.start.call(self);
             }
         });
     };
