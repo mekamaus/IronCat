@@ -427,9 +427,9 @@
                     .classed('pin-value', true)
                     .attr('transform', translate(-consts.pinSize / 2, 0))
                     .on('click', function(d, i, j) {
-                        $('#valueModal').modal('show');
+                        /*$('#valueModal').modal('show');
                         self.editNodeIndex = j;
-                        self.editPinIndex = i;
+                        self.editPinIndex = i;*/
                     });
 
                 newValueIndicators.append('rect')
@@ -501,61 +501,59 @@
                         .on('mousedown', function () {
                             d3.event.stopPropagation();
                         })
-                        .on('click', function () {
-                            d3.select(this).editText({
-                                width: consts.nodeWidth,
-                                zoom: self.zoom,
-                                class: 'node-title-edit',
-                                handlers: {
-                                    start: function () {
-                                        state.editNode = i;
+                        .clickToEdit({
+                            width: consts.nodeWidth,
+                            zoom: self.zoom,
+                            class: 'node-title-edit',
+                            handlers: {
+                                start: function () {
+                                    state.editNode = i;
+                                    self.searchResults = [];
+                                    self.updateGraph();
+                                },
+                                done: function () {
+                                    state.editNode = null;
+
+                                    var fn = self.searchResults[self.selectedSearchResult];
+                                    node.func = fn || node.func;
+                                    nodeElement.select('.node-function-name').text(node.func.name);
+                                    self.updateGraph();
+                                },
+                                update: function (value) {
+                                    if (!value) {
                                         self.searchResults = [];
                                         self.updateGraph();
-                                    },
-                                    done: function () {
-                                        state.editNode = null;
-
-                                        var fn = self.searchResults[self.selectedSearchResult];
-                                        node.func = fn || node.func;
-                                        nodeElement.select('.node-function-name').text(node.func.name);
+                                        return;
+                                    }
+                                    $.when($.getJSON('/search/', {q: value})).then(function (data) {
+                                        self.searchResults = data.results;
+                                        self.selectedSearchResult = 0;
                                         self.updateGraph();
-                                    },
-                                    update: function (value) {
-                                        if (!value) {
-                                            self.searchResults = [];
-                                            self.updateGraph();
-                                            return;
-                                        }
-                                        $.when($.getJSON('/search/', {q: value})).then(function (data) {
-                                            self.searchResults = data.results;
-                                            self.selectedSearchResult = 0;
-                                            self.updateGraph();
-                                            nodeElement.select('.search-result')
-                                                .classed('selected', function (d, i) {
-                                                    return i === self.selectedSearchResult;
-                                                });
-                                        });
-                                    },
-                                    keyDown: function (keyCode) {
-                                        if (keyCode === 38) {
-                                            self.selectedSearchResult = (((self.selectedSearchResult - 1)
-                                                % self.searchResults.length) + self.searchResults.length)
-                                                % self.searchResults.length;
-                                            nodeElement.selectAll('.search-result')
-                                                .classed('selected', function (d, i) {
-                                                    return i === self.selectedSearchResult;
-                                                });
-                                        } else if (keyCode === 40) {
-                                            self.selectedSearchResult = (self.selectedSearchResult + 1)
-                                                % self.searchResults.length;
-                                            nodeElement.selectAll('.search-result')
-                                                .classed('selected', function (d, i) {
-                                                    return i === self.selectedSearchResult;
-                                                });
-                                        }
+                                        nodeElement.select('.search-result')
+                                            .classed('selected', function (d, i) {
+                                                return i === self.selectedSearchResult;
+                                            });
+                                    });
+                                },
+                                keyDown: function (keyCode) {
+                                    if (keyCode === 38) {
+                                        self.selectedSearchResult = (((self.selectedSearchResult - 1)
+                                            % self.searchResults.length) + self.searchResults.length)
+                                            % self.searchResults.length;
+                                        nodeElement.selectAll('.search-result')
+                                            .classed('selected', function (d, i) {
+                                                return i === self.selectedSearchResult;
+                                            });
+                                    } else if (keyCode === 40) {
+                                        self.selectedSearchResult = (self.selectedSearchResult + 1)
+                                            % self.searchResults.length;
+                                        nodeElement.selectAll('.search-result')
+                                            .classed('selected', function (d, i) {
+                                                return i === self.selectedSearchResult;
+                                            });
                                     }
                                 }
-                            });
+                            }
                         });
                     /*label.append('rect')
                         .attr('x', -(consts.nodeWidth - consts.nodeCornerRadius * 4) / 2)
@@ -1383,6 +1381,13 @@
                 if (handlers.start) {
                     handlers.start();
                 }
+            });
+        };
+        d3.selection.prototype.clickToEdit = function (options) {
+            return this.each(function () {
+                d3.select(this).on('click', function () {
+                    d3.select(this).editText(options);
+                });
             });
         };
 
