@@ -95,7 +95,7 @@ a {
   color: #ffffff !important;
 }
 .navbar a:hover {
-  color: #ff0000 !important;
+  color: #00ff00 !important;
 }
 a.function-name {
   width: 200px;
@@ -103,7 +103,7 @@ a.function-name {
 }
 input.function-name {
   background: transparent !important;
-  color: #ff8080 !important;
+  color: #50ff50 !important;
   outline: none !important;
   border: none !important;
   padding-left: 3px !important;
@@ -294,7 +294,7 @@ input.function-name {
   transition: all 0.25s;
 }
 .node-header .node-label:hover .node-function-name {
-  fill: #ff0000;
+  fill: #00ff00;
 }
 text {
   font-family: 'Ubuntu', 'Menlo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -377,7 +377,7 @@ p {
   font-family: 'Ubuntu', 'Menlo', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 .node-title-edit {
-  color: #ff8080;
+  color: #50ff50;
   background: transparent;
   outline: none;
   border: none;
