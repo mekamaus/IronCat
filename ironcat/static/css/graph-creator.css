@@ -303,8 +303,6 @@ text {
 }
 .node:hover .node-delete circle {
   fill: #000000;
-  stroke: #00ffff;
-  stroke-width: 1px;
 }
 .node:hover .node-delete text {
   fill: #ffffff;
@@ -377,6 +375,9 @@ input.edit {
 }
 input.edit.error {
   color: #ff4040;
+}
+input.totally-unique-text-edit-class {
+  outline: 4px solid red;
 }
 p:focus {
   outline: none;

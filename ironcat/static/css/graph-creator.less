@@ -372,8 +372,6 @@ text {
       cursor: pointer;
       circle {
         fill: @fill-fg-primary;
-        stroke: @stroke-primary;
-        stroke-width: 1px;
       }
       text {
         fill: rgba(255, 255, 255, 255);
@@ -453,6 +451,10 @@ input.edit {
   &.error {
     color: @text-error;
   }
+}
+
+input.totally-unique-text-edit-class {
+  outline: 4px solid red;
 }
 
 p:focus {

@@ -4,15 +4,22 @@
         var handlers = options.handlers || {};
         var width = options.width;
         var align = options.align;
-        var editClass = options.editClass || '';
-        var errorClass = options.errorClass || '';
+        var editClass = options.editClass || 'edit';
+        var errorClass = options.errorClass || 'error';
         var zoom = window.editorZoom || 1;
         var constraint = options.constraint;
         return this.each(function () {
             var self = this;
             var d3node = d3.select(self);
             var d = d3node.datum();
-            var htmlEl = d3node.select('text').node();
+
+            var text = d3node.select('text');
+            var oldTitle = text.text();
+
+            // If text is empty, put an invisible hyphen in there to correct the top position.
+            text.text(oldTitle || '&#173;');
+
+            var htmlEl = text.node();
             var nodeBCR = htmlEl.getBoundingClientRect();
 
             d3node.selectAll('text').style('display', 'none');
@@ -21,16 +28,12 @@
                 d3node.classed(editClass, true);
             }
 
-            var oldTitle = d3node.select('text').text();
-
             // replace with editable text
-            var x = (nodeBCR.left + nodeBCR.right) / 2;
-            var y = nodeBCR.top - nodeBCR.height / 2 + 8 * zoom;
+            var fontSize = parseInt(text.style('font-size'));
+            var y = nodeBCR.top - nodeBCR.height / 2 + 0.5 * fontSize * zoom;
             var w = (width || nodeBCR.width) * zoom;
-            var text = d3node.select('text');
             var textAlign = align || text.attr('text-anchor') || 'left';
             textAlign = (textAlign === 'middle') ? 'center' : (textAlign === 'start') ? 'left' : (textAlign === 'end') ? 'right' : textAlign;
-            var fontSize = parseInt(text.style('font-size'));
             var input = d3.select('body')
                 .selectAll('input.totally-unique-text-edit-class')
                 .data([1])
@@ -41,9 +44,13 @@
                 .attr('id', 'extraUniqueIdToPutOnEditingTextElementSoThatItIsDefinitelyUnique')
                 .classed(editClass, true)
                 .style('position', 'fixed')
-                .style('left', (x - w / 2) + 'px')
+                .style('left', (
+                    textAlign === 'left'
+                        ? nodeBCR.left :
+                    textAlign === 'center'
+                        ? (nodeBCR.left + nodeBCR.right) / 2 - w / 2 :
+                        nodeBCR.right - w) + 'px')
                 .style('top', y + 'px')
-                .style('height', nodeBCR.height)
                 .style('width', w + 'px')
                 .style('text-align', textAlign)
                 .style('font-size', (fontSize * zoom) + 'px')

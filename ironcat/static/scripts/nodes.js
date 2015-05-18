@@ -248,11 +248,14 @@
                             if (d.type == 3) {
                                 return value && isFinite(value);
                             }
+                            return true;
                         },
                         handlers: {
                             done: function (d, value, valid) {
                                 if (valid) {
-                                    value = parseFloat(value).toString();
+                                    if (d.type === 3) {
+                                        value = parseFloat(value).toString();
+                                    }
                                     d.value = value;
                                     d3.select(this).select('text').text(value);
                                 }
