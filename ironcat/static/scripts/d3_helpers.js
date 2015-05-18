@@ -1,4 +1,5 @@
 (function () {
+    var keyPressEvent = 'keypress';
     d3.selection.prototype.editText = function (options) {
         options = options || {};
         var handlers = options.handlers || {};
@@ -62,7 +63,7 @@
                 .on('mousedown', function () {
                     d3.event.stopPropagation();
                 })
-                .on('keyup', function () {
+                .on(keyPressEvent, function () {
                     d3.event.stopPropagation();
                     if (d3.event.keyCode == 13) {
                         this.blur();
@@ -73,8 +74,8 @@
 
                     if (!$(this).is(':focus')) return;
 
-                    if (handlers.keyDown) {
-                        handlers.keyDown.call(self, d, d3.event.keyCode, this);
+                    if (handlers.keyPress) {
+                        handlers.keyPress.call(self, d, d3.event.keyCode, this);
                     }
                     var $this = $(this);
                     if (handlers.update) {

@@ -1,13 +1,13 @@
 (function () {
-
-    function isTouchDevice() {
+    // Find out whether we are using a touch screen.
+    window.touch = (function () {
         try {
             document.createEvent('TouchEvent');
             return true;
         } catch (e) {
             return false;
         }
-    }
+    })();
 
     var consts = {
         selectedClass: 'selected',
@@ -29,6 +29,11 @@
     // define graphcreator object
     var GraphCreator = (function () {
         function GraphCreator(svg, nodes, edges, inputs, outputs) {
+
+            var mouseDownEvent = window.touch ? 'touchstart' : 'mousedown';
+            var mouseUpEvent = window.touch ? 'touchend' : 'mouseup';
+            var keyPressEvent = 'keypress';
+
             var self = this;
             self.state = {};
             self.searchResults = [];
@@ -171,13 +176,9 @@
                 }
                 state.graphMouseDown = false;
             };
-            this.svgKeyDown = function () {
+            this.svgKeyPress = function () {
                 var state = self.state,
                     func = self.func;
-                // make sure repeated key presses don't register for each keydown
-                if (state.lastKeyDown !== -1)
-                    return;
-                state.lastKeyDown = d3.event.keyCode;
                 var selectedNode = state.selectedNode, selectedEdge = state.selectedEdge;
                 switch (d3.event.keyCode) {
                     case consts.BACKSPACE_KEY:
@@ -199,7 +200,6 @@
                         break;
                 }
             };
-            this.svgKeyUp = function () { return self.state.lastKeyDown = -1; };
             this.updateGraph = function (ioUpdated) {
                 if (ioUpdated === void 0) { ioUpdated = false; }
                 var svg = self.svg, state = self.state, func = self.func;
@@ -219,11 +219,11 @@
                     .on('mouseout', function (d) {
                         d3.select(this).classed(consts.connectClass, false);
                     })
-                    .on('mousedown', function (d) {
+                    .on(mouseDownEvent, function (d) {
                         d3.event.stopPropagation();
                         self.nodeMouseDown.call(this, d3.select(this), d);
                     })
-                    .on('mouseup', function (d) {
+                    .on(mouseUpEvent, function (d) {
                         self.nodeMouseUp.call(this, d3.select(this), d);
                     })
                     .call(self.drag);
@@ -262,7 +262,7 @@
                     .attr('transform', function (d, i) {
                         return translate(0, i * consts.pinSpacing);
                     })
-                    .on('mouseup', function (d, i) {
+                    .on(mouseUpEvent, function (d, i) {
                         self.pinMouseUp.call(this, d3.select(this), d3.select(this.parentNode).datum(), i);
                     });
 
@@ -327,7 +327,7 @@
                     .attr('transform', function (d, i) {
                         return translate(0, i * consts.pinSpacing);
                     })
-                    .on('mousedown', function (d, i) {
+                    .on(mouseDownEvent, function (d, i) {
                         self.pinMouseDown.call(self, d3.select(this.parentNode).datum(), i);
                     })
                     .append('circle').attr('r', consts.pinSize / 2);
@@ -368,7 +368,7 @@
                         .classed('node-header', true);
                     var label = header.append('g')
                         .classed('node-label', true)
-                        .on('mousedown', function () {
+                        .on(mouseDownEvent, function () {
                             d3.event.stopPropagation();
                         })
                         .clickToEdit({
@@ -407,7 +407,7 @@
                                             });
                                     });
                                 },
-                                keyDown: function (d, keyCode) {
+                                keyPress: function (d, keyCode) {
                                     if (keyCode === 38) {
                                         self.selectedSearchResult = (((self.selectedSearchResult - 1)
                                             % self.searchResults.length) + self.searchResults.length)
@@ -563,7 +563,7 @@
                     .call(self.drag);
                 newInputs.append('circle').attr('r', 0).transition().attr('r', 20);
                 self.inputElements
-                    .on('mousedown', function (d, i) {
+                    .on(mouseDownEvent, function (d, i) {
                         return self.pinMouseDown.call(self, null, i);
                     })
                     .transition()
@@ -582,7 +582,7 @@
                     });
                 newOutputs.append('circle').attr('r', 0).transition().attr('r', 20);
                 self.outputElements
-                    .on('mouseup', function (d, i) {
+                    .on(mouseUpEvent, function (d, i) {
                         self.pinMouseUp.call(self, d3.select(this), null, i);
                     })
                     .transition()
@@ -605,7 +605,7 @@
                     .attr('dominant-baseline', 'middle')
                     .html('&times;');
                 self.inputDeleteButtons
-                    .on('mousedown', function (d, i) {
+                    .on(mouseDownEvent, function (d, i) {
                         d3.event.stopPropagation();
                         func.edges = func.edges.filter(function (edge) {
                             if (edge.sourceNode)
@@ -636,7 +636,7 @@
                     .attr('dominant-baseline', 'middle')
                     .text('+');
                 self.inputAddButtons
-                    .call(self.drag).on('mousedown', function (d, i) {
+                    .call(self.drag).on(mouseDownEvent, function (d, i) {
                         func.inputs.splice(i, 0, {
                             id: self.createGuid(),
                             types: [3]
@@ -665,7 +665,7 @@
                     .attr('dominant-baseline', 'middle')
                     .html('&times;');
                 self.outputDeleteButtons
-                    .on('mousedown', function (d) {
+                    .on(mouseDownEvent, function (d) {
                         var i = func.outputs.indexOf(d);
                         func.edges = func.edges.filter(function (edge) {
                             if (edge.targetNode)
@@ -697,7 +697,7 @@
                     .attr('dominant-baseline', 'middle')
                     .text('+');
                 self.outputAddButtons
-                    .on('mousedown', function (d) {
+                    .on(mouseDownEvent, function (d) {
                         d3.event.stopPropagation();
                         var i = func.outputs.indexOf(d);
                         i = i < 0 ? func.outputs.length : i;
@@ -713,7 +713,7 @@
                         });
                         self.updateGraph(true);
                     })
-                    .on('mouseup', function (d) {
+                    .on(mouseUpEvent, function (d) {
                         var i = func.outputs.indexOf(d);
                         i = i < 0 ? func.outputs.length : i;
                         if (self.state.pinDrag) {
@@ -780,10 +780,10 @@
                 self.edgeElements.enter()
                     .append('path')
                     .classed('link', true)
-                    .on('mousedown', function (d) {
+                    .on(mouseDownEvent, function (d) {
                         this.pathMouseDown.call(this, d3.select(this), d);
                     })
-                    .on('mouseup', function () { state.mouseDownLink = null; });
+                    .on(mouseUpEvent, function () { state.mouseDownLink = null; });
                 self.edgeElements
                     .classed(consts.selectedClass, function (d) { return d === state.selectedEdge; });
                 if (ioUpdated) {
@@ -862,7 +862,6 @@
                 mouseDownLink: null,
                 justDragged: false,
                 justScaleTransGraph: false,
-                lastKeyDown: -1,
                 pinDrag: false,
                 selectedText: null
             };
@@ -874,7 +873,7 @@
             // svg nodes and edges
             this.edgeElements = svgG.append('g').selectAll('g');
             this.nodeElements = svgG.append('g').selectAll('g');
-            this.inputGroup = svgG.append('g').classed('inputs', true).attr('transform', translate(0, 0)).on('mousedown', function () {
+            this.inputGroup = svgG.append('g').classed('inputs', true).attr('transform', translate(0, 0)).on(mouseDownEvent, function () {
                 d3.event.stopPropagation();
             });
             this.outputGroup = svgG.append('g').classed('outputs', true).attr('transform', translate(1000, 0));
@@ -895,17 +894,14 @@
             });
             // listen for key events
             d3.select(window)
-                .on('keydown', function () {
-                    return self.svgKeyDown.call(self);
-                })
-                .on('keyup', function () {
-                    return self.svgKeyUp.call(self);
+                .on(keyPressEvent, function () {
+                    return self.svgKeyPress.call(self);
                 });
             svg
-                .on('mousedown', function (d) {
+                .on(mouseDownEvent, function (d) {
                     return self.svgMouseDown.call(self, d);
                 })
-                .on('mouseup', function (d) {
+                .on(mouseUpEvent, function (d) {
                     return self.svgMouseUp.call(self, d);
                 });
             // listen for pinDrag
@@ -925,8 +921,12 @@
             svg.call(dragSvg).on('dblclick.zoom', null);
             // listen for resize
             window.onresize = function () { return self.updateWindow(svg); };
+            if (window.touch) {
+                d3.selectAll('.pin-add-delete').classed('vanish', false);
+            }
             svg.on('mousemove', function () {
                 d3.selectAll('.pin-add-delete').classed('vanish', function () {
+                    if (window.touch) return false;
                     var buttonPosition = screenPosition(this);
                     var d = dist(buttonPosition, d3.event);
                     return d > 50 * (window.editorZoom || 1);
@@ -1133,6 +1133,8 @@
     $(function () {
         var svg = d3.select('body').append('svg').classed('editor', true);
 
+        $('nav').on('touchmove', false);
+
         // Set up filters
         var defs = svg.append('defs');
 
@@ -1230,7 +1232,7 @@
             return this;
         };
         $.prototype.onEscape = function (fn) {
-            this.keydown(function (e) {
+            this.on(keyPressEvent, function (e) {
                 if (e.keyCode === 27) {
                     fn.apply(this, [$(this).val()]);
                 }

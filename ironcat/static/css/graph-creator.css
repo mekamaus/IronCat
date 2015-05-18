@@ -1,6 +1,10 @@
 /**
  * Main body stuff.
  */
+html,
+body {
+  overflow: hidden;
+}
 body {
   background-color: #000000 !important;
   font-family: 'Ubuntu', 'Menlo', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
