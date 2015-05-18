@@ -493,9 +493,6 @@
                     var header = nodeElement
                         .append('g')
                         .classed('node-header', true);
-                    /*header.append('path')
-                        .attr('d', topRoundedRect(0, 0, consts.nodeWidth, consts.nodeLabelHeight,
-                            consts.nodeCornerRadius));*/
                     var label = header.append('g')
                         .classed('node-label', true)
                         .on('mousedown', function () {
@@ -555,16 +552,6 @@
                                 }
                             }
                         });
-                    /*label.append('rect')
-                        .attr('x', -(consts.nodeWidth - consts.nodeCornerRadius * 4) / 2)
-                        .attr('y', 10)
-                        .attr('rx', 10)
-                        .attr('ry', 10)
-                        .attr('width', consts.nodeWidth - consts.nodeCornerRadius * 4)
-                        .attr('height', consts.nodeLabelHeight * 0.5)
-                        .style('fill', 'rgba(255, 255, 255, 0)')
-                        .style('stroke', 'rgba(255, 255, 255, 255)')
-                        .style('stroke-width', 1);*/
                     label.append('text')
                         .attr('transform', translate(0, consts.nodeLabelHeight * 0.5))
                         .classed('node-function-name', true)
@@ -638,8 +625,6 @@
 
                     results.exit().remove();
                 });
-
-                var editNodeData = self.func.nodes[self.state.editNode];
 
                 var results = d3.select('.search-results').selectAll('.search-result')
                     .data(self.searchResults, function (d) { return d.name; });
