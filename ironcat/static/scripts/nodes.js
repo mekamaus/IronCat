@@ -254,6 +254,14 @@
                     .attr('rx', 5)
                     .attr('ry', 5);
 
+                newValueIndicators.append('text')
+                    .attr('text-anchor', 'right')
+                    .attr('dominant-baseline', 'middle')
+                    .attr('transform', translate(-26, 0))
+                    .text(function (d) {
+                        return d.value;
+                    });
+
                 inputs.exit().remove();
 
                 var outputs = self.nodeElements
@@ -970,16 +978,16 @@
                 id: null,
                 name: 'new concept',
                 inputs: [
-                    { type: 3, value: 11 },
-                    { type: 3, value: 22 },
-                    { type: 3, value: 33 },
-                    { type: 3, value: 44 },
-                    { type: 3, value: 55 },
-                    { type: 3, value: 66 }
+                    { type: 3, value: '11' },
+                    { type: 3, value: '22' },
+                    { type: 3, value: '33' },
+                    { type: 3, value: '44' },
+                    { type: 3, value: '55' },
+                    { type: 3, value: '66' }
                 ],
                 outputs: [
-                    { type: 3, value: 0 },
-                    { type: 3, value: 0 }
+                    { type: 3, value: '0' },
+                    { type: 3, value: '0' }
                 ]
             },
             x: xLoc + 300,
@@ -991,16 +999,16 @@
                 id: null,
                 name: 'old concept',
                 inputs: [
-                    { type: 3, value: 111 },
-                    { type: 3, value: 222 }
+                    { type: 3, value: '111' },
+                    { type: 3, value: '222' }
                 ],
                 outputs: [
-                    { type: 3, value: 0 },
-                    { type: 3, value: 0 },
-                    { type: 3, value: 0 },
-                    { type: 3, value: 0 },
-                    { type: 3, value: 0 },
-                    { type: 3, value: 0 }
+                    { type: 3, value: '0' },
+                    { type: 3, value: '0' },
+                    { type: 3, value: '0' },
+                    { type: 3, value: '0' },
+                    { type: 3, value: '0' },
+                    { type: 3, value: '0' }
                 ]
             },
             x: xLoc,

@@ -20,7 +20,7 @@
             var w = (width || nodeBCR.width) * zoom;
             var text = d3node.select('text');
             var textAlign = align || text.attr('text-anchor') || 'left';
-            textAlign = (textAlign === 'middle') ? 'center' : textAlign;
+            textAlign = (textAlign === 'middle') ? 'center' : (textAlign === 'start') ? 'left' : (textAlign === 'end') ? 'right' : textAlign;
             var fontSize = parseInt(text.style('font-size'));
             var input = d3.select('body')
                 .selectAll('input.node-title-edit')
