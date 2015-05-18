@@ -345,11 +345,24 @@ text {
 .node .node-output .pin-value:hover rect,
 .node .node-input .pin-value:active rect,
 .node .node-output .pin-value:active rect,
-.node .node-input .pin-value.editing rect,
-.node .node-output .pin-value.editing rect {
+.node .node-input .pin-value.edit rect,
+.node .node-output .pin-value.edit rect {
   fill: #203030;
   stroke: #00ffff;
   stroke-width: 2px;
+}
+.node .node-input .pin-value:hover text,
+.node .node-output .pin-value:hover text,
+.node .node-input .pin-value:active text,
+.node .node-output .pin-value:active text,
+.node .node-input .pin-value.edit text,
+.node .node-output .pin-value.edit text {
+  fill: #ffffff;
+}
+.node .node-input .pin-value.error rect,
+.node .node-output .pin-value.error rect {
+  fill: #800000;
+  stroke: #ff4040;
 }
 .node .node-input.connected circle,
 .node .node-output.connected circle {
@@ -358,6 +371,12 @@ text {
 .node .node-input.connected .pin-value,
 .node .node-output.connected .pin-value {
   display: none;
+}
+input.edit {
+  color: #50ff50;
+}
+input.edit.error {
+  color: #ff4040;
 }
 p:focus {
   outline: none;

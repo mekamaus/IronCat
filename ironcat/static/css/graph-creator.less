@@ -1,7 +1,9 @@
 @stroke-primary:     #00ffff;
+@stroke-error:       #ff4040;
 @fill-bg:            #000000;
 @fill-fg-primary:    #000000;
 @fill-fg-hover:      #203030;
+@fill-fg-error:      #800000;
 @pin-fill-inactive:  #007070;
 @pin-fill-active:    @stroke-primary;
 @select-color:       @stroke-primary;
@@ -11,6 +13,7 @@
 @text-primary:       #ffffff;
 @text-hover:         #00ff00;
 @text-editing:       #50ff50;
+@text-error:         #ff4040;
 
 @modal-width:  400px;
 
@@ -417,11 +420,20 @@ text {
         stroke-width: 0;
         transition: all 0.25s;
       }
-      &:hover, &:active, &.editing {
+      &:hover, &:active, &.edit {
         rect {
           fill: @fill-fg-hover;
           stroke: @stroke-primary;
           stroke-width: 2px;
+        }
+        text {
+          fill: @text-primary;
+        }
+      }
+      &.error {
+        rect {
+          fill: @fill-fg-error;
+          stroke: @stroke-error;
         }
       }
     }
@@ -433,6 +445,13 @@ text {
         display: none;
       }
     }
+  }
+}
+
+input.edit {
+  color: @text-editing;
+  &.error {
+    color: @text-error;
   }
 }
 

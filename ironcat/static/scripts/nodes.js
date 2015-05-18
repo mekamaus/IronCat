@@ -241,12 +241,21 @@
                     .classed('pin-value', true)
                     .attr('transform', translate(-consts.pinSize / 2, 0))
                     .clickToEdit({
+                        editClass: 'edit',
+                        errorClass: 'error',
+                        width: 50,
+                        constraint: function (d, value) {
+                            if (d.type == 3) {
+                                return value && isFinite(value);
+                            }
+                        },
                         handlers: {
-                            start: function () {
-                                d3.select(this).classed('editing', true);
-                            },
-                            done: function () {
-                                d3.select(this).classed('editing', false);
+                            done: function (d, value, valid) {
+                                if (valid) {
+                                    value = parseFloat(value).toString();
+                                    d.value = value;
+                                    d3.select(this).select('text').text(value);
+                                }
                             }
                         }
                     });
@@ -327,7 +336,7 @@
                         })
                         .clickToEdit({
                             width: consts.nodeWidth,
-                            class: 'node-title-edit',
+                            editClass: 'node-title-edit',
                             handlers: {
                                 start: function () {
                                     state.editNode = i;
@@ -342,7 +351,7 @@
                                     nodeElement.select('.node-function-name').text(node.func.name);
                                     self.updateGraph();
                                 },
-                                update: function (value) {
+                                update: function (d, value) {
                                     if (!value) {
                                         self.searchResults = [];
                                         self.updateGraph();
@@ -358,7 +367,7 @@
                                             });
                                     });
                                 },
-                                keyDown: function (keyCode) {
+                                keyDown: function (d, keyCode) {
                                     if (keyCode === 38) {
                                         self.selectedSearchResult = (((self.selectedSearchResult - 1)
                                             % self.searchResults.length) + self.searchResults.length)
