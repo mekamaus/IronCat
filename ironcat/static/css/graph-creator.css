@@ -378,13 +378,4 @@ p {
 }
 .node-title-edit {
   color: #50ff50;
-  background: transparent;
-  outline: none;
-  border: none;
-  position: fixed;
-  z-index: 1090;
-  font-size: 16px;
-  text-align: center;
-  padding: 0;
-  margin: 0;
 }

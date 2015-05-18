@@ -505,6 +505,7 @@
                             d3.select(this).editText({
                                 width: consts.nodeWidth,
                                 zoom: self.zoom,
+                                class: 'node-title-edit',
                                 handlers: {
                                     start: function () {
                                         state.editNode = i;
@@ -1299,6 +1300,7 @@
             var handlers = options.handlers || {};
             var width = options.width;
             var align = options.align;
+            var cls = options.class || '';
             var zoom = options.zoom || 1;
             return this.each(function () {
                 var d3node = d3.select(this);
@@ -1313,20 +1315,30 @@
                 var x = (nodeBCR.left + nodeBCR.right) / 2;
                 var y = nodeBCR.top - nodeBCR.height / 2 + 8 * zoom;
                 var w = (width || nodeBCR.width) * zoom;
-                var fontSize = parseInt(d3node.select('text').style('font-size'));
+                var text = d3node.select('text');
+                var textAlign = align || text.attr('text-anchor') || 'left';
+                textAlign = (textAlign === 'middle') ? 'center' : textAlign;
+                var fontSize = parseInt(text.style('font-size'));
                 var input = d3.select('body')
                     .selectAll('input.node-title-edit')
                     .data([1])
                     .enter()
                     .append('input')
                     .attr('value', oldTitle)
-                    .classed('node-title-edit', true)
+                    .classed(cls, true)
                     .attr('id', consts.activeEditId)
+                    .style('position', 'fixed')
                     .style('left', (x - w / 2) + 'px')
                     .style('top', y + 'px')
                     .style('height', nodeBCR.height)
                     .style('width', w + 'px')
+                    .style('text-align', textAlign)
                     .style('font-size', (fontSize * zoom) + 'px')
+                    .style('padding', 0)
+                    .style('margin', 0)
+                    .style('outline', 'none')
+                    .style('border', 'none')
+                    .style('background', 'transparent')
                     .on('mousedown', function () {
                         d3.event.stopPropagation();
                     })
