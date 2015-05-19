@@ -925,13 +925,9 @@
                 });
             // listen for pinDrag
             var dragSvg = d3.behavior.zoom()
+                .scaleExtent([0.5, 2])
                 .on('zoom', function () {
-                    //if (d3.event.sourceEvent.shiftKey) {
-                    //    // TODO  the internal d3 state is still changing
-                    //    return false;
-                    //} else {
                     self.zoomed.call(self);
-                    //}
                     return true;
                 })
                 .on('zoomend', function () {

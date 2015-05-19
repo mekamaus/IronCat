@@ -1,5 +1,5 @@
 (function () {
-    var keyPressEvent = 'keypress';
+    var keyPressEvent = 'keyup';
     d3.selection.prototype.editText = function (options) {
         options = options || {};
         var handlers = options.handlers || {};
