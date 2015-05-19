@@ -343,6 +343,10 @@ text {
   stroke-width: 0;
   transition: all 0.25s;
 }
+.node .node-input .pin-value .value-types,
+.node .node-output .pin-value .value-types {
+  visibility: hidden;
+}
 .node .node-input .pin-value:hover rect,
 .node .node-output .pin-value:hover rect,
 .node .node-input .pin-value:active rect,
@@ -360,6 +364,14 @@ text {
 .node .node-input .pin-value.edit text,
 .node .node-output .pin-value.edit text {
   fill: #ffffff;
+}
+.node .node-input .pin-value:hover .value-types,
+.node .node-output .pin-value:hover .value-types,
+.node .node-input .pin-value:active .value-types,
+.node .node-output .pin-value:active .value-types,
+.node .node-input .pin-value.edit .value-types,
+.node .node-output .pin-value.edit .value-types {
+  visibility: visible;
 }
 .node .node-input .pin-value.error rect,
 .node .node-output .pin-value.error rect {

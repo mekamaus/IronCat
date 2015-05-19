@@ -9,6 +9,10 @@
         }
     })();
 
+    var mouseDownEvent = window.touch ? 'touchstart' : 'mousedown';
+    var mouseUpEvent = window.touch ? 'touchend' : 'mouseup';
+    var keyPressEvent = 'keypress';
+
     var consts = {
         selectedClass: 'selected',
         connectClass: 'connect-node',
@@ -29,10 +33,6 @@
     // define graphcreator object
     var GraphCreator = (function () {
         function GraphCreator(svg, nodes, edges, inputs, outputs) {
-
-            var mouseDownEvent = window.touch ? 'touchstart' : 'mousedown';
-            var mouseUpEvent = window.touch ? 'touchend' : 'mouseup';
-            var keyPressEvent = 'keypress';
 
             var self = this;
             self.state = {};
@@ -312,6 +312,25 @@
                     .text(function (d) {
                         return d.value;
                     });
+
+                var newValueTypeIndicators = newValueIndicators.append('g')
+                    .classed('value-types', true)
+                    .attr('transform', function (d) { return translate(-64, -20 * d.type); });
+
+                var newValueTypeIndicatorOptions = newValueTypeIndicators.selectAll('g')
+                    .data([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+
+                newValueTypeIndicatorOptions.enter()
+                    .append('g')
+                    .attr('transform', function (d, i) { return translate(0, 20 * i); })
+                    .append('text')
+                    .attr('text-anchor', 'middle')
+                    .attr('dominant-baseline', 'middle')
+                    .style('fill', '#fff')
+                    .text(function (d) { return d; });
+
+                newValueTypeIndicatorOptions.exit()
+                    .remove();
 
                 inputs.exit().remove();
 
