@@ -617,7 +617,7 @@
                     .append('g')
                     .classed('pin-add-delete', true)
                     .classed('pin-delete', true)
-                    .classed('vanish', true);
+                    .classed('vanish', !window.touch);
                 newInputDeleteButtons.append('circle').attr('r', pinAddDeleteButtonRadius);
                 newInputDeleteButtons.append('text')
                     .attr('text-anchor', 'middle')
@@ -936,9 +936,6 @@
             svg.call(dragSvg).on('dblclick.zoom', null);
             // listen for resize
             window.onresize = function () { return self.updateWindow(svg); };
-            if (window.touch) {
-                d3.selectAll('.pin-add-delete').classed('vanish', false);
-            }
             svg.on('mousemove', function () {
                 d3.selectAll('.pin-add-delete').classed('vanish', function () {
                     if (window.touch) return false;
