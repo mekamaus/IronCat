@@ -316,20 +316,22 @@
                 var valueTypeIndicators = newValueIndicators.append('g')
                     .classed('value-types', true);
 
-                var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
-                    .data([
-                        '#noneType',
-                        '#errorType',
-                        '#stringType',
-                        '#numberType',
-                        '#booleanType',
-                        '#objectType',
-                        '#setType',
-                        '#listType',
-                        '#functionType'
-                    ]);
+                var typeOptions = [
+                    { name: 'None', icon: '#noneType' },
+                    { name: 'Error', icon: '#errorType' },
+                    { name: 'String', icon: '#stringType' },
+                    { name: 'Number', icon: '#numberType' },
+                    { name: 'Boolean', icon: '#booleanType' },
+                    { name: 'Object', icon: '#objectType' },
+                    { name: 'Set', icon: '#setType' },
+                    { name: 'List', icon: '#listType' },
+                    { name: 'Function', icon: '#functionType' }
+                ];
 
-                valueTypeIndicatorOptions.enter()
+                var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
+                    .data(typeOptions);
+
+                var newValueTypeIndicatorOptionIcons = valueTypeIndicatorOptions.enter()
                     .append('g')
                     .classed('value-type', true)
                     .attr('transform', function (d, i) { return translate(0, 20 * i); })
@@ -337,11 +339,24 @@
                         var parentValue = d3.select(this.parentNode).datum();
                         parentValue.type = i;
                         self.updateGraph();
-                    })
-                    .append('use')
-                    .attr('xlink:href', function (d) {
-                        return d;
                     });
+
+                newValueTypeIndicatorOptionIcons.append('rect')
+                    .attr('x', -10)
+                    .attr('y', -10)
+                    .attr('rx', 2)
+                    .attr('ry', 2)
+                    .attr('width', 20)
+                    .attr('height', 20);
+
+                newValueTypeIndicatorOptionIcons.append('use')
+                    .attr('xlink:href', function (d) { return d.icon; });
+
+                newValueTypeIndicatorOptionIcons.append('text')
+                    .attr('transform', translate(-14, 0))
+                    .attr('text-anchor', 'end')
+                    .attr('dominant-baseline', 'middle')
+                    .text(function (d) { return d.name; });
 
                 valueTypeIndicatorOptions.exit()
                     .remove();
@@ -356,7 +371,7 @@
 
                 d3.selectAll('.value-types')
                     .attr('transform', function (d) {
-                        return translate(-64, -20 * d.type);
+                        return translate(-68, -20 * d.type);
                     });
 
                 var outputs = self.nodeElements
@@ -1160,6 +1175,8 @@
     $(function () {
 
         var svg = d3.select('svg.editor');
+
+        d3.select('html').classed('touch', window.touch);
 
         $('nav').on('touchmove', false);
 
