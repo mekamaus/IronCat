@@ -23,7 +23,7 @@
             var htmlEl = text.node();
             var nodeBCR = htmlEl.getBoundingClientRect();
 
-            d3node.selectAll('text').style('display', 'none');
+            d3node.select('text').style('display', 'none');
 
             if (editClass) {
                 d3node.classed(editClass, true);

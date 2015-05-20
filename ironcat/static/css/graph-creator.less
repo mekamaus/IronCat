@@ -14,6 +14,7 @@
 @text-hover:         #00ff00;
 @text-editing:       #50ff50;
 @text-error:         #ff4040;
+@text-active:        #50ff50;
 
 @modal-width:  400px;
 
@@ -30,76 +31,6 @@ body {
 
 a {
   transition: all 0.25s;
-}
-
-.modal {
-  position: fixed;
-  width: 300px;
-  height: 300px;
-  top: 50%;
-  left: 50%;
-  margin-top: -150px;
-  margin-left: -150px;
-  border-radius: 20px;
-  border: 2px solid @stroke-primary;
-  color: #fff;
-  h3 {
-    margin: 0;
-  }
-  .modal-header, .modal-body, .modal-footer {
-    background: @fill-fg-hover;
-    .btn {
-      outline: none;
-    }
-  }
-  .modal-header {
-    height: 50px;
-  }
-  .modal-body {
-    height: 200px;
-  }
-  .modal-footer {
-    height: 50px;
-  }
-  button.selectpicker {
-    border-bottom-right-radius: 0;
-    border-top-right-radius: 0;
-    background-color: @fill-fg-primary;
-    color: @text-primary;
-    transition: all 0.25s;
-    &:hover, &:active, &:focus {
-      background-color: @fill-fg-hover !important;
-      color: @text-primary !important;
-    }
-  }
-  .bootstrap-select {
-    .dropdown-menu {
-      background-color: @fill-fg-primary;
-      li {
-        a {
-          color: @text-primary;
-        }
-      }
-      li {
-        &.selected, &:hover {
-          a {
-            background-color: @stroke-primary;
-            color: @fill-fg-primary;
-          }
-        }
-      }
-    }
-    * {
-      outline: none !important;
-    }
-  }
-  input[type="text"] {
-    &:focus {
-      outline: none;
-    }
-    background-color: @fill-fg-primary;
-    color: @text-primary;
-  }
 }
 
 .container {
@@ -298,6 +229,9 @@ input.function-name {
   text {
     opacity: 0;
   }
+  use {
+    opacity: 0;
+  }
 }
 
 .editor {
@@ -366,6 +300,9 @@ text {
       user-select: none;
       transition: all 0.25s;
     }
+    use {
+      opacity: 0;
+    }
   }
   &:hover {
     .node-shape {
@@ -378,6 +315,9 @@ text {
       }
       text {
         fill: rgba(255, 255, 255, 255);
+      }
+      use {
+        opacity: 1;
       }
       &:hover {
         circle {
@@ -435,6 +375,32 @@ text {
         }
         .value-types {
           visibility: visible;
+          border: 4px solid red;
+          .value-type {
+            visibility: hidden;
+            &.active {
+              visibility: visible;
+              text {
+                fill: @text-active;
+              }
+            }
+            text {
+              fill: @text-primary;
+            }
+            &:hover {
+              cursor: pointer;
+              text {
+                fill: @text-hover;
+              }
+            }
+          }
+        }
+      }
+      &.edit {
+        .value-types {
+          .value-type {
+            visibility: visible;
+          }
         }
       }
       &.error {

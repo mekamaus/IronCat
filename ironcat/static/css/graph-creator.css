@@ -12,74 +12,6 @@ body {
 a {
   transition: all 0.25s;
 }
-.modal {
-  position: fixed;
-  width: 300px;
-  height: 300px;
-  top: 50%;
-  left: 50%;
-  margin-top: -150px;
-  margin-left: -150px;
-  border-radius: 20px;
-  border: 2px solid #00ffff;
-  color: #fff;
-}
-.modal h3 {
-  margin: 0;
-}
-.modal .modal-header,
-.modal .modal-body,
-.modal .modal-footer {
-  background: #203030;
-}
-.modal .modal-header .btn,
-.modal .modal-body .btn,
-.modal .modal-footer .btn {
-  outline: none;
-}
-.modal .modal-header {
-  height: 50px;
-}
-.modal .modal-body {
-  height: 200px;
-}
-.modal .modal-footer {
-  height: 50px;
-}
-.modal button.selectpicker {
-  border-bottom-right-radius: 0;
-  border-top-right-radius: 0;
-  background-color: #000000;
-  color: #ffffff;
-  transition: all 0.25s;
-}
-.modal button.selectpicker:hover,
-.modal button.selectpicker:active,
-.modal button.selectpicker:focus {
-  background-color: #203030 !important;
-  color: #ffffff !important;
-}
-.modal .bootstrap-select .dropdown-menu {
-  background-color: #000000;
-}
-.modal .bootstrap-select .dropdown-menu li a {
-  color: #ffffff;
-}
-.modal .bootstrap-select .dropdown-menu li.selected a,
-.modal .bootstrap-select .dropdown-menu li:hover a {
-  background-color: #00ffff;
-  color: #000000;
-}
-.modal .bootstrap-select * {
-  outline: none !important;
-}
-.modal input[type="text"] {
-  background-color: #000000;
-  color: #ffffff;
-}
-.modal input[type="text"]:focus {
-  outline: none;
-}
 .container {
   margin: 0 !important;
   padding: 0 !important;
@@ -245,6 +177,9 @@ input.function-name {
 .vanish text {
   opacity: 0;
 }
+.vanish use {
+  opacity: 0;
+}
 .editor {
   background-color: #000000;
   cursor: default;
@@ -299,6 +234,9 @@ text {
   user-select: none;
   transition: all 0.25s;
 }
+.node .node-delete use {
+  opacity: 0;
+}
 .node:hover .node-shape {
   fill: #203030;
 }
@@ -310,6 +248,9 @@ text {
 }
 .node:hover .node-delete text {
   fill: #ffffff;
+}
+.node:hover .node-delete use {
+  opacity: 1;
 }
 .node:hover .node-delete:hover circle {
   fill: #ff0000;
@@ -371,6 +312,59 @@ text {
 .node .node-output .pin-value:active .value-types,
 .node .node-input .pin-value.edit .value-types,
 .node .node-output .pin-value.edit .value-types {
+  visibility: visible;
+  border: 4px solid red;
+}
+.node .node-input .pin-value:hover .value-types .value-type,
+.node .node-output .pin-value:hover .value-types .value-type,
+.node .node-input .pin-value:active .value-types .value-type,
+.node .node-output .pin-value:active .value-types .value-type,
+.node .node-input .pin-value.edit .value-types .value-type,
+.node .node-output .pin-value.edit .value-types .value-type {
+  visibility: hidden;
+}
+.node .node-input .pin-value:hover .value-types .value-type.active,
+.node .node-output .pin-value:hover .value-types .value-type.active,
+.node .node-input .pin-value:active .value-types .value-type.active,
+.node .node-output .pin-value:active .value-types .value-type.active,
+.node .node-input .pin-value.edit .value-types .value-type.active,
+.node .node-output .pin-value.edit .value-types .value-type.active {
+  visibility: visible;
+}
+.node .node-input .pin-value:hover .value-types .value-type.active text,
+.node .node-output .pin-value:hover .value-types .value-type.active text,
+.node .node-input .pin-value:active .value-types .value-type.active text,
+.node .node-output .pin-value:active .value-types .value-type.active text,
+.node .node-input .pin-value.edit .value-types .value-type.active text,
+.node .node-output .pin-value.edit .value-types .value-type.active text {
+  fill: #50ff50;
+}
+.node .node-input .pin-value:hover .value-types .value-type text,
+.node .node-output .pin-value:hover .value-types .value-type text,
+.node .node-input .pin-value:active .value-types .value-type text,
+.node .node-output .pin-value:active .value-types .value-type text,
+.node .node-input .pin-value.edit .value-types .value-type text,
+.node .node-output .pin-value.edit .value-types .value-type text {
+  fill: #ffffff;
+}
+.node .node-input .pin-value:hover .value-types .value-type:hover,
+.node .node-output .pin-value:hover .value-types .value-type:hover,
+.node .node-input .pin-value:active .value-types .value-type:hover,
+.node .node-output .pin-value:active .value-types .value-type:hover,
+.node .node-input .pin-value.edit .value-types .value-type:hover,
+.node .node-output .pin-value.edit .value-types .value-type:hover {
+  cursor: pointer;
+}
+.node .node-input .pin-value:hover .value-types .value-type:hover text,
+.node .node-output .pin-value:hover .value-types .value-type:hover text,
+.node .node-input .pin-value:active .value-types .value-type:hover text,
+.node .node-output .pin-value:active .value-types .value-type:hover text,
+.node .node-input .pin-value.edit .value-types .value-type:hover text,
+.node .node-output .pin-value.edit .value-types .value-type:hover text {
+  fill: #00ff00;
+}
+.node .node-input .pin-value.edit .value-types .value-type,
+.node .node-output .pin-value.edit .value-types .value-type {
   visibility: visible;
 }
 .node .node-input .pin-value.error rect,

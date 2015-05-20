@@ -313,26 +313,51 @@
                         return d.value;
                     });
 
-                var newValueTypeIndicators = newValueIndicators.append('g')
-                    .classed('value-types', true)
-                    .attr('transform', function (d) { return translate(-64, -20 * d.type); });
+                var valueTypeIndicators = newValueIndicators.append('g')
+                    .classed('value-types', true);
 
-                var newValueTypeIndicatorOptions = newValueTypeIndicators.selectAll('g')
-                    .data([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+                var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
+                    .data([
+                        '#noneType',
+                        '#errorType',
+                        '#stringType',
+                        '#numberType',
+                        '#booleanType',
+                        '#objectType',
+                        '#setType',
+                        '#listType',
+                        '#functionType'
+                    ]);
 
-                newValueTypeIndicatorOptions.enter()
+                valueTypeIndicatorOptions.enter()
                     .append('g')
+                    .classed('value-type', true)
                     .attr('transform', function (d, i) { return translate(0, 20 * i); })
+                    .on(mouseDownEvent, function (d, i) {
+                        var parentValue = d3.select(this.parentNode).datum();
+                        parentValue.type = i;
+                        self.updateGraph();
+                    })
                     .append('text')
                     .attr('text-anchor', 'middle')
                     .attr('dominant-baseline', 'middle')
-                    .style('fill', '#fff')
-                    .text(function (d) { return d; });
+                    .text(function (d) { return d[1]; });
 
-                newValueTypeIndicatorOptions.exit()
+                valueTypeIndicatorOptions.exit()
                     .remove();
 
                 inputs.exit().remove();
+
+                d3.selectAll('.value-types').selectAll('.value-type')
+                    .classed('active', function (d, i) {
+                        var parentValueType = d3.select(this.parentNode).datum().type;
+                        return parentValueType === i;
+                    });
+
+                d3.selectAll('.value-types')
+                    .attr('transform', function (d) {
+                        return translate(-64, -20 * d.type);
+                    });
 
                 var outputs = self.nodeElements
                     .select('.node-outputs')
@@ -465,10 +490,8 @@
                         .append('circle')
                         .attr('r', 12);
                     deleteBtn
-                        .append('text')
-                        .attr('text-anchor', 'middle')
-                        .attr('dominant-baseline', 'middle')
-                        .html('&times;');
+                        .append('use')
+                        .attr('xlink:href', '#removeSymbol');
 
                     header.append('g')
                         .classed('search-results', true)
@@ -619,10 +642,8 @@
                     .classed('pin-delete', true)
                     .classed('vanish', !window.touch);
                 newInputDeleteButtons.append('circle').attr('r', pinAddDeleteButtonRadius);
-                newInputDeleteButtons.append('text')
-                    .attr('text-anchor', 'middle')
-                    .attr('dominant-baseline', 'middle')
-                    .html('&times;');
+                newInputDeleteButtons.append('use')
+                    .attr('xlink:href', '#removeSymbol');
                 self.inputDeleteButtons
                     .on(mouseDownEvent, function (d, i) {
                         d3.event.stopPropagation();
@@ -650,10 +671,8 @@
                     .classed('pin-add', true)
                     .classed('vanish', true);
                 newInputAddButtons.append('circle').attr('r', pinAddDeleteButtonRadius);
-                newInputAddButtons.append('text')
-                    .attr('text-anchor', 'middle')
-                    .attr('dominant-baseline', 'middle')
-                    .text('+');
+                newInputAddButtons.append('use')
+                    .attr('xlink:href', '#addSymbol');
                 self.inputAddButtons
                     .call(self.drag).on(mouseDownEvent, function (d, i) {
                         func.inputs.splice(i, 0, {
@@ -679,10 +698,8 @@
                     .classed('vanish', true);
                 newOutputDeleteButtons.append('circle')
                     .attr('r', pinAddDeleteButtonRadius);
-                newOutputDeleteButtons.append('text')
-                    .attr('text-anchor', 'middle')
-                    .attr('dominant-baseline', 'middle')
-                    .html('&times;');
+                newOutputDeleteButtons.append('use')
+                    .attr('xlink:href', '#removeSymbol');
                 self.outputDeleteButtons
                     .on(mouseDownEvent, function (d) {
                         var i = func.outputs.indexOf(d);
@@ -711,10 +728,8 @@
                     .classed('vanish', true);
                 newOutputAddButtons.append('circle')
                     .attr('r', pinAddDeleteButtonRadius);
-                newOutputAddButtons.append('text')
-                    .attr('text-anchor', 'middle')
-                    .attr('dominant-baseline', 'middle')
-                    .text('+');
+                newOutputAddButtons.append('use')
+                    .attr('xlink:href', '#addSymbol');
                 self.outputAddButtons
                     .on(mouseDownEvent, function (d) {
                         d3.event.stopPropagation();
@@ -1150,6 +1165,50 @@
         // Set up filters
         var defs = svg.append('defs');
 
+        // define shapes
+        var addSymbol = defs.append('g')
+            .attr('id', 'addSymbol');
+
+        addSymbol.append('rect')
+            .attr('x', -6)
+            .attr('y', -2)
+            .attr('rx', 1)
+            .attr('ry', 1)
+            .attr('width', 12)
+            .attr('height', 4)
+            .attr('fill', '#fff');
+
+        addSymbol.append('rect')
+            .attr('x', -2)
+            .attr('y', -6)
+            .attr('rx', 1)
+            .attr('ry', 1)
+            .attr('width', 4)
+            .attr('height', 12)
+            .attr('fill', '#fff');
+
+        var removeSymbol = defs.append('g')
+            .attr('id', 'removeSymbol')
+            .attr('transform', 'rotate(45)');
+
+        removeSymbol.append('rect')
+            .attr('x', -6)
+            .attr('y', -2)
+            .attr('rx', 1)
+            .attr('ry', 1)
+            .attr('width', 12)
+            .attr('height', 4)
+            .attr('fill', '#fff');
+
+        removeSymbol.append('rect')
+            .attr('x', -2)
+            .attr('y', -6)
+            .attr('rx', 1)
+            .attr('ry', 1)
+            .attr('width', 4)
+            .attr('height', 12)
+            .attr('fill', '#fff');
+
         // create filter with id #drop-shadow
         // height=130% so that the shadow is not clipped
         var filter = defs.append('filter')
@@ -1186,12 +1245,12 @@
         feMerge.append('feMergeNode')
             .attr('in', 'SourceGraphic');
 
-        $('[data-type]').hide();
+        /*$('[data-type]').hide();
         $('#valueType').on('change', function () {
             var selected = $(this).find('option:selected').val().toLowerCase();
             $('[data-type]').hide();
             $('[data-type="' + selected + '"]').show();
-        });
+        });*/
 
         var graph = new GraphCreator(svg, nodes, edges, inputs, outputs);
         graph.setIdCt(2);
