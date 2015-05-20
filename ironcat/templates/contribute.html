@@ -21,4 +21,62 @@
             </div>
         </div>
     </nav>
+    <svg class="editor">
+        <defs>
+            <g id="addSymbol">
+                <rect x="-6" y="-2" rx="1" ry="1" width="12" height="4" style="fill: #ffffff;"></rect>
+                <rect x="-2" y="-6" rx="1" ry="1" width="4" height="12" style="fill: #ffffff;"></rect>
+            </g>
+            <g id="removeSymbol" transform="rotate(45)">
+                <rect x="-6" y="-2" rx="1" ry="1" width="12" height="4" style="fill: #ffffff;"></rect>
+                <rect x="-2" y="-6" rx="1" ry="1" width="4" height="12" style="fill: #ffffff;"></rect>
+            </g>
+            <g id="noneType">
+                <circle r="6" style="fill: none; stroke-width: 3; stroke: #ffffff"></circle>
+                <rect transform="rotate(-45)translate(-6, -1.5)" width="12" height="3" style="fill: #ffffff;"></rect>
+            </g>
+            <g id="errorType">
+                <polygon points="0 -5 -6 5 6 5" stroke-linejoin="round" stroke-width="2" stroke="#ffffff" fill="#ffffff"/>
+                <text y="2" text-anchor="middle" dominant-baseline="middle" style="font-size: 11px; font-weight: 900; fill: #000000;">!</text>
+            </g>
+            <g id="stringType">
+                <text text-anchor="middle" dominant-baseline="middle" style="font-size: 12px; fill: #ffffff;">Aa</text>
+            </g>
+            <g id="numberType">
+                <text text-anchor="middle" dominant-baseline="middle" style="font-size: 12px; fill: #ffffff;">#</text>
+            </g>
+            <g id="booleanType">
+                <path d="M6,0 A 6,6 0 0,1 -6,0 Z" fill="white"/>
+                <circle r="6" stroke-width="3" stroke="white" fill="none"/>
+            </g>
+            <g id="objectType">
+                <polygon points="0 0 -5 -3 -5 3 0 6" fill="white"/>
+                <polygon points="0 -6 -5 -3 -5 3 0 6 5 3 5 -3" style="stroke-width: 2; stroke: #ffffff; stroke-linejoin: round; fill: none;"/>
+            </g>
+            <g id="setType">
+                <circle r="6" stroke-width="3" fill="none" stroke="white"/>
+                <circle r="1" fill="white" transform="translate(-2, -1)"/>
+                <circle r="1" fill="white" transform="translate(2, -1)"/>
+                <circle r="1" fill="white" transform="translate(0, 2)"/>
+            </g>
+            <g id="listType">
+                <rect width="12" height="3" rx="1" ry="1" x="-6" y="-6" style="fill: #ffffff;"></rect>
+                <rect width="12" height="3" rx="1" ry="1" x="-6" y="-1.5" style="fill: #ffffff;"></rect>
+                <rect width="12" height="3" rx="1" ry="1" x="-6" y="3" style="fill: #ffffff;"></rect>
+            </g>
+            <g id="functionType">
+                <polygon points="-3 -5 3 0 -3 5" style="stroke: #ffffff; fill: #ffffff;"/>
+                <line x1="-6" y1="0" x2="6" y2="0" style="stroke-width: 2; stroke: #ffffff;"/>
+            </g>
+            <filter id="borderGlow" height="130%" width="130%">
+                <feGaussianBlur in="StrokePaint" stdDeviation="8" result="blur"/>
+                <feMorphology in="blur" operator="dilate" radius="8" result="dilatedBlur"/>
+                <feMorphology in="dilatedBlur" operator="erode" radius="3" result="erodedDilatedBlur"/>
+                <feMerge>
+                    <feMergeNode in="erodedDilatedBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+    </svg>
 {% endblock %}

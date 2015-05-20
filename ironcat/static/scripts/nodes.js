@@ -338,10 +338,10 @@
                         parentValue.type = i;
                         self.updateGraph();
                     })
-                    .append('text')
-                    .attr('text-anchor', 'middle')
-                    .attr('dominant-baseline', 'middle')
-                    .text(function (d) { return d[1]; });
+                    .append('use')
+                    .attr('xlink:href', function (d) {
+                        return d;
+                    });
 
                 valueTypeIndicatorOptions.exit()
                     .remove();
@@ -1158,99 +1158,10 @@
     ];
     /** MAIN SVG **/
     $(function () {
-        var svg = d3.select('body').append('svg').classed('editor', true);
+
+        var svg = d3.select('svg.editor');
 
         $('nav').on('touchmove', false);
-
-        // Set up filters
-        var defs = svg.append('defs');
-
-        // define shapes
-        var addSymbol = defs.append('g')
-            .attr('id', 'addSymbol');
-
-        addSymbol.append('rect')
-            .attr('x', -6)
-            .attr('y', -2)
-            .attr('rx', 1)
-            .attr('ry', 1)
-            .attr('width', 12)
-            .attr('height', 4)
-            .attr('fill', '#fff');
-
-        addSymbol.append('rect')
-            .attr('x', -2)
-            .attr('y', -6)
-            .attr('rx', 1)
-            .attr('ry', 1)
-            .attr('width', 4)
-            .attr('height', 12)
-            .attr('fill', '#fff');
-
-        var removeSymbol = defs.append('g')
-            .attr('id', 'removeSymbol')
-            .attr('transform', 'rotate(45)');
-
-        removeSymbol.append('rect')
-            .attr('x', -6)
-            .attr('y', -2)
-            .attr('rx', 1)
-            .attr('ry', 1)
-            .attr('width', 12)
-            .attr('height', 4)
-            .attr('fill', '#fff');
-
-        removeSymbol.append('rect')
-            .attr('x', -2)
-            .attr('y', -6)
-            .attr('rx', 1)
-            .attr('ry', 1)
-            .attr('width', 4)
-            .attr('height', 12)
-            .attr('fill', '#fff');
-
-        // create filter with id #drop-shadow
-        // height=130% so that the shadow is not clipped
-        var filter = defs.append('filter')
-            .attr('id', 'borderGlow')
-            .attr('height', '130%')
-            .attr('width', '130%');
-
-        // SourceAlpha refers to opacity of graphic that this filter will be applied to
-        // convolve that with a Gaussian with standard deviation 3 and store result
-        // in blur
-        filter.append('feGaussianBlur')
-            .attr('in', 'StrokePaint')
-            .attr('stdDeviation', 8)
-            .attr('result', 'blur');
-
-        filter.append('feMorphology')
-            .attr('in', 'blur')
-            .attr('operator', 'dilate')
-            .attr('radius', 8)
-            .attr('result', 'dilatedBlur');
-
-        filter.append('feMorphology')
-            .attr('in', 'dilatedBlur')
-            .attr('operator', 'erode')
-            .attr('radius', 3)
-            .attr('result', 'erodedDilatedBlur');
-
-        // overlay original SourceGraphic over translated blurred opacity by using
-        // feMerge filter. Order of specifying inputs is important!
-        var feMerge = filter.append('feMerge');
-
-        feMerge.append('feMergeNode')
-            .attr('in', 'erodedDilatedBlur');
-        feMerge.append('feMergeNode')
-            .attr('in', 'SourceGraphic');
-
-        /*$('[data-type]').hide();
-        $('#valueType').on('change', function () {
-            var selected = $(this).find('option:selected').val().toLowerCase();
-            $('[data-type]').hide();
-            $('[data-type="' + selected + '"]').show();
-        });*/
 
         var graph = new GraphCreator(svg, nodes, edges, inputs, outputs);
         graph.setIdCt(2);
