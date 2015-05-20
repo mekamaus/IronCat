@@ -98,6 +98,11 @@
                     }
                 })
                 .on('blur', function () {
+                    if (window.preventEditableBlur) {
+                        window.preventEditableBlur = false;
+                        $(this).focus();
+                        return;
+                    }
                     var text = $(this).val();
                     this.textContent = null;
                     d3.select(this).remove();

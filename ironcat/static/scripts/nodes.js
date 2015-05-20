@@ -26,7 +26,7 @@
         nodeLabelHeight: 40,
         nodeCornerRadius: 20,
         nodeMargin: 40,
-        pinSize: 16,
+        pinSize: 18,
         pinSpacing: 24
     };
 
@@ -297,6 +297,25 @@
                         }
                     });
 
+                var typeOptions = [
+                    { name: 'None', icon: '#noneType' },
+                    { name: 'Error', icon: '#errorType' },
+                    { name: 'String', icon: '#stringType' },
+                    { name: 'Number', icon: '#numberType' },
+                    { name: 'Boolean', icon: '#booleanType' },
+                    { name: 'Object', icon: '#objectType' },
+                    { name: 'Set', icon: '#setType' },
+                    { name: 'List', icon: '#listType' },
+                    { name: 'Function', icon: '#functionType' }
+                ];
+
+                newValueIndicators.append('use')
+                    .classed('input-default-type-icon', true)
+                    .attr('transform', translate(consts.pinSize / 2, 0));
+
+                d3.selectAll('.node').selectAll('use.input-default-type-icon')
+                    .attr('xlink:href', function (d) { return typeOptions[d.type].icon; });
+
                 newValueIndicators.append('rect')
                     .attr('width', 50)
                     .attr('height', 20)
@@ -316,38 +335,27 @@
                 var valueTypeIndicators = newValueIndicators.append('g')
                     .classed('value-types', true);
 
-                var typeOptions = [
-                    { name: 'None', icon: '#noneType' },
-                    { name: 'Error', icon: '#errorType' },
-                    { name: 'String', icon: '#stringType' },
-                    { name: 'Number', icon: '#numberType' },
-                    { name: 'Boolean', icon: '#booleanType' },
-                    { name: 'Object', icon: '#objectType' },
-                    { name: 'Set', icon: '#setType' },
-                    { name: 'List', icon: '#listType' },
-                    { name: 'Function', icon: '#functionType' }
-                ];
-
                 var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
                     .data(typeOptions);
 
                 var newValueTypeIndicatorOptionIcons = valueTypeIndicatorOptions.enter()
                     .append('g')
                     .classed('value-type', true)
-                    .attr('transform', function (d, i) { return translate(0, 20 * i); })
+                    .attr('transform', function (d, i) { return translate(0, consts.pinSpacing * i); })
                     .on(mouseDownEvent, function (d, i) {
                         var parentValue = d3.select(this.parentNode).datum();
                         parentValue.type = i;
+                        window.preventEditableBlur = true;
                         self.updateGraph();
                     });
 
                 newValueTypeIndicatorOptionIcons.append('rect')
-                    .attr('x', -10)
-                    .attr('y', -10)
+                    .attr('x', -consts.pinSpacing / 2)
+                    .attr('y', -consts.pinSpacing / 2)
                     .attr('rx', 2)
                     .attr('ry', 2)
-                    .attr('width', 20)
-                    .attr('height', 20);
+                    .attr('width', consts.pinSpacing)
+                    .attr('height', consts.pinSpacing);
 
                 newValueTypeIndicatorOptionIcons.append('use')
                     .attr('xlink:href', function (d) { return d.icon; });
@@ -371,7 +379,7 @@
 
                 d3.selectAll('.value-types')
                     .attr('transform', function (d) {
-                        return translate(-68, -20 * d.type);
+                        return translate(-68, -consts.pinSpacing * d.type);
                     });
 
                 var outputs = self.nodeElements
