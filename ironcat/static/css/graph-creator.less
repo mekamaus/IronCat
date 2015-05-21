@@ -30,8 +30,8 @@ body {
   font-family: @font-primary !important;
 }
 
-a {
-  transition: all 0.25s;
+* {
+  transition: all 0.25s ease-in-out;
 }
 
 .container {
@@ -88,18 +88,8 @@ body {
   background-color: rgb(248, 248, 248)
 }
 
-.conceptG text {
-    pointer-events: none;
-}
-
 marker {
   fill: #333;
-}
-
-.node rect {
-  fill: #F6FBFF;
-  stroke: #333;
-  stroke-width: 2px;
 }
 
 g.selected {
@@ -118,7 +108,6 @@ g.selected {
   stroke: @stroke-primary;
   stroke-width: 6px;
   cursor: default;
-  transition: all 0.25s;
   &.hidden {
     stroke-width: 0;
   }
@@ -149,7 +138,6 @@ input.function-name {
 .pin-delete {
   cursor: pointer;
   circle {
-    transition: all 0.2s ease-in-out;
     fill: @fill-fg-primary;
     stroke: @stroke-primary;
     stroke-width: 1px;
@@ -185,7 +173,6 @@ input.function-name {
 .pin-add {
   cursor: pointer;
   circle {
-    transition: all 0.2s ease-in-out;
     fill: @fill-fg-primary;
     stroke: @stroke-primary;
     stroke-width: 1px;
@@ -244,7 +231,7 @@ input.function-name {
   circle {
     stroke: @stroke-primary;
     fill: @pin-fill-inactive;
-    transition: fill 0.25s;
+
   }
   &.connected {
     circle {
@@ -267,7 +254,6 @@ input.function-name {
       font-size: 16px;
       color: @text-primary;
       fill: @text-primary;
-      transition: all 0.25s;
     }
     &:hover {
       .node-function-name {
@@ -286,20 +272,17 @@ text {
     fill: @fill-fg-primary;
     stroke: @stroke-primary;
     stroke-width: 2;
-    transition: all 0.25s;
   }
   .node-delete {
     circle {
       stroke: none;
       fill: rgba(0, 0, 0, 0);
-      transition: all 0.25s;
     }
     text {
       fill: rgba(0, 255, 255, 0);
       font-size: 22px;
       font-weight: bold;
       user-select: none;
-      transition: all 0.25s;
     }
     use {
       opacity: 0;
@@ -342,49 +325,43 @@ text {
         fill: #000000;
         stroke: #d0d0d0;
         stroke-width: 1px;
-        transition: all 0.15s;
       }
       text {
         fill: #ffffff;
-        transition: all 0.15s;
       }
     }
   }
   .node-input, .node-output {
-    circle {
+    >circle {
       stroke: @stroke-primary;
       fill: @pin-fill-inactive;
-      transition: fill 0.25s;
     }
     .pin-value {
-      rect {
+      >rect {
         fill: @fill-value;
         stroke: none;
-        transition: all 0.25s;
       }
       .value-types {
-        visibility: hidden;
-        rect {
-          stroke: none;
-          fill: @fill-fg-primary;
+        display: none;
+        opacity: 0;
+        >rect, >circle{
+          stroke: @fill-fg-hover;
+          fill: none;
         }
       }
       &:hover, &:active, &.edit {
-        rect {
+        >rect {
           fill: @fill-fg-hover;
           stroke: @stroke-primary;
           stroke-width: 2px;
         }
-        text {
+        >text {
           fill: @text-editing;
         }
         .value-types {
-          visibility: visible;
           .value-type {
-            visibility: hidden;
             text {
               fill: @text-invisible;
-              transition: all 0.25s;
             }
             rect, circle {
               stroke: none;
@@ -401,14 +378,19 @@ text {
                 stroke-width: 1;
               }
             }
+            &.active {
+              cursor: inherit;
+              rect, circle {
+                visibility: hidden;
+              }
+            }
           }
         }
       }
       &.edit {
         .value-types {
-          .value-type {
-            visibility: visible;
-          }
+          display: inherit;
+          opacity: 1;
         }
       }
       &.error {

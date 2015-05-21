@@ -287,7 +287,9 @@
                         handlers: {
                             done: function (d, value, valid) {
                                 if (valid) {
-                                    if (d.type === 3) {
+                                    if (d.type === 0) {
+                                        value = '';
+                                    } else if (d.type === 3) {
                                         value = parseFloat(value).toString();
                                     }
                                     d.value = value;
@@ -309,12 +311,18 @@
                     { name: 'Function', icon: '#functionType' }
                 ];
 
+                newValueIndicators.append('circle')
+                    .attr('r', consts.pinSize / 2)
+                    .style('fill', 'rgba(0, 0, 0, 0)')
+                    .style('stroke', 'none')
+                    .attr('transform', translate(consts.pinSize / 2, 0));
+
                 newValueIndicators.append('use')
                     .classed('input-default-type-icon', true)
                     .attr('transform', translate(consts.pinSize / 2, 0));
 
                 d3.selectAll('.node').selectAll('use.input-default-type-icon')
-                    .attr('xlink:href', function (d) { console.log(d); return typeOptions[d.type].icon; });
+                    .attr('xlink:href', function (d) { return typeOptions[d.type].icon; });
 
                 newValueIndicators.append('rect')
                     .attr('width', 50)
@@ -335,10 +343,15 @@
                 var valueTypeIndicators = newValueIndicators.append('g')
                     .classed('value-types', true);
 
+                var typeSelectorRadius = consts.pinSpacing * typeOptions.length / 2 / Math.PI;
+
+                valueTypeIndicators.append('circle')
+                    .attr('r', typeSelectorRadius)
+                    .style('stroke-width', consts.pinSpacing + 6);
+
                 var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
                     .data(typeOptions);
 
-                var typeSelectorRadius = consts.pinSpacing * typeOptions.length / 2 / Math.PI;
 
                 var newValueTypeIndicatorOptionIcons = valueTypeIndicatorOptions.enter()
                     .append('g')
@@ -355,12 +368,6 @@
 
                 newValueTypeIndicatorOptionIcons.append('use')
                     .attr('xlink:href', function (d) { return d.icon; });
-
-                /*newValueTypeIndicatorOptionIcons.append('text')
-                    .attr('transform', translate(-14, 0))
-                    .attr('text-anchor', 'end')
-                    .attr('dominant-baseline', 'middle')
-                    .text(function (d) { return d.name; });*/
 
                 valueTypeIndicatorOptions.exit()
                     .remove();
@@ -385,7 +392,7 @@
                     .transition()
                     .attr('transform', function (d) {
                         var t = 360 * d.type / typeOptions.length;
-                        return translate(-104, 0) + rotate(-t);
+                        return translate(-typeSelectorRadius - 72, 0) + rotate(-t);
                     });
 
                 var outputs = self.nodeElements
