@@ -314,7 +314,8 @@ text {
 .node .node-output .pin-value:active .value-types .value-type circle,
 .node .node-input .pin-value.edit .value-types .value-type circle,
 .node .node-output .pin-value.edit .value-types .value-type circle {
-  stroke: none;
+  stroke: rgba(0, 255, 255, 0);
+  stroke-width: 1;
   fill: #000000;
 }
 .node .node-input .pin-value:hover .value-types .value-type:hover,
@@ -347,7 +348,6 @@ text {
 .node .node-output .pin-value.edit .value-types .value-type:hover circle {
   fill: #203030;
   stroke: #00ffff;
-  stroke-width: 1;
 }
 .node .node-input .pin-value:hover .value-types .value-type.active,
 .node .node-output .pin-value:hover .value-types .value-type.active,

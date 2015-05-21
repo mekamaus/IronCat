@@ -364,7 +364,8 @@ text {
               fill: @text-invisible;
             }
             rect, circle {
-              stroke: none;
+              stroke: fade(@stroke-primary, 0%);
+              stroke-width: 1;
               fill: @fill-fg-primary;
             }
             &:hover {
@@ -375,7 +376,6 @@ text {
               rect, circle {
                 fill: @fill-fg-hover;
                 stroke: @stroke-primary;
-                stroke-width: 1;
               }
             }
             &.active {

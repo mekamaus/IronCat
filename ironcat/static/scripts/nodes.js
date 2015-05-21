@@ -179,10 +179,12 @@
             this.svgKeyPress = function () {
                 var state = self.state,
                     func = self.func;
-                var selectedNode = state.selectedNode, selectedEdge = state.selectedEdge;
+                var selectedNode = state.selectedNode;
+                var selectedEdges = state.selectedEdges;
                 switch (d3.event.keyCode) {
                     case consts.BACKSPACE_KEY:
                     case consts.DELETE_KEY:
+                        d3.event.preventDefault();
                         if (!$('.function-name').is(':focus')) {
                             d3.event.preventDefault();
                             if (selectedNode) {
@@ -191,9 +193,11 @@
                                 state.selectedNode = null;
                                 self.updateGraph();
                             }
-                            else if (selectedEdge) {
-                                func.edges.splice(func.edges.indexOf(selectedEdge), 1);
-                                state.selectedEdge = null;
+                            else if (selectedEdges.length) {
+                                selectedEdges.forEach(function (edge) {
+                                    func.edges.splice(func.edges.indexOf(edge), 1);
+                                });
+                                state.selectedEdges = [];
                                 self.updateGraph();
                             }
                         }
@@ -851,7 +855,7 @@
                     .append('path')
                     .classed('link', true)
                     .on(mouseDownEvent, function (d) {
-                        this.pathMouseDown.call(this, d3.select(this), d);
+                        self.pathMouseDown.call(self, d3.select(this), d);
                     })
                     .on(mouseUpEvent, function () { state.mouseDownLink = null; });
                 self.edgeElements
@@ -927,7 +931,7 @@
             this.idct = 0;
             this.state = {
                 selectedNode: null,
-                selectedEdge: null,
+                selectedEdges: [],
                 mouseDownNode: null,
                 mouseDownLink: null,
                 justDragged: false,
@@ -964,7 +968,7 @@
             });
             // listen for key events
             d3.select(window)
-                .on(keyPressEvent, function () {
+                .on('keydown', function () {
                     return self.svgKeyPress.call(self);
                 });
             svg
@@ -1015,23 +1019,16 @@
             }).classed(consts.selectedClass, false);
             state.selectedNode = null;
         };
-        GraphCreator.prototype.removeSelectFromEdge = function () {
-            var state = this.state;
-            this.edgeElements.filter(function (cd) { return cd === state.selectedEdge; }).classed(consts.selectedClass, false);
-            state.selectedEdge = null;
-        };
         GraphCreator.prototype.pathMouseDown = function (d3path, d) {
-            var state = self.state;
+            var state = this.state;
             d3.event.stopPropagation();
-            state.mouseDownLink = d;
-            if (state.selectedNode) {
-                self.removeSelectFromNode();
+            if (!d3.event.shiftKey) {
+                d3.selectAll('.link').classed('selected', false);
+                state.selectedEdges = [];
             }
-            var prevEdge = state.selectedEdge;
-            if (!prevEdge || prevEdge !== d) {
-            }
-            else {
-                self.removeSelectFromEdge();
+            d3path.classed('selected', true);
+            if (state.selectedEdges.indexOf(d) < 0) {
+                state.selectedEdges.push(d);
             }
         };
         GraphCreator.prototype.nodeMouseDown = function (d) {
