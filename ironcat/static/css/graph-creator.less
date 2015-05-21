@@ -386,7 +386,7 @@ text {
               fill: @text-invisible;
               transition: all 0.25s;
             }
-            rect {
+            rect, circle {
               stroke: none;
               fill: @fill-fg-primary;
             }
@@ -395,8 +395,10 @@ text {
               text {
                 fill: @text-hover;
               }
-              rect {
+              rect, circle {
                 fill: @fill-fg-hover;
+                stroke: @stroke-primary;
+                stroke-width: 1;
               }
             }
           }

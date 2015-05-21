@@ -314,7 +314,7 @@
                     .attr('transform', translate(consts.pinSize / 2, 0));
 
                 d3.selectAll('.node').selectAll('use.input-default-type-icon')
-                    .attr('xlink:href', function (d) { return typeOptions[d.type].icon; });
+                    .attr('xlink:href', function (d) { console.log(d); return typeOptions[d.type].icon; });
 
                 newValueIndicators.append('rect')
                     .attr('width', 50)
@@ -338,10 +338,11 @@
                 var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
                     .data(typeOptions);
 
+                var typeSelectorRadius = consts.pinSpacing * typeOptions.length / 2 / Math.PI;
+
                 var newValueTypeIndicatorOptionIcons = valueTypeIndicatorOptions.enter()
                     .append('g')
                     .classed('value-type', true)
-                    .attr('transform', function (d, i) { return translate(0, consts.pinSpacing * i); })
                     .on(mouseDownEvent, function (d, i) {
                         var parentValue = d3.select(this.parentNode).datum();
                         parentValue.type = i;
@@ -349,22 +350,17 @@
                         self.updateGraph();
                     });
 
-                newValueTypeIndicatorOptionIcons.append('rect')
-                    .attr('x', -consts.pinSpacing / 2)
-                    .attr('y', -consts.pinSpacing / 2)
-                    .attr('rx', 2)
-                    .attr('ry', 2)
-                    .attr('width', consts.pinSpacing)
-                    .attr('height', consts.pinSpacing);
+                newValueTypeIndicatorOptionIcons.append('circle')
+                    .attr('r', consts.pinSpacing / 2 - 0.5);
 
                 newValueTypeIndicatorOptionIcons.append('use')
                     .attr('xlink:href', function (d) { return d.icon; });
 
-                newValueTypeIndicatorOptionIcons.append('text')
+                /*newValueTypeIndicatorOptionIcons.append('text')
                     .attr('transform', translate(-14, 0))
                     .attr('text-anchor', 'end')
                     .attr('dominant-baseline', 'middle')
-                    .text(function (d) { return d.name; });
+                    .text(function (d) { return d.name; });*/
 
                 valueTypeIndicatorOptions.exit()
                     .remove();
@@ -375,11 +371,21 @@
                     .classed('active', function (d, i) {
                         var parentValueType = d3.select(this.parentNode).datum().type;
                         return parentValueType === i;
+                    })
+                    .transition()
+                    .attr('transform', function (d, i) {
+                        var type = d3.select(this.parentNode).datum().type;
+                        var t = 2 * Math.PI * i / typeOptions.length;
+                        var t2 = 360 * type / typeOptions.length;
+                        return translate(typeSelectorRadius * Math.cos(t), typeSelectorRadius * Math.sin(t))
+                            + rotate(t2);
                     });
 
                 d3.selectAll('.value-types')
+                    .transition()
                     .attr('transform', function (d) {
-                        return translate(-68, -consts.pinSpacing * d.type);
+                        var t = 360 * d.type / typeOptions.length;
+                        return translate(-104, 0) + rotate(-t);
                     });
 
                 var outputs = self.nodeElements
