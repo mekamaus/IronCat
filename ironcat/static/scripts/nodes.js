@@ -356,8 +356,8 @@
                     .append('g')
                     .classed('value-type', true)
                     .on(mouseDownEvent, function (d, i) {
-                        var parentValue = d3.select(this.parentNode).datum();
-                        parentValue.type = i;
+                        var parentData = d3.select(this.parentNode).datum();
+                        parentData.value.type = i;
                         window.preventEditableBlur = true;
                         self.updateGraph();
                     });
@@ -1020,7 +1020,7 @@
                 state.selectedNodes = [];
                 state.selectedEdges = [];
             }
-            d3path.classed('selected', true);
+            d3path.classed('selected', true).moveToFront();
             if (state.selectedEdges.indexOf(d) < 0) {
                 state.selectedEdges.push(d);
             }
@@ -1033,7 +1033,7 @@
                 state.selectedNodes = [];
                 state.selectedEdges = [];
             }
-            d3node.classed('selected', true);
+            d3node.classed('selected', true).moveToFront();
             if (state.selectedNodes.indexOf(d) < 0) {
                 state.selectedNodes.push(d);
             }
