@@ -1,5 +1,4 @@
 (function () {
-    var keyPressEvent = 'keyup';
     d3.selection.prototype.editText = function (options) {
         options = options || {};
         var handlers = options.handlers || {};
@@ -63,7 +62,7 @@
                 .on('mousedown', function () {
                     d3.event.stopPropagation();
                 })
-                .on(keyPressEvent, function () {
+                .on('keyup', function () {
                     d3.event.stopPropagation();
                     if (d3.event.keyCode == 13) {
                         this.blur();
@@ -120,8 +119,9 @@
                     }
                 });
 
-            $('#extraUniqueIdToPutOnEditingTextElementSoThatItIsDefinitelyUnique')
-                .select();
+            var elem = $('#extraUniqueIdToPutOnEditingTextElementSoThatItIsDefinitelyUnique');
+
+            elem.select();
 
             if (handlers.start) {
                 handlers.start.call(self, d);

@@ -11,7 +11,7 @@
 
     var mouseDownEvent = window.touch ? 'touchstart' : 'mousedown';
     var mouseUpEvent = window.touch ? 'touchend' : 'mouseup';
-    var keyPressEvent = 'keypress';
+    var keyPressEvent = 'keydown';
 
     var consts = {
         selectedClass: 'selected',
@@ -117,12 +117,12 @@
             this.createGuid = function () { return ++self.guid; };
             this.nodeMouseUp = function (d3node, d) {
             };
-            this.svgMouseDown = function () {
+            this.deselectAll = function () {
+                var self = this;
                 self.state.selectedNodes = [];
                 self.state.selectedEdges = [];
                 self.svg.selectAll('.link, .node').classed('selected', false);
                 self.state.graphMouseDown = true;
-                return true;
             };
             this.svgMouseUp = function () {
                 var state = self.state, func = self.func;
@@ -177,8 +177,7 @@
                 switch (d3.event.keyCode) {
                     case consts.BACKSPACE_KEY:
                     case consts.DELETE_KEY:
-                        d3.event.preventDefault();
-                        if (!$('.function-name').is(':focus')) {
+                        if (!$('input:focus').length) {
                             d3.event.preventDefault();
                             if (selectedNodes.length || selectedEdges.length) {
                                 if (selectedEdges.length) {
@@ -278,17 +277,23 @@
                         errorClass: 'error',
                         width: 50,
                         constraint: function (d, value) {
-                            if (d.type == 3) {
+                            if (d.value.type === 0) {
+                                return !value;
+                            } else if (d.value.type === 3) {
                                 return value && isFinite(value);
                             }
                             return true;
                         },
                         handlers: {
+                            start: function () {
+                                self.deselectAll();
+                            },
                             done: function (d, value, valid) {
                                 if (valid) {
-                                    if (d.type === 0) {
+                                    var type = d.value.type;
+                                    if (type === 0) {
                                         value = '';
-                                    } else if (d.type === 3) {
+                                    } else if (type === 3) {
                                         value = parseFloat(value).toString();
                                     }
                                     d.value.value = value;
@@ -538,6 +543,7 @@
                     var nodeElement = d3.select(this);
 
                     if (i !== self.state.editNode) return;
+
 
                     var results = nodeElement.select('.search-results').selectAll('.search-result')
                         .data(self.searchResults, function (d) { return d.name; });
@@ -979,8 +985,9 @@
                     return self.svgKeyPress.call(self);
                 });
             svg
-                .on(mouseDownEvent, function (d) {
-                    return self.svgMouseDown.call(self, d);
+                .on(mouseDownEvent, function () {
+                    self.deselectAll();
+                    return true;
                 })
                 .on(mouseUpEvent, function (d) {
                     return self.svgMouseUp.call(self, d);
