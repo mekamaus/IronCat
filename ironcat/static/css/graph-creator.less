@@ -1,5 +1,7 @@
 @stroke-primary:     #00ffff;
 @stroke-error:       #ff4040;
+@stroke-hover:       #ffffff;
+@stroke-selected:    #ffffff;
 @fill-bg:            #000000;
 @fill-fg-primary:    #000000;
 @fill-fg-hover:      #203030;
@@ -112,10 +114,10 @@ g.selected {
     stroke-width: 0;
   }
   &.selected {
-    stroke: #fff;
+    stroke: @stroke-selected;
   }
   &:hover {
-    stroke: #fff;
+    stroke: @stroke-hover;
   }
 }
 
@@ -288,7 +290,12 @@ text {
       opacity: 0;
     }
   }
-  &:hover {
+  &.selected {
+    .node-shape {
+      stroke: @stroke-selected;
+    }
+  }
+  &:hover, &.selected {
     .node-shape {
       fill: @fill-fg-hover;
     }

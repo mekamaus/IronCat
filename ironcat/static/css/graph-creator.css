@@ -79,10 +79,10 @@ g.selected:hover rect {
   stroke-width: 0;
 }
 .link.selected {
-  stroke: #fff;
+  stroke: #ffffff;
 }
 .link:hover {
-  stroke: #fff;
+  stroke: #ffffff;
 }
 .connect-node rect {
   fill: #beffff;
@@ -221,22 +221,31 @@ text {
 .node .node-delete use {
   opacity: 0;
 }
-.node:hover .node-shape {
+.node.selected .node-shape {
+  stroke: #ffffff;
+}
+.node:hover .node-shape,
+.node.selected .node-shape {
   fill: #203030;
 }
-.node:hover .node-delete {
+.node:hover .node-delete,
+.node.selected .node-delete {
   cursor: pointer;
 }
-.node:hover .node-delete circle {
+.node:hover .node-delete circle,
+.node.selected .node-delete circle {
   fill: #000000;
 }
-.node:hover .node-delete text {
+.node:hover .node-delete text,
+.node.selected .node-delete text {
   fill: #ffffff;
 }
-.node:hover .node-delete use {
+.node:hover .node-delete use,
+.node.selected .node-delete use {
   opacity: 1;
 }
-.node:hover .node-delete:hover circle {
+.node:hover .node-delete:hover circle,
+.node.selected .node-delete:hover circle {
   fill: #ff0000;
 }
 .node .search-results .search-result.selected rect {

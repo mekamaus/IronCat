@@ -403,7 +403,7 @@ def get_function_io(fn):
 
 
 def evaluate_node(node, inputs):
-    default_inputs = deserialize(node.default_inputs_json or '[]')
+    default_inputs = deserialize(node.input_values_json or '[]')
     inputs = [x for x in inputs]
     for i in range(len(default_inputs)):
         if len(inputs) <= i:
@@ -427,12 +427,16 @@ def get_function_by_id(function_id):
 
 
 def save_function(function):
-    input_types = [PhotonTypes.multiple(inputs) for inputs in function['inputs']]
-    output_types = [PhotonTypes.multiple(outputs) for outputs in function['outputs']]
+    # Here we can have the highest level of strictness. If the format of the function data does not exactly match our
+    # expectations, throw an error and do not perform any modifications.
+    input_values = [inp['value'] for inp in function['inputs']]
+    input_types = [PhotonTypes.multiple(inp['types']) for inp in function['inputs']]
+    output_types = [PhotonTypes.multiple(outp['types']) for outp in function['outputs']]
     if 'id' not in function or (not function['id'] and function['id'] != 0):
         fn = Function(
             name=function['name'],
             description=function['description'] if 'description' in function else '',
+            input_values_json=json.dumps(input_values),
             input_types_json=json.dumps(input_types),
             output_types_json=json.dumps(input_types),
             primitive=False)

@@ -29,7 +29,7 @@ class TestNet(TestCase):
         nd2a = Node(containing_function=rect_to_polar, inner_function=get_fn('+'))
         nd3a = Node(containing_function=rect_to_polar,
                     inner_function=get_fn('^'),
-                    default_inputs_json=json.dumps([
+                    input_values_json=json.dumps([
                         {'value': '0', 'type': PhotonTypes.number},
                         {'value': '0.5', 'type': PhotonTypes.number}
                     ]))

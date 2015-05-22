@@ -198,12 +198,12 @@ def create_node(request):
         inner_function_id = request.POST['innerFunctionId']
         name = request.POST['name'] if 'name' in request.POST else None
         inner_function = Function.objects.get(id=inner_function_id)
-        default_inputs_json = request.POST['defaultInputs']\
+        input_values_json = request.POST['defaultInputs']\
             if 'defaultInputs' in request.POST else json.dumps([None] * inner_function.input_count)
         node = Node(name=name,
                     containing_function_id=containing_function_id,
                     inner_function_id=inner_function_id,
-                    default_inputs_json=default_inputs_json)
+                    input_values_json=input_values_json)
         node.save()
     except Exception as e:
         return json_error(e)

@@ -1,4 +1,4 @@
-(function () {
+(function ($, undefined) {
     // Find out whether we are using a touch screen.
     window.touch = (function () {
         try {
@@ -55,13 +55,6 @@
                     d.y += d3.event.dy;
                     self.updateGraph();
                 }
-            };
-            this.replaceSelectNode = function (d3Node, nodeData) {
-                d3Node.classed(consts.selectedClass, true);
-                if (self.state.selectedNode) {
-                    self.removeSelectFromNode();
-                }
-                self.state.selectedNode = nodeData;
             };
             this.pinMouseUp = function (d3node, node, pin) {
                 var state = self.state, func = self.func;
@@ -124,7 +117,13 @@
             this.createGuid = function () { return ++self.guid; };
             this.nodeMouseUp = function (d3node, d) {
             };
-            this.svgMouseDown = function () { return self.state.graphMouseDown = true; };
+            this.svgMouseDown = function () {
+                self.state.selectedNodes = [];
+                self.state.selectedEdges = [];
+                self.svg.selectAll('.link, .node').classed('selected', false);
+                self.state.graphMouseDown = true;
+                return true;
+            };
             this.svgMouseUp = function () {
                 var state = self.state, func = self.func;
                 if (state.justScaleTransGraph) {
@@ -140,30 +139,24 @@
                             name: '(click here)',
                             inputs: [
                                 {
-                                    type: 3,
-                                    value: '1'
+                                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                                    value: {type: 3, value: '1'}
                                 }
                             ],
                             outputs: [
-                                {
-                                    type: 3,
-                                    value: '1'
-                                }
+                                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
                             ]
                         },
                         x: xycoords[0],
                         y: xycoords[1],
                         inputs: [
                             {
-                                type: 3,
-                                value: '1'
+                                types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                                value: {type: 3, value: '1'}
                             }
                         ],
                         outputs: [
-                            {
-                                type: 3,
-                                value: '1'
-                            }
+                            {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
                         ]
                     };
                     func.nodes.push(d);
@@ -179,7 +172,7 @@
             this.svgKeyPress = function () {
                 var state = self.state,
                     func = self.func;
-                var selectedNode = state.selectedNode;
+                var selectedNodes = state.selectedNodes;
                 var selectedEdges = state.selectedEdges;
                 switch (d3.event.keyCode) {
                     case consts.BACKSPACE_KEY:
@@ -187,17 +180,19 @@
                         d3.event.preventDefault();
                         if (!$('.function-name').is(':focus')) {
                             d3.event.preventDefault();
-                            if (selectedNode) {
-                                func.nodes.splice(func.nodes.indexOf(selectedNode), 1);
-                                self.spliceLinksForNode(selectedNode);
-                                state.selectedNode = null;
-                                self.updateGraph();
-                            }
-                            else if (selectedEdges.length) {
-                                selectedEdges.forEach(function (edge) {
-                                    func.edges.splice(func.edges.indexOf(edge), 1);
-                                });
-                                state.selectedEdges = [];
+                            if (selectedNodes.length || selectedEdges.length) {
+                                if (selectedEdges.length) {
+                                    selectedEdges.forEach(function (edge) {
+                                        func.edges.splice(func.edges.indexOf(edge), 1);
+                                    });
+                                    state.selectedEdges = [];
+                                }
+                                if (selectedNodes.length) {
+                                    selectedNodes.forEach(function (node) {
+                                        self.deleteNode.call(self, node.id);
+                                    });
+                                    state.selectedNodes = [];
+                                }
                                 self.updateGraph();
                             }
                         }
@@ -225,7 +220,7 @@
                     })
                     .on(mouseDownEvent, function (d) {
                         d3.event.stopPropagation();
-                        self.nodeMouseDown.call(this, d3.select(this), d);
+                        self.nodeMouseDown.call(self, d3.select(this), d);
                     })
                     .on(mouseUpEvent, function (d) {
                         self.nodeMouseUp.call(this, d3.select(this), d);
@@ -259,7 +254,7 @@
                     .selectAll('.node-input')
                     .data(function (d) { return d.inputs; });
 
-                var newInputs = inputs.enter()
+                var newNodeInputs = inputs.enter()
                     .append('g')
                     .classed('pin', true)
                     .classed('node-input', true)
@@ -270,11 +265,11 @@
                         self.pinMouseUp.call(this, d3.select(this), d3.select(this.parentNode).datum(), i);
                     });
 
-                newInputs
+                newNodeInputs
                     .append('circle')
                     .attr('r', consts.pinSize / 2);
 
-                var newValueIndicators = newInputs
+                var newValueIndicators = newNodeInputs
                     .append('g')
                     .classed('pin-value', true)
                     .attr('transform', translate(-consts.pinSize / 2, 0))
@@ -296,7 +291,7 @@
                                     } else if (d.type === 3) {
                                         value = parseFloat(value).toString();
                                     }
-                                    d.value = value;
+                                    d.value.value = value;
                                     d3.select(this).select('text').text(value);
                                 }
                             }
@@ -326,7 +321,7 @@
                     .attr('transform', translate(consts.pinSize / 2, 0));
 
                 d3.selectAll('.node').selectAll('use.input-default-type-icon')
-                    .attr('xlink:href', function (d) { return typeOptions[d.type].icon; });
+                    .attr('xlink:href', function (d) { return typeOptions[d.value.type].icon; });
 
                 newValueIndicators.append('rect')
                     .attr('width', 50)
@@ -341,7 +336,7 @@
                     .attr('dominant-baseline', 'middle')
                     .attr('transform', translate(-10, 0))
                     .text(function (d) {
-                        return d.value;
+                        return d.value.value;
                     });
 
                 var valueTypeIndicators = newValueIndicators.append('g')
@@ -380,12 +375,12 @@
 
                 d3.selectAll('.value-types').selectAll('.value-type')
                     .classed('active', function (d, i) {
-                        var parentValueType = d3.select(this.parentNode).datum().type;
+                        var parentValueType = d3.select(this.parentNode).datum().value.type;
                         return parentValueType === i;
                     })
                     .transition()
                     .attr('transform', function (d, i) {
-                        var type = d3.select(this.parentNode).datum().type;
+                        var type = d3.select(this.parentNode).datum().value.type;
                         var t = 2 * Math.PI * i / typeOptions.length;
                         var t2 = 360 * type / typeOptions.length;
                         return translate(typeSelectorRadius * Math.cos(t), typeSelectorRadius * Math.sin(t))
@@ -395,7 +390,7 @@
                 d3.selectAll('.value-types')
                     .transition()
                     .attr('transform', function (d) {
-                        var t = 360 * d.type / typeOptions.length;
+                        var t = 360 * d.value.type / typeOptions.length;
                         return translate(-typeSelectorRadius - 72, 0) + rotate(-t);
                     });
 
@@ -631,19 +626,26 @@
                     .style('opacity', 0);
                 oldNodes
                     .transition()
-                    .attr('transform', function (d, i) { return translate(d) + scale(0.75); })
+                    .attr('transform', function (d) { return translate(d) + scale(0.75); })
                     .remove();
                 // Inputs
                 self.inputElements = self.inputElements.data(func.inputs, function (d) { return d.id; });
                 var newInputs = self.inputElements
                     .enter()
                     .insert('g')
-                    .classed('input', true)
+                    .classed('input', true);
+
+                newInputs.call(self.drag);
+
+                newInputs
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.inputs.length - 1) + 50 * i) + scale(0);
+                    })
+                    .transition()
                     .attr('transform', function (d, i) {
                         return translate(0, -25 * (func.inputs.length - 1) + 50 * i);
-                    })
-                    .call(self.drag);
-                newInputs.append('circle').attr('r', 0).transition().attr('r', 20);
+                    });
+                newInputs.append('circle').attr('r', 20);
                 self.inputElements
                     .on(mouseDownEvent, function (d, i) {
                         return self.pinMouseDown.call(self, null, i);
@@ -652,7 +654,12 @@
                     .attr('transform', function (d, i) {
                         return translate(0, -25 * (func.inputs.length - 1) + 50 * i);
                     });
-                self.inputElements.exit().selectAll('circle').transition().attr('r', 0).remove();
+                self.inputElements.exit()
+                    .transition()
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.inputs.length) + 50 * i) + scale(0);
+                    })
+                    .remove();
                 // Outputs
                 self.outputElements = self.outputElements.data(func.outputs, function (d) { return d.id; });
                 var newOutputs = self.outputElements
@@ -671,7 +678,12 @@
                     .attr('transform', function (d, i) {
                         return translate(0, -25 * (func.outputs.length - 1) + 50 * i);
                     });
-                self.outputElements.exit().selectAll('circle').transition().attr('r', 0).remove();
+                self.outputElements.exit()
+                    .transition()
+                    .attr('transform', function (d, i) {
+                        return translate(0, -25 * (func.inputs.length) + 50 * i) + scale(0);
+                    })
+                    .remove();
                 // IO add/delete buttons
                 var pinAddDeleteButtonRadius = 12;
                 self.inputDeleteButtons = self.inputDeleteButtons.data(func.inputs, function (d) { return d.id; });
@@ -820,8 +832,6 @@
                     return validSource && validTarget;
                 });
 
-                var nowNumEdges = func.edges.length;
-
                 self.edgeElements = self.edgeElements.data(func.edges, function (d) {
                     return (d.sourceNode ? d.sourceNode.id : '-')
                         + '/' + d.sourcePin + '+'
@@ -930,11 +940,10 @@
             };
             this.idct = 0;
             this.state = {
-                selectedNode: null,
+                selectedNodes: [],
                 selectedEdges: [],
                 mouseDownNode: null,
                 mouseDownLink: null,
-                justDragged: false,
                 justScaleTransGraph: false,
                 pinDrag: false,
                 selectedText: null
@@ -962,9 +971,7 @@
             this.outputAddButtons = this.outputAddButtonGroup.selectAll('g');
             this.outputDeleteButtons = this.outputDeleteButtonGroup.selectAll('g');
             this.drag = d3.behavior.drag().on('drag', function (d, i) {
-                self.state.justDragged = true;
                 self.dragmove.call(self, d, i);
-            }).on('dragend', function () {
             });
             // listen for key events
             d3.select(window)
@@ -1000,30 +1007,17 @@
                 });
             });
         }
-        GraphCreator.prototype.selectElementContents = function (el) {
-            var range = document.createRange();
-            range.selectNodeContents(el);
-            var sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-        };
         GraphCreator.prototype.spliceLinksForNode = function (node) {
             var func = this.func,
                 toSplice = func.edges.filter(function (l) { return l.sourceNode === node || l.targetNode === node; });
             toSplice.map(function (l) { return func.edges.splice(func.edges.indexOf(l), 1); });
         };
-        GraphCreator.prototype.removeSelectFromNode = function () {
-            var state = this.state;
-            this.nodeElements.filter(function (cd) {
-                return cd.id === state.selectedNode.id;
-            }).classed(consts.selectedClass, false);
-            state.selectedNode = null;
-        };
         GraphCreator.prototype.pathMouseDown = function (d3path, d) {
             var state = this.state;
             d3.event.stopPropagation();
             if (!d3.event.shiftKey) {
-                d3.selectAll('.link').classed('selected', false);
+                d3.selectAll('.node, .link').classed('selected', false);
+                state.selectedNodes = [];
                 state.selectedEdges = [];
             }
             d3path.classed('selected', true);
@@ -1031,7 +1025,18 @@
                 state.selectedEdges.push(d);
             }
         };
-        GraphCreator.prototype.nodeMouseDown = function (d) {
+        GraphCreator.prototype.nodeMouseDown = function (d3node, d) {
+            var state = this.state;
+            d3.event.stopPropagation();
+            if (!d3.event.shiftKey) {
+                d3.selectAll('.node, .link').classed('selected', false);
+                state.selectedNodes = [];
+                state.selectedEdges = [];
+            }
+            d3node.classed('selected', true);
+            if (state.selectedNodes.indexOf(d) < 0) {
+                state.selectedNodes.push(d);
+            }
         };
         GraphCreator.prototype.pinMouseDown = function (node, pin) {
             var state = this.state, func = this.func;
@@ -1091,32 +1096,68 @@
                 id: null,
                 name: 'new concept',
                 inputs: [
-                    { type: 3, value: '11' },
-                    { type: 3, value: '22' },
-                    { type: 3, value: '33' },
-                    { type: 3, value: '44' },
-                    { type: 3, value: '55' },
-                    { type: 3, value: '66' }
+                    {
+                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        value: {type: 3, value: '11'}
+                    },
+                    {
+                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        value: {type: 3, value: '22'}
+                    },
+                    {
+                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        value: {type: 3, value: '33'}
+                    },
+                    {
+                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        value: {type: 3, value: '44'}
+                    },
+                    {
+                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        value: {type: 3, value: '55'}
+                    },
+                    {
+                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        value: {type: 3, value: '66'}
+                    }
                 ],
                 outputs: [
-                    { type: 3, value: '0' },
-                    { type: 3, value: '0' }
+                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
                 ]
             },
-            x: xLoc + 300,
-            y: yLoc,
             inputs: [
-                { type: 3, value: '11' },
-                { type: 3, value: '22' },
-                { type: 3, value: '33' },
-                { type: 3, value: '44' },
-                { type: 3, value: '55' },
-                { type: 3, value: '66' }
+                {
+                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    value: {type: 3, value: '11'}
+                },
+                {
+                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    value: {type: 3, value: '22'}
+                },
+                {
+                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    value: {type: 3, value: '33'}
+                },
+                {
+                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    value: {type: 3, value: '44'}
+                },
+                {
+                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    value: {type: 3, value: '55'}
+                },
+                {
+                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    value: {type: 3, value: '66'}
+                }
             ],
             outputs: [
-                { type: 3, value: '0' },
-                { type: 3, value: '0' }
-            ]
+                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
+            ],
+            x: xLoc + 300,
+            y: yLoc
         },
         {
             id: 1,
@@ -1124,32 +1165,44 @@
                 id: null,
                 name: 'old concept',
                 inputs: [
-                    { type: 3, value: '111' },
-                    { type: 3, value: '222' }
+                    {
+                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        value: {type: 3, value: '111'}
+                    },
+                    {
+                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        value: {type: 3, value: '222'}
+                    }
                 ],
                 outputs: [
-                    { type: 3, value: '0' },
-                    { type: 3, value: '0' },
-                    { type: 3, value: '0' },
-                    { type: 3, value: '0' },
-                    { type: 3, value: '0' },
-                    { type: 3, value: '0' }
+                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
                 ]
             },
-            x: xLoc,
-            y: yLoc,
             inputs: [
-                { type: 3, value: '111' },
-                { type: 3, value: '222' }
+                {
+                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    value: {type: 3, value: '111'}
+                },
+                {
+                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    value: {type: 3, value: '222'}
+                }
             ],
             outputs: [
-                { type: 3, value: '0' },
-                { type: 3, value: '0' },
-                { type: 3, value: '0' },
-                { type: 3, value: '0' },
-                { type: 3, value: '0' },
-                { type: 3, value: '0' }
-            ]
+                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
+                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
+            ],
+            x: xLoc,
+            y: yLoc
         }
     ];
     var edges = [
@@ -1178,16 +1231,42 @@
         }
     ];
     var inputs = [
-        { id: 0, types: [3] },
-        { id: 1, types: [3] }
+        {
+            id: 0,
+            types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            value: {type: 3, value: '3.14'}
+        },
+        {
+            id: 1,
+            types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            value: {type: 3, value: '2.72'}
+        }
     ];
     var outputs = [
-        { id: 0, types: [3] },
-        { id: 1, types: [3] },
-        { id: 2, types: [3] },
-        { id: 3, types: [3] },
-        { id: 4, types: [3] },
-        { id: 5, types: [3] }
+        {
+            id: 0,
+            types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        {
+            id: 1,
+            types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        {
+            id: 2,
+            types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        {
+            id: 3,
+            types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        {
+            id: 4,
+            types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        {
+            id: 5,
+            types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        }
     ];
     /** MAIN SVG **/
     $(function () {
@@ -1207,8 +1286,8 @@
             var funcData = {
                 id: func.id,
                 name: func.name,
-                inputs: func.inputs.map(function (pin) { return pin.types; }),
-                outputs: func.outputs.map(function (pin) { return pin.types; }),
+                inputs: func.inputs,
+                outputs: func.outputs,
                 nodes: func.nodes.map(function (node) {
                     return {
                         id: node.id,
@@ -1281,4 +1360,4 @@
             return true;
         });
     });
-})();
+})(jQuery, undefined);

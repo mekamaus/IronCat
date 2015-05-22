@@ -37,7 +37,7 @@ class User(AbstractUser):
 class Node(Model):
     name = CharField(max_length=255, null=True)
     containing_function = ForeignKey('Function', related_name='nodes')
-    default_inputs_json = TextField()
+    input_values_json = TextField()
     inner_function = ForeignKey('Function', related_name='nodes_using')
 
 
@@ -52,6 +52,7 @@ class Wire(Model):
 class Function(Model):
     name = CharField(max_length=255, unique=True)
     description = TextField()
+    input_values_json = TextField(default='[]')
     input_types_json = TextField(default='[]')
     output_types_json = TextField(default='[]')
     primitive = BooleanField(default=False)
