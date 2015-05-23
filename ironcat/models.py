@@ -52,11 +52,8 @@ class Wire(Model):
 class Function(Model):
     name = CharField(max_length=255, unique=True)
     description = TextField()
-    input_names_json = TextField(default='[]')
-    input_values_json = TextField(default='[]')
-    input_types_json = TextField(default='[]')
-    output_names_json = TextField(default='[]')
-    output_types_json = TextField(default='[]')
+    inputs_json = TextField(default='[]')
+    outputs_json = TextField(default='[]')
     primitive = BooleanField(default=False)
 
     def _get_input_types(self):

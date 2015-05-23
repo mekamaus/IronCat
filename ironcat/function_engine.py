@@ -6,21 +6,50 @@ import math
 from functools import reduce
 
 
-class Wildcard:
-    def __init__(self, *type_names):
-        self.types = type_names
-
-
-math_2_1 = (
-    [
-        [PhotonTypes.number],
-        [PhotonTypes.number]
+math_2_1 = {
+    'inputs': [
+        {
+            'name': 'x',
+            'types': [PhotonTypes.number],
+            'value': {
+                'type': PhotonTypes.number,
+                'value': '1'
+            }
+        },
+        {
+            'name': 'y',
+            'types': [PhotonTypes.number],
+            'value': {
+                'type': PhotonTypes.number,
+                'value': '1'
+            }
+        }
     ],
-    [
-        [PhotonTypes.number]
+    'outputs': [
+        {
+            'name': 'result',
+            'types': [PhotonTypes.number]
+        }
     ]
-)
-math_1_1 = ([[PhotonTypes.number]], [[PhotonTypes.number]])
+}
+math_1_1 = {
+    'inputs': [
+        {
+            'name': 'x',
+            'types': [PhotonTypes.number],
+            'value': {
+                'type': PhotonTypes.number,
+                'value': 1
+            }
+        }
+    ],
+    'outputs': [
+        {
+            'name': 'result',
+            'types': [PhotonTypes.number]
+        }
+    ]
+}
 
 _primitives = {
     '+': math_2_1,
@@ -34,53 +63,139 @@ _primitives = {
     'asin': math_1_1,
     'acos': math_1_1,
     'atan': math_1_1,
-    'atan2': math_1_1,
+    'atan2': math_2_1,
     'get': math_1_1,
     'set': math_1_1,
-    'to list': (
-        [
-            collection_types
+    'to list': {
+        'inputs': [
+            {
+                'name': 'collection',
+                'types': collection_types,
+                'value': {
+                    'type': PhotonTypes.list,
+                    'value': '[]'
+                }
+            }
         ],
-        [
-            [PhotonTypes.list]
+        'outputs': [
+            {
+                'name': 'list',
+                'types': [PhotonTypes.list]
+            }
         ]
-    ),
-    'concatenate': (
-        [
-            [PhotonTypes.string],
-            [PhotonTypes.string]
+    },
+    'concatenate': {
+        'inputs': [
+            {
+                'name': 'string 1',
+                'types': [PhotonTypes.string],
+                'value': {
+                    'type': PhotonTypes.string,
+                    'value': ''
+                }
+            },
+            {
+                'name': 'string 2',
+                'types': [PhotonTypes.string],
+                'value': {
+                    'type': PhotonTypes.string,
+                    'value': ''
+                }
+            }
         ],
-        [
-            [PhotonTypes.string]
+        'outputs': [
+            {
+                'name': 'result',
+                'types': [PhotonTypes.string]
+            }
         ]
-    ),
-    'map': (
-        [
-            collection_types,
-            [PhotonTypes.function]
+    },
+    'map': {
+        'inputs': [
+            {
+                'name': 'collection',
+                'types': collection_types,
+                'value': {
+                    'type': PhotonTypes.list,
+                    'value': '[]'
+                }
+            },
+            {
+                'name': 'function',
+                'types': [PhotonTypes.function],
+                'value': {
+                    'type': PhotonTypes.function,
+                    'value': 'sin'
+                }
+            }
         ],
-        [
-            collection_types
-        ]),
-    'reduce': (
-        [
-            collection_types,
-            [PhotonTypes.function],
-            valid_types
-        ],
-        [
-            collection_types
+        'outputs': [
+            {
+                'name': 'result',
+                'types': collection_types
+            }
         ]
-    ),
-    'evaluate': (
-        [
-            [PhotonTypes.function],
-            valid_types
+    },
+    'reduce': {
+        'inputs': [
+            {
+                'name': 'collection',
+                'types': collection_types,
+                'value': {
+                    'type': PhotonTypes.list,
+                    'value': '[]'
+                }
+            },
+            {
+                'name': 'function',
+                'types': [PhotonTypes.function],
+                'value': {
+                    'type': PhotonTypes.function,
+                    'value': '+'
+                }
+            },
+            {
+                'name': 'initial',
+                'types': valid_types,
+                'value': {
+                    'type': PhotonTypes.number,
+                    'value': '0'
+                }
+            }
         ],
-        [
-            valid_types
+        'outputs': [
+            {
+                'name': 'result',
+                'types': collection_types
+            }
         ]
-    )
+    },
+    'evaluate': {
+        'inputs': [
+            {
+                'name': 'function',
+                'types': [PhotonTypes.function],
+                'value': {
+                    'type': PhotonTypes.function,
+                    'value': 'sin'
+                }
+            },
+            {
+                'name': 'inputs',
+                'types': [PhotonTypes.list],
+                'value': {
+                    'type': PhotonTypes.list,
+                    'value': '[{"type":3,"value":"1"}]'
+                }
+            }
+        ],
+        'outputs': [
+            {
+                'name': 'outputs',
+                'types': [PhotonTypes.list]
+            }
+        ]
+    }
 }
 
 
@@ -89,10 +204,10 @@ def get_function(name):
         return Function.objects.get(name=name)
     except Function.DoesNotExist:
         if name in _primitives:
-            input_types, output_types = _primitives[name]
+            io = _primitives[name]
             function = Function(name=name,
-                                input_types_json=json.dumps(input_types),
-                                output_types_json=json.dumps(output_types),
+                                inputs_json=json.dumps(io['inputs']),
+                                outputs_json=json.dumps(io['outputs']),
                                 primitive=True)
             function.save()
             return function
@@ -427,32 +542,20 @@ def get_function_by_id(function_id):
 
 
 def save_function(function):
-    # Here we can have the highest level of strictness. If the format of the function data does not exactly match our
-    # expectations, throw an error.
     inputs = function['inputs']
     outputs = function['outputs']
-    input_names = [inp['name'] for inp in inputs]
-    input_values = [inp['value'] for inp in inputs]
-    input_types = [PhotonTypes.multiple(inp['types']) for inp in inputs]
-    output_names = [outp['name'] for outp in outputs]
-    output_types = [PhotonTypes.multiple(outp['types']) for outp in outputs]
     if 'id' not in function or (not function['id'] and function['id'] != 0):
         fn = Function(
             name=function['name'],
             description=function['description'] if 'description' in function else '',
-            input_names_json=json.dumps(input_names),
-            input_values_json=json.dumps(input_values),
-            input_types_json=json.dumps(input_types),
-            output_names_json=json.dumps(output_names),
-            output_types_json=json.dumps(input_types),
+            inputs_json=json.dumps(inputs),
+            outputs_json=json.dumps(outputs),
             primitive=False)
     else:
         fn = Function.objects.get(id=function['id'])
         fn.name = function['name']
         fn.description = function['description'] if 'description' in function else ''
-        fn.input_names_json = json.dumps(input_names)
-        fn.input_values_json = json.dumps(input_values)
-        fn.input_types_json = json.dumps(input_types)
-        fn.output_types_json = json.dumps(output_types)
+        fn.inputs_json = json.dumps(inputs)
+        fn.outputs_json = json.dumps(outputs)
     fn.save()
     return fn.id

@@ -486,6 +486,7 @@
                                             console.error(data.error);
                                             return;
                                         }
+                                        console.log(data);
                                         self.searchResults = data.results;
                                         self.selectedSearchResult = 0;
                                         self.updateGraph();
