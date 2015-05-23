@@ -9,6 +9,10 @@
         }
     })();
 
+    function getId(node) {
+        return !node ? null : node.id !== undefined ? node.id : '(fake)' + node.fakeId;
+    }
+
     var mouseDownEvent = window.touch ? 'touchstart' : 'mousedown';
     var mouseUpEvent = window.touch ? 'touchend' : 'mouseup';
     var keyPressEvent = 'keydown';
@@ -71,10 +75,13 @@
                 if (!node || mouseDownNode !== node) {
                     // we're in a different node: create new edge for mousedown edge and add to graph
                     var newEdge = {
+                        fakeId: self.idct++,
+                        name: 'New Edge ' + (self.idct - 1),
                         sourceNode: mouseDownNode,
                         sourcePin: mouseDownPin,
                         targetNode: node,
-                        targetPin: pin
+                        targetPin: pin,
+                        modified: true
                     };
                     var redundantEdges = self.edgeElements.filter(function (d) {
                         return d.sourceNode === newEdge.sourceNode && d.sourcePin === newEdge.sourcePin && d.targetNode === newEdge.targetNode && d.targetPin === newEdge.targetPin;
@@ -105,9 +112,11 @@
                         }
                     }
                     if (!redundantEdges[0].length && !cycleFormed) {
+                        // Remove other edges with the same target.
                         func.edges = func.edges.filter(function (d) {
                             return !(d.targetNode === newEdge.targetNode && d.targetPin === newEdge.targetPin);
                         });
+                        // Add the new edge.
                         func.edges.push(newEdge);
                         self.updateGraph(true);
                     }
@@ -131,12 +140,25 @@
                     state.justScaleTransGraph = false;
                 }
                 else if (state.graphMouseDown && d3.event.shiftKey) {
-                    // clicked not dragged from svg
-                    var xycoords = d3.mouse(self.svgG.node()), d = {
-                        id: self.idct++,
-                        func: {
-                            id: null,
-                            name: '(click here)',
+                    // Add new node
+                    var xycoords = d3.mouse(self.svgG.node()),
+                        newNode = {
+                            fakeId: self.idct++,
+                            name: 'New Node ' + self.idct - 1,
+                            func: {
+                                name: '(click here)',
+                                inputs: [
+                                    {
+                                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                                        value: {type: 3, value: '1'}
+                                    }
+                                ],
+                                outputs: [
+                                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
+                                ]
+                            },
+                            x: xycoords[0],
+                            y: xycoords[1],
                             inputs: [
                                 {
                                     types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
@@ -145,21 +167,10 @@
                             ],
                             outputs: [
                                 {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
-                            ]
-                        },
-                        x: xycoords[0],
-                        y: xycoords[1],
-                        inputs: [
-                            {
-                                types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                                value: {type: 3, value: '1'}
-                            }
-                        ],
-                        outputs: [
-                            {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
-                        ]
-                    };
-                    func.nodes.push(d);
+                            ],
+                            modified: true
+                        };
+                    func.nodes.push(newNode);
                     self.updateGraph();
                 }
                 else if (state.pinDrag) {
@@ -170,7 +181,8 @@
                 state.graphMouseDown = false;
             };
             this.svgKeyPress = function () {
-                var state = self.state,
+                var self = this,
+                    state = self.state,
                     func = self.func;
                 var selectedNodes = state.selectedNodes;
                 var selectedEdges = state.selectedEdges;
@@ -188,7 +200,7 @@
                                 }
                                 if (selectedNodes.length) {
                                     selectedNodes.forEach(function (node) {
-                                        self.deleteNode.call(self, node.id);
+                                        self.deleteNode.call(self, node);
                                     });
                                     state.selectedNodes = [];
                                 }
@@ -203,7 +215,7 @@
                 var svg = self.svg, state = self.state, func = self.func;
 
                 // Update existing nodes.
-                self.nodeElements = self.nodeElements.data(func.nodes, function (d) { return d.id; });
+                self.nodeElements = self.nodeElements.data(func.nodes, function (d) { return getId(d); });
                 self.nodeElements.attr('transform', function (d) { return translate(d); });
                 // Add new nodes.
                 var newNodes = self.nodeElements.enter().append('g').classed('node', true);
@@ -290,6 +302,10 @@
                             },
                             done: function (d, value, valid) {
                                 if (valid) {
+                                    // Set modified flag for node
+                                    var nodeDatum = d3.select(this.parentNode.parentNode).datum();
+                                    nodeDatum.modified = true;
+
                                     var type = d.value.type;
                                     if (type === 0) {
                                         value = '';
@@ -474,6 +490,9 @@
                                     node.outputs = fn.outputs.slice(0);
                                     nodeElement.select('.node-function-name').text(fn.name);
                                     self.updateGraph();
+
+                                    // Set the modified flag for the node.
+                                    node.modified = true;
                                 },
                                 update: function (d, value) {
                                     if (!value) {
@@ -528,7 +547,7 @@
                             return translate(consts.nodeWidth / 2 - consts.nodeCornerRadius, consts.nodeCornerRadius);
                         })
                         .on('click', function (d) {
-                            self.deleteNode.call(self, d.id);
+                            self.deleteNode.call(self, d);
                         });
                     deleteBtn
                         .append('circle')
@@ -1072,12 +1091,13 @@
             var y = window.innerHeight || docEl.clientHeight || bodyEl.clientHeight;
             svg.attr('width', x).attr('height', y);
         };
-        GraphCreator.prototype.deleteNode = function (nodeId) {
+        GraphCreator.prototype.deleteNode = function (node) {
+            var nodeId = getId(node);
             var nodeIndex = -1;
             var func = this.func;
             for (var i = 0; i < func.nodes.length; i++) {
-                var node = func.nodes[i];
-                if (node.id === nodeId) {
+                var currNode = func.nodes[i];
+                if (getId(currNode) === nodeId) {
                     nodeIndex = i;
                     break;
                 }
@@ -1087,8 +1107,8 @@
             }
             func.nodes.splice(nodeIndex, 1);
             func.edges = func.edges.filter(function (edge) {
-                return (!edge.sourceNode || edge.sourceNode.id !== nodeId)
-                    && (!edge.targetNode || edge.targetNode.id !== nodeId);
+                return (!edge.sourceNode || getId(edge.sourceNode) !== nodeId)
+                    && (!edge.targetNode || getId(edge.targetNode) !== nodeId);
             });
             this.updateGraph();
         };
@@ -1101,38 +1121,18 @@
     // initial node data
     var nodes = [
         {
-            id: 0,
+            fakeId: 0,
+            name: 'Node 1',
             func: {
                 id: null,
-                name: 'new concept',
+                name: 'sin',
                 inputs: [
                     {
                         types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
                         value: {type: 3, value: '11'}
-                    },
-                    {
-                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                        value: {type: 3, value: '22'}
-                    },
-                    {
-                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                        value: {type: 3, value: '33'}
-                    },
-                    {
-                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                        value: {type: 3, value: '44'}
-                    },
-                    {
-                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                        value: {type: 3, value: '55'}
-                    },
-                    {
-                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                        value: {type: 3, value: '66'}
                     }
                 ],
                 outputs: [
-                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
                     {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
                 ]
             },
@@ -1140,40 +1140,21 @@
                 {
                     types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
                     value: {type: 3, value: '11'}
-                },
-                {
-                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                    value: {type: 3, value: '22'}
-                },
-                {
-                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                    value: {type: 3, value: '33'}
-                },
-                {
-                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                    value: {type: 3, value: '44'}
-                },
-                {
-                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                    value: {type: 3, value: '55'}
-                },
-                {
-                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                    value: {type: 3, value: '66'}
                 }
             ],
             outputs: [
-                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
                 {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
             ],
             x: xLoc + 300,
-            y: yLoc
+            y: yLoc,
+            modified: true
         },
         {
-            id: 1,
+            fakeId: 1,
+            name: 'Node 2',
             func: {
                 id: null,
-                name: 'old concept',
+                name: '+',
                 inputs: [
                     {
                         types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
@@ -1185,11 +1166,6 @@
                     }
                 ],
                 outputs: [
-                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-                    {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
                     {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
                 ]
             },
@@ -1204,40 +1180,38 @@
                 }
             ],
             outputs: [
-                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
-                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]},
                 {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
             ],
             x: xLoc,
-            y: yLoc
+            y: yLoc,
+            modified: true
         }
     ];
     var edges = [
         {
-            sourceNode: nodes[1],
-            sourcePin: 5,
-            targetNode: nodes[0],
-            targetPin: 3
-        },
-        {
-            sourceNode: nodes[1],
-            sourcePin: 4,
-            targetNode: nodes[0],
-            targetPin: 2
-        },
-        {
-            sourceNode: nodes[1],
-            sourcePin: 2,
-            targetNode: nodes[0],
-            targetPin: 4
-        },
-        {
+            fakeId: 2,
+            name: 'edge 1',
             sourcePin: 0,
             targetNode: nodes[1],
-            targetPin: 0
+            targetPin: 0,
+            modified: true
+        },
+        {
+            fakeId: 3,
+            name: 'edge 2',
+            sourcePin: 1,
+            targetNode: nodes[1],
+            targetPin: 1,
+            modified: true
+        },
+        {
+            fakeId: 4,
+            name: 'edge 3',
+            sourceNode: nodes[1],
+            sourcePin: 0,
+            targetNode: nodes[0],
+            targetPin: 0,
+            modified: true
         }
     ];
     var inputs = [
@@ -1301,29 +1275,35 @@
         graph.updateWindow(svg);
         var save = function () {
             var func = graph.func;
-            var funcData = {
-                id: func.id,
-                name: func.name,
-                inputs: func.inputs,
-                outputs: func.outputs,
-                nodes: func.nodes.map(function (node) {
-                    return {
-                        id: node.id,
-                        functionId: node.func.id
-                    };
-                }),
-                edges: func.edges.map(function (edge) {
-                    return {
-                        sourceNode: edge.sourceNode ? edge.sourceNode.id : null,
-                        sourcePin: edge.sourcePin,
-                        targetNode: edge.targetNode ? edge.targetNode.id : null,
-                        targetPin: edge.targetPin
-                    };
-                })
-            };
-            $.when($.post('/save_function/', JSON.stringify(funcData))).then(function (result) {
-                console.log(result);
-                graph.func.id = result.result;
+            console.log(func);
+            $.when($.post('/save_function/', JSON.stringify(func))).then(function (result) {
+                if (!result.success) {
+                    console.error(result.error);
+                    return;
+                }
+                var newFuncId = result.result.function_id;
+                var newNodeIds = result.result.new_node_ids;
+                var newEdgeIds = result.result.new_edge_ids;
+
+                graph.func.nodes.forEach(function (node) {
+                    if (node.modified) {
+                        node.modified = false;
+                        if (node.fakeId !== undefined) {
+                            node.id = newNodeIds[node.fakeId];
+                            delete node.fakeId;
+                        }
+                    }
+                });
+                graph.func.edges.forEach(function (edge) {
+                    if (edge.modified) {
+                        edge.modified = false;
+                        if (edge.fakeId !== undefined) {
+                            edge.id = newEdgeIds[edge.fakeId];
+                            delete edge.fakeId;
+                        }
+                    }
+                });
+                graph.func.id = newFuncId;
             });
         };
 

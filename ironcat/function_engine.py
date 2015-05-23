@@ -542,9 +542,15 @@ def get_function_by_id(function_id):
 
 
 def save_function(function):
+    # Ensure that all the primitives exist before we go searching for them.
+    for key in _primitives.keys():
+        get_function(key)
+    from pprint import pprint
+    #pprint(function)
     inputs = function['inputs']
     outputs = function['outputs']
-    if 'id' not in function or (not function['id'] and function['id'] != 0):
+
+    if 'id' not in function or function['id'] is None or function['id'] == '':
         fn = Function(
             name=function['name'],
             description=function['description'] if 'description' in function else '',
@@ -558,4 +564,72 @@ def save_function(function):
         fn.inputs_json = json.dumps(inputs)
         fn.outputs_json = json.dumps(outputs)
     fn.save()
-    return fn.id
+
+    nodes = function['nodes']
+    modified_nodes = [node for node in nodes if node['modified']]
+    deleted_nodes = [node for node in fn.nodes.all() if node.id not in [n['id'] for n in nodes]]
+
+    new_node_ids = {}
+    for node in modified_nodes:
+        fake_id = None
+        if 'fakeId' in node:
+            fake_id = node['fakeId']
+            nd = Node(
+                name=node['name'],
+                containing_function_id=fn.id,
+                input_values_json=json.dumps(node['inputs']),
+                inner_function_id=get_function_id(node['func'])
+            )
+        else:
+            nd = Node.objects.get(id=node['id'])
+            nd.name = node['name']
+            nd.input_values_json = json.dumps(node['inputs'])
+            nd.inner_function_id = get_function_id(node['func'])
+        nd.save()
+        if fake_id is not None:
+            new_node_ids[fake_id] = nd.id
+    for node in deleted_nodes:
+        Node.objects.get(id=node.id).delete()
+
+    edges = function['edges']
+    modified_edges = [edge for edge in edges if edge['modified']]
+    deleted_edges = [edge for edge in fn.wires.all() if edge.id not in [e['id'] for e in edges]]
+
+    new_edge_ids = {}
+    for edge in modified_edges:
+        fake_id = None
+        if 'fakeId' in edge:
+            fake_id = edge['fakeId']
+            ed = Wire(
+                name=edge['name'],
+                containing_function_id=fn.id,
+                source_node_id=(edge['sourceNode']['id'] if 'id' in edge['sourceNode'] else new_node_ids[edge['sourceNode']['fakeId']]) if 'sourceNode' in edge else None,
+                source_pin=edge['sourcePin'],
+                target_node_id=(edge['targetNode']['id'] if 'id' in edge['targetNode'] else new_node_ids[edge['targetNode']['fakeId']]) if 'targetNode' in edge else None,
+                target_pin=edge['targetPin']
+            )
+        else:
+            ed = Wire.objects.get(id=edge['id'])
+            ed.name = edge['name']
+            ed.source_node_id = (edge['sourceNode']['id'] if 'id' in edge['sourceNode'] else new_node_ids[edge['sourceNode']['fakeId']]) if 'sourceNode' in edge else None
+            ed.source_pin = edge['sourcePin']
+            ed.target_node_id = (edge['targetNode']['id'] if 'id' in edge['targetNode'] else new_node_ids[edge['targetNode']['fakeId']]) if 'targetNode' in edge else None
+            ed.target_pin = edge['targetPin']
+        ed.save()
+        if fake_id is not None:
+            new_edge_ids[fake_id] = ed.id
+    for edge in deleted_edges:
+        Wire.objects.get(id=edge.id).delete()
+
+    return {
+        'function_id': fn.id,
+        'new_node_ids': new_node_ids,
+        'new_edge_ids': new_edge_ids
+    }
+
+def get_function_id(func_dict):
+    if 'id' in func_dict and func_dict['id'] is not None and func_dict['id'] != '':
+        return func_dict['id']
+    if 'name' in func_dict:
+        func = Function.objects.get(name=func_dict['name'])
+        return func.id
