@@ -428,22 +428,30 @@ def get_function_by_id(function_id):
 
 def save_function(function):
     # Here we can have the highest level of strictness. If the format of the function data does not exactly match our
-    # expectations, throw an error and do not perform any modifications.
-    input_values = [inp['value'] for inp in function['inputs']]
-    input_types = [PhotonTypes.multiple(inp['types']) for inp in function['inputs']]
-    output_types = [PhotonTypes.multiple(outp['types']) for outp in function['outputs']]
+    # expectations, throw an error.
+    inputs = function['inputs']
+    outputs = function['outputs']
+    input_names = [inp['name'] for inp in inputs]
+    input_values = [inp['value'] for inp in inputs]
+    input_types = [PhotonTypes.multiple(inp['types']) for inp in inputs]
+    output_names = [outp['name'] for outp in outputs]
+    output_types = [PhotonTypes.multiple(outp['types']) for outp in outputs]
     if 'id' not in function or (not function['id'] and function['id'] != 0):
         fn = Function(
             name=function['name'],
             description=function['description'] if 'description' in function else '',
+            input_names_json=json.dumps(input_names),
             input_values_json=json.dumps(input_values),
             input_types_json=json.dumps(input_types),
+            output_names_json=json.dumps(output_names),
             output_types_json=json.dumps(input_types),
             primitive=False)
     else:
         fn = Function.objects.get(id=function['id'])
         fn.name = function['name']
         fn.description = function['description'] if 'description' in function else ''
+        fn.input_names_json = json.dumps(input_names)
+        fn.input_values_json = json.dumps(input_values)
         fn.input_types_json = json.dumps(input_types)
         fn.output_types_json = json.dumps(output_types)
     fn.save()

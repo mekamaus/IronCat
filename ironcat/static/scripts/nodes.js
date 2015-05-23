@@ -482,6 +482,10 @@
                                         return;
                                     }
                                     $.when($.getJSON('/search/', {q: value})).then(function (data) {
+                                        if (!data.success) {
+                                            console.error(data.error);
+                                            return;
+                                        }
                                         self.searchResults = data.results;
                                         self.selectedSearchResult = 0;
                                         self.updateGraph();
@@ -543,7 +547,6 @@
                     var nodeElement = d3.select(this);
 
                     if (i !== self.state.editNode) return;
-
 
                     var results = nodeElement.select('.search-results').selectAll('.search-result')
                         .data(self.searchResults, function (d) { return d.name; });
@@ -1240,11 +1243,13 @@
     var inputs = [
         {
             id: 0,
+            name: 'a',
             types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
             value: {type: 3, value: '3.14'}
         },
         {
             id: 1,
+            name: 'b',
             types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
             value: {type: 3, value: '2.72'}
         }
@@ -1252,26 +1257,32 @@
     var outputs = [
         {
             id: 0,
+            name: 'A',
             types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         },
         {
             id: 1,
+            name: 'B',
             types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         },
         {
             id: 2,
+            name: 'C',
             types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         },
         {
             id: 3,
+            name: 'D',
             types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         },
         {
             id: 4,
+            name: 'E',
             types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         },
         {
             id: 5,
+            name: 'F',
             types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         }
     ];
