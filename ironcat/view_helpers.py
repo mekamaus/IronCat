@@ -4,11 +4,7 @@ import re
 import traceback
 
 def json_response(data, status=200):
-    try:
-        serialized_data = photon.serialize(data)
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg)
+    serialized_data = photon.serialize(data)
     result = HttpResponse(serialized_data, content_type='application/json', status=status)
     return result
 
@@ -41,12 +37,8 @@ def json_error(e, data=None, status=200):
 
 def delete_object(table, request):
     ob_id = request.POST['id']
-    try:
-        ob = table.objects.get(id=ob_id)
-        ob.delete()
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg)
+    ob = table.objects.get(id=ob_id)
+    ob.delete()
     return json_success()
 
 

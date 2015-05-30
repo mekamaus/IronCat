@@ -128,7 +128,6 @@ def json_encoder_default(o):
         o = list(o)
     if isinstance(o, list):
         return [json_encoder_default(e) for e in o]
-    print(o)
     return json.JSONEncoder().default(o)
 
 

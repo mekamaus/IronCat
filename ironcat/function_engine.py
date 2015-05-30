@@ -493,11 +493,9 @@ def evaluate_function(function, inputs):
 
     output_photons = []
 
-    print(wire_photons)
     for wire in output_connected_wires:
         while len(output_photons) <= wire.target_pin:
             output_photons.append(None)
-        print(wire.id)
         output_photons[wire.target_pin] = wire_photons[wire.id]
 
     return output_photons
@@ -547,7 +545,6 @@ def save_function(function):
     # Ensure that all the primitives exist before we go searching for them.
     for key in _primitives.keys():
         get_function(key)
-    from pprint import pprint
     inputs = function['inputs']
     outputs = function['outputs']
 

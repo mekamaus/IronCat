@@ -4,8 +4,6 @@ from ironcat.models import Function, Node, Wire, Tag
 import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 from ironcat import function_engine
-import traceback
-import sys
 from ironcat.view_helpers import json_response, json_success, json_error, delete_object, get_query
 
 
@@ -41,14 +39,10 @@ def use(request):
 
 
 def evaluate(request):
-    try:
-        function_name = request.GET['function']
-        inputs_str = request.GET['inputs']
-        inputs = function_engine.deserialize(inputs_str)
-        result = function_engine.evaluate_function(function_name, inputs)
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg)
+    function_name = request.GET['function']
+    inputs_str = request.GET['inputs']
+    inputs = function_engine.deserialize(inputs_str)
+    result = function_engine.evaluate_function(function_name, inputs)
 
     return json_success(result)
 
@@ -58,31 +52,27 @@ def evaluate(request):
 
 
 def create_function(request):
-    try:
-        name = request.POST['name']
-        description = request.POST['description'] if 'description' in request.POST else ''
-        input_types_json = json.dumps(request.POST['input_types' + '[]'])
-        output_types_json = json.dumps(request.POST['output_types' + '[]'])
-        if not Function.objects.filter(name=name,
-                                       description=description,
-                                       input_types_json=input_types_json,
-                                       output_types_json=output_types_json,
-                                       primitive=False).exists():
-            function = Function(name=name,
-                                description=description,
-                                input_types_json=input_types_json,
-                                output_types_json=output_types_json,
-                                primitive=False)
-            function.save()
-        else:
-            function = Function.objects.get(name=name,
-                                            description=description,
-                                            input_types_json=input_types_json,
-                                            output_types_json=output_types_json,
-                                            primitive=False)
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg)
+    name = request.POST['name']
+    description = request.POST['description'] if 'description' in request.POST else ''
+    input_types_json = json.dumps(request.POST['input_types' + '[]'])
+    output_types_json = json.dumps(request.POST['output_types' + '[]'])
+    if not Function.objects.filter(name=name,
+                                   description=description,
+                                   input_types_json=input_types_json,
+                                   output_types_json=output_types_json,
+                                   primitive=False).exists():
+        function = Function(name=name,
+                            description=description,
+                            input_types_json=input_types_json,
+                            output_types_json=output_types_json,
+                            primitive=False)
+        function.save()
+    else:
+        function = Function.objects.get(name=name,
+                                        description=description,
+                                        input_types_json=input_types_json,
+                                        output_types_json=output_types_json,
+                                        primitive=False)
 
     return json_success({'id': function.id})
 
@@ -90,20 +80,12 @@ def create_function(request):
 def get_function(request):
     if 'name' in request.GET:
         name = request.GET['name']
-        try:
-            function = function_engine.get_function(name)
-        except Exception as e:
-            msg = traceback.format_exc()
-            return json_error(msg)
+        function = function_engine.get_function(name)
         return json_success({'function': function})
     elif 'id' in request.GET:
         function_id = request.GET['id']
-        try:
-            results = function_engine.get_function_by_id(function_id)
-            return json_success({'results': results})
-        except Exception as e:
-            msg = traceback.format_exc()
-            return json_error(msg)
+        results = function_engine.get_function_by_id(function_id)
+        return json_success({'results': results})
 
 
 def delete_function(request):
@@ -115,13 +97,9 @@ def search_functions(request):
     function_query = get_query(q, ['name', 'description'])
     tag_query = get_query(q, ['name'])
 
-    try:
-        functions = Function.objects.filter(function_query)
-        for tag in Tag.objects.filter(tag_query):
-            functions += tag.functions
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg, {'results': []})
+    functions = Function.objects.filter(function_query)
+    for tag in Tag.objects.filter(tag_query):
+        functions += tag.functions
 
     return json_success({'results': functions})
 
@@ -131,21 +109,17 @@ def search_functions(request):
 
 
 def create_node(request):
-    try:
-        containing_function_id = request.POST['containingFunctionId']
-        inner_function_id = request.POST['innerFunctionId']
-        name = request.POST['name'] if 'name' in request.POST else None
-        inner_function = Function.objects.get(id=inner_function_id)
-        input_values_json = request.POST['defaultInputs']\
-            if 'defaultInputs' in request.POST else json.dumps([None] * inner_function.input_count)
-        node = Node(name=name,
-                    containing_function_id=containing_function_id,
-                    inner_function_id=inner_function_id,
-                    input_values_json=input_values_json)
-        node.save()
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg)
+    containing_function_id = request.POST['containingFunctionId']
+    inner_function_id = request.POST['innerFunctionId']
+    name = request.POST['name'] if 'name' in request.POST else None
+    inner_function = Function.objects.get(id=inner_function_id)
+    input_values_json = request.POST['defaultInputs']\
+        if 'defaultInputs' in request.POST else json.dumps([None] * inner_function.input_count)
+    node = Node(name=name,
+                containing_function_id=containing_function_id,
+                inner_function_id=inner_function_id,
+                input_values_json=input_values_json)
+    node.save()
     return json_success({'id': node.id})
 
 
@@ -163,26 +137,18 @@ def create_wire(request):
     source_pin = request.POST['sourcePin'] if 'sourcePin' in request.POST else None
     target_pin = request.POST['targetPin'] if 'targetPin' in request.POST else None
 
+    # See if wire already exists.
     try:
-        # See if wire already exists.
-        try:
-            wire = Wire.objects.get(source_node_id=source_node_id or None,
-                                    target_node_id=target_node_id or None,
-                                    source_pin=source_pin,
-                                    target_pin=target_pin)
-        except Wire.DoesNotExist:
-            try:
-                wire = Wire(source_node_id=source_node_id or None,
-                            target_node_id=target_node_id or None,
-                            source_pin=source_pin,
-                            target_pin=target_pin)
-                wire.save()
-            except Exception as e:
-                msg = traceback.format_exc()
-                return json_error(msg)
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg)
+        wire = Wire.objects.get(source_node_id=source_node_id or None,
+                                target_node_id=target_node_id or None,
+                                source_pin=source_pin,
+                                target_pin=target_pin)
+    except Wire.DoesNotExist:
+        wire = Wire(source_node_id=source_node_id or None,
+                    target_node_id=target_node_id or None,
+                    source_pin=source_pin,
+                    target_pin=target_pin)
+        wire.save()
 
     return json_success({'id': wire.id})
 
@@ -197,12 +163,8 @@ def delete_wire(request):
 
 def search(request):
     q = request.GET['q']
-    try:
-        results = function_engine.search(q)
-        return json_success({'results': results})
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg)
+    results = function_engine.search(q)
+    return json_success({'results': results})
 
 
 def search_autocomplete(request):
@@ -219,12 +181,8 @@ def search_autocomplete(request):
 
 
 def save_function(request):
-    try:
-        function = json.loads(request.body.decode())
-        result = function_engine.save_function(function)
-        return json_success({'result': result})
-    except Exception as e:
-        msg = traceback.format_exc()
-        return json_error(msg)
+    function = json.loads(request.body.decode())
+    result = function_engine.save_function(function)
+    return json_success({'result': result})
 
 # endregion
