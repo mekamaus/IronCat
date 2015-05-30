@@ -4,7 +4,7 @@ from ironcat.models import Function, Node, Wire, Tag
 import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 from ironcat import function_engine
-from ironcat.view_helpers import json_response, json_success, json_error, delete_object, get_query
+from ironcat.view_helpers import json_response, json_success, delete_object, get_query
 
 
 # region pages

@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from ironcat import photon
 import re
-import traceback
+from django.db.models import Q
 
 def json_response(data, status=200):
     serialized_data = photon.serialize(data)
@@ -24,7 +24,6 @@ def json_success(data=None, status=200):
 
 def json_error(e, data=None, status=200):
     error = str(e)
-    print(e)
     ob = {
         'success': False,
         'error': error
