@@ -170,9 +170,7 @@ def search(request):
 def search_autocomplete(request):
     q = request.GET['query']
     results = function_engine.search(q)
-    return json_response({
-        'suggestions': [result.name for result in results]
-    })
+    return json_response({'suggestions': [result.name for result in results]})
 
 # endregion
 
