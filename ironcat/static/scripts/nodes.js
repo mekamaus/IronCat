@@ -146,7 +146,7 @@
                             fakeId: self.idct++,
                             name: 'New Node ' + self.idct - 1,
                             func: {
-                                name: '(click here)',
+                                name: 'sin',
                                 inputs: [
                                     {
                                         types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
@@ -195,6 +195,9 @@
                                 if (selectedEdges.length) {
                                     selectedEdges.forEach(function (edge) {
                                         func.edges.splice(func.edges.indexOf(edge), 1);
+                                        if (edge.id !== undefined) {
+                                            self.func.deletedEdgeIds.push(edge.id);
+                                        }
                                     });
                                     state.selectedEdges = [];
                                 }
@@ -964,7 +967,9 @@
                 nodes: nodes || [],
                 edges: edges || [],
                 inputs: inputs || [],
-                outputs: outputs || []
+                outputs: outputs || [],
+                deletedNodeIds: [],
+                deletedEdgeIds: []
             };
             this.idct = 0;
             this.state = {
@@ -1107,9 +1112,16 @@
             }
             func.nodes.splice(nodeIndex, 1);
             func.edges = func.edges.filter(function (edge) {
-                return (!edge.sourceNode || getId(edge.sourceNode) !== nodeId)
+                var keepEdge = (!edge.sourceNode || getId(edge.sourceNode) !== nodeId)
                     && (!edge.targetNode || getId(edge.targetNode) !== nodeId);
+                if (!keepEdge && edge.id !== undefined) {
+                    func.deletedEdgeIds.push(edge.id);
+                }
+                return keepEdge;
             });
+            if (node.id !== undefined) {
+                func.deletedNodeIds.push(node.id);
+            }
             this.updateGraph();
         };
         return GraphCreator;
@@ -1275,12 +1287,12 @@
         graph.updateWindow(svg);
         var save = function () {
             var func = graph.func;
-            console.log(func);
             $.when($.post('/save_function/', JSON.stringify(func))).then(function (result) {
                 if (!result.success) {
                     console.error(result.error);
                     return;
                 }
+                console.log('saved', func.name);
                 var newFuncId = result.result.function_id;
                 var newNodeIds = result.result.new_node_ids;
                 var newEdgeIds = result.result.new_edge_ids;
@@ -1303,6 +1315,8 @@
                         }
                     }
                 });
+                graph.func.deletedNodeIds = [];
+                graph.func.deletedEdgeIds = [];
                 graph.func.id = newFuncId;
             });
         };

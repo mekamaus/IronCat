@@ -1,0 +1,22 @@
+{% extends "global.html" %}
+
+{% block title %}Use{% endblock %}
+
+{% block include %}
+    <script src="/static/scripts/use.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div id="input" class="col-md-6">
+                <label for="functionName">Function</label>
+                <input type="text" name="functionName" id="functionName"/>
+                <div class="inputs-list"></div>
+                <button class="submit">Submit</button>
+            </div>
+            <div id="output" class="col-md-6">
+            </div>
+        </div>
+    </div>
+{% endblock %}

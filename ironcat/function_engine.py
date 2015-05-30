@@ -399,8 +399,8 @@ def evaluate_function(function, inputs):
         elif function == 'map':
             if len(inputs) != 2:
                 return error
-            ph_fn = inputs[0]
-            ph_col = inputs[1]
+            ph_col = inputs[0]
+            ph_fn = inputs[1]
             if ph_fn.type != PhotonTypes.function:
                 return error
             if not ph_col.is_collection:
@@ -468,8 +468,8 @@ def evaluate_function(function, inputs):
 
     nodes = set(fn.nodes.all())
 
-    input_connected_wires = Wire.objects.filter(source_node_id=None)
-    output_connected_wires = Wire.objects.filter(target_node_id=None)
+    input_connected_wires = fn.wires.filter(source_node_id=None)
+    output_connected_wires = fn.wires.filter(target_node_id=None)
 
     for wire in input_connected_wires:
         wire_photons[wire.id] = inputs[wire.source_pin]
@@ -493,9 +493,11 @@ def evaluate_function(function, inputs):
 
     output_photons = []
 
+    print(wire_photons)
     for wire in output_connected_wires:
         while len(output_photons) <= wire.target_pin:
             output_photons.append(None)
+        print(wire.id)
         output_photons[wire.target_pin] = wire_photons[wire.id]
 
     return output_photons
@@ -546,7 +548,6 @@ def save_function(function):
     for key in _primitives.keys():
         get_function(key)
     from pprint import pprint
-    #pprint(function)
     inputs = function['inputs']
     outputs = function['outputs']
 
@@ -567,7 +568,17 @@ def save_function(function):
 
     nodes = function['nodes']
     modified_nodes = [node for node in nodes if node['modified']]
-    deleted_nodes = [node for node in fn.nodes.all() if node.id not in [n['id'] for n in nodes]]
+    deleted_node_ids = function['deletedNodeIds']
+
+    edges = function['edges']
+    modified_edges = [edge for edge in edges if edge['modified']]
+    deleted_edge_ids = function['deletedEdgeIds']
+
+    for edge_id in deleted_edge_ids:
+        Wire.objects.get(id=edge_id).delete()
+
+    for node_id in deleted_node_ids:
+        Node.objects.get(id=node_id).delete()
 
     new_node_ids = {}
     for node in modified_nodes:
@@ -588,38 +599,39 @@ def save_function(function):
         nd.save()
         if fake_id is not None:
             new_node_ids[fake_id] = nd.id
-    for node in deleted_nodes:
-        Node.objects.get(id=node.id).delete()
-
-    edges = function['edges']
-    modified_edges = [edge for edge in edges if edge['modified']]
-    deleted_edges = [edge for edge in fn.wires.all() if edge.id not in [e['id'] for e in edges]]
 
     new_edge_ids = {}
+
     for edge in modified_edges:
         fake_id = None
+        source_node_id = (
+            edge['sourceNode']['id'] if 'id' in edge['sourceNode']
+            else new_node_ids[edge['sourceNode']['fakeId']]
+        ) if 'sourceNode' in edge and edge['sourceNode'] is not None else None
+        target_node_id = (
+            edge['targetNode']['id'] if 'id' in edge['targetNode']
+            else new_node_ids[edge['targetNode']['fakeId']]
+        ) if 'targetNode' in edge and edge['targetNode'] is not None else None
         if 'fakeId' in edge:
             fake_id = edge['fakeId']
             ed = Wire(
                 name=edge['name'],
                 containing_function_id=fn.id,
-                source_node_id=(edge['sourceNode']['id'] if 'id' in edge['sourceNode'] else new_node_ids[edge['sourceNode']['fakeId']]) if 'sourceNode' in edge else None,
+                source_node_id=source_node_id,
                 source_pin=edge['sourcePin'],
-                target_node_id=(edge['targetNode']['id'] if 'id' in edge['targetNode'] else new_node_ids[edge['targetNode']['fakeId']]) if 'targetNode' in edge else None,
+                target_node_id=target_node_id,
                 target_pin=edge['targetPin']
             )
         else:
             ed = Wire.objects.get(id=edge['id'])
             ed.name = edge['name']
-            ed.source_node_id = (edge['sourceNode']['id'] if 'id' in edge['sourceNode'] else new_node_ids[edge['sourceNode']['fakeId']]) if 'sourceNode' in edge else None
+            ed.source_node_id = source_node_id
             ed.source_pin = edge['sourcePin']
-            ed.target_node_id = (edge['targetNode']['id'] if 'id' in edge['targetNode'] else new_node_ids[edge['targetNode']['fakeId']]) if 'targetNode' in edge else None
+            ed.target_node_id = source_node_id
             ed.target_pin = edge['targetPin']
         ed.save()
         if fake_id is not None:
             new_edge_ids[fake_id] = ed.id
-    for edge in deleted_edges:
-        Wire.objects.get(id=edge.id).delete()
 
     return {
         'function_id': fn.id,
