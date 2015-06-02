@@ -585,7 +585,7 @@ def save_function(function):
             nd = Node(
                 name=node['name'],
                 containing_function_id=fn.id,
-                input_values_json=json.dumps([inp['value'] for inp in node['inputs']]),
+                input_values_json=json.dumps(node['inputs']),
                 inner_function_id=get_function_id(node['func'])
             )
         else:

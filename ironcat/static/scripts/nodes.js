@@ -257,16 +257,16 @@
                 newNodes.append('g')
                     .classed('node-inputs', true)
                     .selectAll()
-                    .data(function (d) { return d.inputs; });
+                    .data(function (d) { return d.func.inputs; });
                 newNodes.append('g')
                     .classed('node-outputs', true)
                     .selectAll()
-                    .data(function (d) { return d.outputs; });
+                    .data(function (d) { return d.func.outputs; });
 
                 var inputs = self.nodeElements
                     .select('.node-inputs')
                     .selectAll('.node-input')
-                    .data(function (d) { return d.inputs; });
+                    .data(function (d) { return d.func.inputs; });
 
                 var newNodeInputs = inputs.enter()
                     .append('g')
@@ -359,8 +359,9 @@
                     .attr('text-anchor', 'end')
                     .attr('dominant-baseline', 'middle')
                     .attr('transform', translate(-10, 0))
-                    .text(function (d) {
-                        return d.value.value;
+                    .text(function (d, i) {
+                        var inputs = d3.select(this.parentNode.parentNode.parentNode).datum().inputs;
+                        return inputs[i].value;
                     });
 
                 var valueTypeIndicators = newValueIndicators.append('g')
@@ -421,7 +422,7 @@
                 var outputs = self.nodeElements
                     .select('.node-outputs')
                     .selectAll('.node-output')
-                    .data(function (d) { return d.outputs; });
+                    .data(function (d) { return d.func.outputs; });
 
                 outputs.enter()
                     .append('g')
@@ -440,19 +441,19 @@
                 svg.selectAll('.node')
                     .selectAll('.node-shape')
                     .attr('height', function (d) {
-                        return Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
+                        return Math.max(d.func.inputs.length, d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin;
                     })
                     .attr('transform', function (d) {
-                        return translate(-consts.nodeWidth / 2, -(Math.max(d.inputs.length, d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+                        return translate(-consts.nodeWidth / 2, -(Math.max(d.func.inputs.length, d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
                     });
                 svg.selectAll('.node')
                     .selectAll('.node-inputs').attr('transform', function (d) {
-                        return translate(-consts.nodeWidth / 2, -(d.inputs.length - 1) * consts.pinSpacing / 2);
+                        return translate(-consts.nodeWidth / 2, -(d.func.inputs.length - 1) * consts.pinSpacing / 2);
                     });
                 svg.selectAll('.node')
                     .selectAll('.node-outputs')
                     .attr('transform', function (d) {
-                        return translate(consts.nodeWidth / 2, -(d.outputs.length - 1) * consts.pinSpacing / 2);
+                        return translate(consts.nodeWidth / 2, -(d.func.outputs.length - 1) * consts.pinSpacing / 2);
                     });
                 // Remove paths that from or to non-existent nodes.
                 self.edgeElements
@@ -488,9 +489,10 @@
 
                                     var fn = self.searchResults[self.selectedSearchResult] || node.func;
                                     node.func = fn;
-                                    // Give the node a shallow copy of the function's inputs and outputs.
-                                    node.inputs = fn.inputs.slice(0);
-                                    node.outputs = fn.outputs.slice(0);
+                                    // Assign default input values to the node.
+                                    node.inputs = fn.inputs.map(function (d) {
+                                        return d.value;
+                                    });
                                     nodeElement.select('.node-function-name').text(fn.name);
                                     self.updateGraph();
 
@@ -646,8 +648,8 @@
                 self.nodeElements.select('.node-header')
                     .attr('transform', function (d, i) {
                         return translate(0, -(Math.max(
-                            d.inputs.length,
-                            d.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
+                            d.func.inputs.length,
+                            d.func.outputs.length) * consts.pinSpacing + 2 * consts.nodeMargin) / 2);
                     });
 
                 // Remove old nodes.
@@ -864,9 +866,8 @@
                 });
 
                 self.edgeElements = self.edgeElements.data(func.edges, function (d) {
-                    return (d.sourceNode ? d.sourceNode.id : '-')
-                        + '/' + d.sourcePin + '+'
-                        + (d.targetNode ? d.targetNode.id : '-') + '/' + d.targetPin;
+                    return getId(d.sourceNode) + '/' + d.sourcePin + '+'
+                        + getId(d.targetNode) + '/' + d.targetPin;
                 });
                 // update existing paths
                 var pathFn = function (d) {
@@ -1149,13 +1150,7 @@
                 ]
             },
             inputs: [
-                {
-                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                    value: {type: 3, value: '11'}
-                }
-            ],
-            outputs: [
-                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
+                {type: 3, value: '11'}
             ],
             x: xLoc + 300,
             y: yLoc,
@@ -1182,17 +1177,8 @@
                 ]
             },
             inputs: [
-                {
-                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                    value: {type: 3, value: '111'}
-                },
-                {
-                    types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                    value: {type: 3, value: '222'}
-                }
-            ],
-            outputs: [
-                {types: [0, 1, 2, 3, 4, 5, 6, 7, 8]}
+                {type: 3, value: '111'},
+                {type: 3, value: '222'}
             ],
             x: xLoc,
             y: yLoc,
