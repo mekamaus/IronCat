@@ -367,14 +367,18 @@
                 var valueTypeIndicators = newValueIndicators.append('g')
                     .classed('value-types', true);
 
-                var typeSelectorRadius = consts.pinSpacing * typeOptions.length / 2 / Math.PI;
-
                 valueTypeIndicators.append('circle')
-                    .attr('r', typeSelectorRadius)
+                    .attr('r', function (d) {
+                        return consts.pinSpacing * d.types.length / 2 / Math.PI;
+                    })
                     .style('stroke-width', consts.pinSpacing + 6);
 
                 var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
-                    .data(typeOptions);
+                    .data(function (d) {
+                        return d.types.map(function (i) {
+                            return typeOptions[i];
+                        });
+                    });
 
 
                 var newValueTypeIndicatorOptionIcons = valueTypeIndicatorOptions.enter()
@@ -405,18 +409,22 @@
                     })
                     .transition()
                     .attr('transform', function (d, i) {
-                        var type = d3.select(this.parentNode).datum().value.type;
-                        var t = 2 * Math.PI * i / typeOptions.length;
-                        var t2 = 360 * type / typeOptions.length;
-                        return translate(typeSelectorRadius * Math.cos(t), typeSelectorRadius * Math.sin(t))
+                        var parentDatum = d3.select(this.parentNode).datum();
+                        var type = parentDatum.value.type;
+                        var types = parentDatum.types;
+                        var t = 2 * Math.PI * i / types.length;
+                        var t2 = 360 * type / types.length;
+                        var r = consts.pinSpacing * types.length / 2 / Math.PI;
+                        return translate(r * Math.cos(t), r * Math.sin(t))
                             + rotate(t2);
                     });
 
                 d3.selectAll('.value-types')
                     .transition()
                     .attr('transform', function (d) {
-                        var t = 360 * d.value.type / typeOptions.length;
-                        return translate(-typeSelectorRadius - 72, 0) + rotate(-t);
+                        var t = 360 * d.value.type / d.types.length;
+                        var r = consts.pinSpacing * d.types.length / 2 / Math.PI;
+                        return translate(-r - 72, 0) + rotate(-t);
                     });
 
                 var outputs = self.nodeElements
@@ -1141,7 +1149,7 @@
                 name: 'sin',
                 inputs: [
                     {
-                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        types: [0, 1, 2, 3],
                         value: {type: 3, value: '11'}
                     }
                 ],
@@ -1164,11 +1172,11 @@
                 name: '+',
                 inputs: [
                     {
-                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        types: [0, 1, 2, 3],
                         value: {type: 3, value: '111'}
                     },
                     {
-                        types: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        types: [3, 6, 7, 8],
                         value: {type: 3, value: '222'}
                     }
                 ],

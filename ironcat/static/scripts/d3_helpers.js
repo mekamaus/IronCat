@@ -126,6 +126,23 @@
             if (handlers.start) {
                 handlers.start.call(self, d);
             }
+
+            /*if (d.value.type === 7) {
+                var list = JSON.parse(d.value.value);
+
+                var listItemElements = input.selectAll('g').data(list);
+
+                listItemElements.enter()
+                    .append('g')
+                    .attr('transform', function (d, i) {
+                        return translate(0, i * 20);
+                    })
+                    .append('text')
+                    .style('fill', '#ffffff')
+                    .text(function (d) {
+                        return d.value;
+                    });
+            }*/
         });
     };
     d3.selection.prototype.clickToEdit = function (options) {
