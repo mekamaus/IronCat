@@ -369,24 +369,20 @@
 
                 valueTypeIndicators.append('circle')
                     .attr('r', function (d) {
-                        return consts.pinSpacing * d.types.length / 2 / Math.PI;
+                        return consts.pinSpacing / (2 * Math.sin(Math.PI / d.types.length));
                     })
                     .style('stroke-width', consts.pinSpacing + 6);
 
                 var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
-                    .data(function (d) {
-                        return d.types.map(function (i) {
-                            return typeOptions[i];
-                        });
-                    });
+                    .data(function (d) { return d.types; });
 
 
                 var newValueTypeIndicatorOptionIcons = valueTypeIndicatorOptions.enter()
                     .append('g')
                     .classed('value-type', true)
-                    .on(mouseDownEvent, function (d, i) {
+                    .on(mouseDownEvent, function (d) {
                         var parentData = d3.select(this.parentNode).datum();
-                        parentData.value.type = i;
+                        parentData.value.type = d;
                         window.preventEditableBlur = true;
                         self.updateGraph();
                     });
@@ -395,7 +391,7 @@
                     .attr('r', consts.pinSpacing / 2 - 0.5);
 
                 newValueTypeIndicatorOptionIcons.append('use')
-                    .attr('xlink:href', function (d) { return d.icon; });
+                    .attr('xlink:href', function (d) { return typeOptions[d].icon; });
 
                 valueTypeIndicatorOptions.exit()
                     .remove();
@@ -403,18 +399,19 @@
                 inputs.exit().remove();
 
                 d3.selectAll('.value-types').selectAll('.value-type')
-                    .classed('active', function (d, i) {
+                    .classed('active', function (d) {
                         var parentValueType = d3.select(this.parentNode).datum().value.type;
-                        return parentValueType === i;
+                        return parentValueType === d;
                     })
                     .transition()
                     .attr('transform', function (d, i) {
                         var parentDatum = d3.select(this.parentNode).datum();
                         var type = parentDatum.value.type;
                         var types = parentDatum.types;
+                        var typeIndex = types.indexOf(type);
                         var t = 2 * Math.PI * i / types.length;
-                        var t2 = 360 * type / types.length;
-                        var r = consts.pinSpacing * types.length / 2 / Math.PI;
+                        var t2 = 360 * typeIndex / types.length;
+                        var r = consts.pinSpacing / (2 * Math.sin(Math.PI / types.length));
                         return translate(r * Math.cos(t), r * Math.sin(t))
                             + rotate(t2);
                     });
@@ -422,8 +419,11 @@
                 d3.selectAll('.value-types')
                     .transition()
                     .attr('transform', function (d) {
-                        var t = 360 * d.value.type / d.types.length;
-                        var r = consts.pinSpacing * d.types.length / 2 / Math.PI;
+                        var type = d.value.type;
+                        var types = d.types;
+                        var typeIndex = types.indexOf(type);
+                        var t = 360 * typeIndex / types.length;
+                        var r = consts.pinSpacing / (2 * Math.sin(Math.PI / types.length));
                         return translate(-r - 72, 0) + rotate(-t);
                     });
 
@@ -1149,7 +1149,7 @@
                 name: 'sin',
                 inputs: [
                     {
-                        types: [0, 1, 2, 3],
+                        types: [0, 3],
                         value: {type: 3, value: '11'}
                     }
                 ],

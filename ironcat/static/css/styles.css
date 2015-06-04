@@ -283,7 +283,7 @@ text {
 .node .node-input .pin-value .value-types > circle,
 .node .node-output .pin-value .value-types > circle {
   stroke: #203030;
-  fill: none;
+  fill: #203030;
 }
 .node .node-input .pin-value:hover > rect,
 .node .node-output .pin-value:hover > rect,
