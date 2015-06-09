@@ -28,6 +28,42 @@
                 d3node.classed(editClass, true);
             }
 
+            // just testing this for now
+            if (d.value.type === 7) {
+
+                // temporary, just to test list
+                d.value.value = '[{"type":3,"value":"1"},{"type":3,"value": "2"},{"type":3,"value":"3"}]';
+
+                var list = JSON.parse(d.value.value);
+
+                var editList = d3.select(self)
+                    .append('g')
+                    .classed('list-edit', true)
+                    .attr('transform', translate(-48, 0));
+
+                var listItemElements = editList.selectAll('g.list-item-edit').data(list);
+
+                listItemElements.enter()
+                    .append('g')
+                    .classed('list-item-edit', true)
+                    .attr('transform', function (d, i) {
+                        return translate(0, i * 20);
+                    })
+                    .append('text')
+                    .style('fill', '#ffffff')
+                    .text(function (d) {
+                        return d.value;
+                    })
+                    .attr('text-anchor', 'end')
+                    .attr('dominant-baseline', 'middle');
+
+                listItemElements.clickToEdit({
+                    width: 64
+                });
+
+                return;
+            }
+
             // replace with editable text
             var fontSize = parseInt(text.style('font-size'));
             var y = nodeBCR.top - nodeBCR.height / 2 + 0.5 * fontSize * zoom;
@@ -126,23 +162,6 @@
             if (handlers.start) {
                 handlers.start.call(self, d);
             }
-
-            /*if (d.value.type === 7) {
-                var list = JSON.parse(d.value.value);
-
-                var listItemElements = input.selectAll('g').data(list);
-
-                listItemElements.enter()
-                    .append('g')
-                    .attr('transform', function (d, i) {
-                        return translate(0, i * 20);
-                    })
-                    .append('text')
-                    .style('fill', '#ffffff')
-                    .text(function (d) {
-                        return d.value;
-                    });
-            }*/
         });
     };
     d3.selection.prototype.clickToEdit = function (options) {

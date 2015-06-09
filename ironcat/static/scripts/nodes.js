@@ -1172,7 +1172,7 @@
                 name: '+',
                 inputs: [
                     {
-                        types: [0, 1, 2, 3],
+                        types: [3],
                         value: {type: 3, value: '111'}
                     },
                     {
