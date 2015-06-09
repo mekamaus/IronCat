@@ -31,15 +31,15 @@
             // just testing this for now
             if (d.value.type === 7) {
 
-                // temporary, just to test list
-                d.value.value = '[{"type":3,"value":"1"},{"type":3,"value": "2"},{"type":3,"value":"3"}]';
-
+                // try this value to test list
+                // [{"type":3,"value":"1"},{"type":3,"value": "2"},{"type":3,"value":"3"},{"type":3,"value":"4"}]
+                console.log(d.value.value);
                 var list = JSON.parse(d.value.value);
 
                 var editList = d3.select(self)
                     .append('g')
                     .classed('list-edit', true)
-                    .attr('transform', translate(-48, 0));
+                    .attr('transform', translate(-10, 0));
 
                 var listItemElements = editList.selectAll('g.list-item-edit').data(list);
 
@@ -56,6 +56,15 @@
                     })
                     .attr('text-anchor', 'end')
                     .attr('dominant-baseline', 'middle');
+
+                editList.append('g')
+                    .attr('transform', translate(0, list.length * 20))
+                    .append('circle')
+                    .attr('r', 10)
+                    .attr('fill', 'white')
+                    .on('click', function () {
+                        alert('add new');
+                    });
 
                 listItemElements.clickToEdit({
                     width: 64
