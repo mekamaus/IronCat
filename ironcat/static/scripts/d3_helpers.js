@@ -1,5 +1,21 @@
 (function () {
-    d3.selection.prototype.editText = function (options) {
+    d3.selection.prototype.clickOutside = function(callback) {
+        var clicked = false;
+
+        this.on('click', function() {
+            clicked = true;
+        });
+
+        d3.select('body').on('click', function(event) {
+            if (!clicked) {
+                callback(parent, event);
+            }
+            clicked = false;
+        });
+
+        return this;
+    };
+    d3.selection.prototype.editText = function (options, d, i) {
         options = options || {};
         var handlers = options.handlers || {};
         var width = options.width;
@@ -11,7 +27,6 @@
         return this.each(function () {
             var self = this;
             var d3node = d3.select(self);
-            var d = d3node.datum();
 
             var text = d3node.select('text');
             var oldTitle = text.text();
@@ -29,46 +44,79 @@
             }
 
             // just testing this for now
-            if (d.value.type === 7) {
+            if (d.value && d.value.type === 7) {
 
                 // try this value to test list
                 // [{"type":3,"value":"1"},{"type":3,"value": "2"},{"type":3,"value":"3"},{"type":3,"value":"4"}]
-                console.log(d.value.value);
                 var list = JSON.parse(d.value.value);
 
-                var editList = d3.select(self)
+                var editList = d3.select(self).selectAll('g.list-edit').data([1]);
+
+                var newEditList = editList.enter()
                     .append('g')
                     .classed('list-edit', true)
-                    .attr('transform', translate(-10, 0));
+                    .attr('transform', translate(-10, 0))
+                    .clickOutside(function () {
+                        console.log('clicked outside');
+                    });
 
-                var listItemElements = editList.selectAll('g.list-item-edit').data(list);
+                var addBtn = newEditList.append('g')
+                    .classed('add-btn', true);
 
-                listItemElements.enter()
-                    .append('g')
-                    .classed('list-item-edit', true)
-                    .attr('transform', function (d, i) {
-                        return translate(0, i * 20);
-                    })
-                    .append('text')
-                    .style('fill', '#ffffff')
-                    .text(function (d) {
-                        return d.value;
-                    })
-                    .attr('text-anchor', 'end')
-                    .attr('dominant-baseline', 'middle');
-
-                editList.append('g')
-                    .attr('transform', translate(0, list.length * 20))
+                addBtn.attr('transform', translate(0, list.length * 20))
                     .append('circle')
                     .attr('r', 10)
                     .attr('fill', 'white')
                     .on('click', function () {
-                        alert('add new');
+                        console.log(list);
+                        list.push({
+                            "type": 3,
+                            "value": "1"
+                        });
+                        d.value.value = JSON.stringify(list);
+                        update();
                     });
 
-                listItemElements.clickToEdit({
-                    width: 64
-                });
+                function update() {
+
+                    var listItemElements = editList.selectAll('g.list-item-edit').data(list);
+
+                    var newListItemElements = listItemElements.enter()
+                        .append('g')
+                        .classed('list-item-edit', true);
+
+                    newListItemElements
+                        .attr('transform', function (d, i) {
+                            return translate(0, i * 20);
+                        })
+                        .append('text')
+                        .style('fill', '#ffffff')
+                        .text(function (d) {
+                            return d.value;
+                        })
+                        .attr('text-anchor', 'end')
+                        .attr('dominant-baseline', 'middle');
+
+                    listItemElements.select('text')
+                        .text(function (d) {
+                            return d.value;
+                        });
+
+                    addBtn.attr('transform', translate(0, list.length * 20));
+
+                    newListItemElements.clickToEdit({
+                        width: 64,
+                        handlers: {
+                            done: function (d, i, value) {
+                                d.type = 2;
+                                d.value = value;
+                                update();
+                            }
+                        }
+                    });
+                }
+
+                update();
 
                 return;
             }
@@ -119,7 +167,7 @@
                     if (!$(this).is(':focus')) return;
 
                     if (handlers.keyPress) {
-                        handlers.keyPress.call(self, d, d3.event.keyCode, this);
+                        handlers.keyPress.call(self, d, i, d3.event.keyCode, this);
                     }
                     var $this = $(this);
                     if (handlers.update) {
@@ -129,7 +177,7 @@
                             var newText = $this.val();
                             if (newText === this.textContent) return;
                             this.textContent = newText;
-                            handlers.update.call(self, d, newText);
+                            handlers.update.call(self, d, i, newText);
                         }, 250);
                     }
                     if (constraint) {
@@ -160,7 +208,7 @@
                     }
                     var valid = d3node.attr('data-valid') == 'true';
                     if (handlers.done) {
-                        handlers.done.call(self, d, text, d3node.attr('data-valid') == 'true');
+                        handlers.done.call(self, d, i, text, d3node.attr('data-valid') == 'true');
                     }
                 });
 
@@ -169,14 +217,14 @@
             elem.select();
 
             if (handlers.start) {
-                handlers.start.call(self, d);
+                handlers.start.call(self, d, i);
             }
         });
     };
     d3.selection.prototype.clickToEdit = function (options) {
-        return this.each(function () {
+        return this.each(function (d, i) {
             d3.select(this).on('click', function () {
-                d3.select(this).editText(options);
+                d3.select(this).editText(options, d, i);
             });
         });
     };

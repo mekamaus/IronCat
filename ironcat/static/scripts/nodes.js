@@ -303,7 +303,7 @@
                             start: function () {
                                 self.deselectAll();
                             },
-                            done: function (d, value, valid) {
+                            done: function (d, i, value, valid) {
                                 if (valid) {
                                     // Set modified flag for node
                                     var nodeDatum = d3.select(this.parentNode.parentNode).datum();
@@ -507,7 +507,7 @@
                                     // Set the modified flag for the node.
                                     node.modified = true;
                                 },
-                                update: function (d, value) {
+                                update: function (d, i, value) {
                                     if (!value) {
                                         self.searchResults = [];
                                         self.updateGraph();
@@ -527,7 +527,7 @@
                                             });
                                     });
                                 },
-                                keyPress: function (d, keyCode) {
+                                keyPress: function (d, i, keyCode) {
                                     if (keyCode === 38) {
                                         self.selectedSearchResult = (((self.selectedSearchResult - 1)
                                             % self.searchResults.length) + self.searchResults.length)
