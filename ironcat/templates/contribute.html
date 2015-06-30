@@ -3,6 +3,13 @@
 {% block title %}Contribute{% endblock %}
 
 {% block include %}
+    <script src="/static/scripts/d3_helpers/click.js"></script>
+    <script src="/static/scripts/d3_helpers/click_outside.js"></script>
+    <script src="/static/scripts/d3_helpers/selectable.js"></script>
+    <script src="/static/scripts/d3_helpers/move_to_front.js"></script>
+    <script src="/static/scripts/d3_helpers/edit_text.js"></script>
+    <script src="/static/scripts/d3_helpers/click_to_edit.js"></script>
+    <script src="/static/scripts/d3_helpers/value_editor.js"></script>
     <script src="/static/scripts/nodes.js"></script>
 {% endblock %}
 
@@ -41,8 +48,8 @@
             <g id="stringType">
                 <text y="1" text-anchor="middle" dominant-baseline="middle" style="font-size: 12px; fill: #ffffff;">Aa</text>
             </g>
-            <g id="numberType">
-                <text y="1" text-anchor="middle" dominant-baseline="middle" style="font-size: 12px; fill: #ffffff;">#</text>
+            <g id="numberType" transform="scale(1.5)">
+                <text y="1" text-anchor="middle" dominant-baseline="middle" style="font-size: 12px; fill: #ffffff;">π</text>
             </g>
             <g id="booleanType">
                 <path d="M6,0 A 6,6 0 0,1 -6,0 Z" fill="white"/>

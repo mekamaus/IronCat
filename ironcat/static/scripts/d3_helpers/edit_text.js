@@ -1,20 +1,4 @@
 (function () {
-    d3.selection.prototype.clickOutside = function(callback) {
-        var clicked = false;
-
-        this.on('click', function() {
-            clicked = true;
-        });
-
-        d3.select('body').on('click', function(event) {
-            if (!clicked) {
-                callback(parent, event);
-            }
-            clicked = false;
-        });
-
-        return this;
-    };
     d3.selection.prototype.editText = function (options, d, i) {
         options = options || {};
         var handlers = options.handlers || {};
@@ -219,18 +203,6 @@
             if (handlers.start) {
                 handlers.start.call(self, d, i);
             }
-        });
-    };
-    d3.selection.prototype.clickToEdit = function (options) {
-        return this.each(function (d, i) {
-            d3.select(this).on('click', function () {
-                d3.select(this).editText(options, d, i);
-            });
-        });
-    };
-    d3.selection.prototype.moveToFront = function () {
-        return this.each(function () {
-            this.parentNode.appendChild(this);
         });
     };
 })();

@@ -224,12 +224,12 @@
                 var newNodes = self.nodeElements.enter().append('g').classed('node', true);
                 newNodes
                     .attr('transform', function (d) { return translate(d); })
-                    .on('mouseover', function (d) {
+                    .on('mouseover', function () {
                         if (state.pinDrag) {
                             d3.select(this).classed(consts.connectClass, true);
                         }
                     })
-                    .on('mouseout', function (d) {
+                    .on('mouseout', function () {
                         d3.select(this).classed(consts.connectClass, false);
                     })
                     .on(mouseDownEvent, function (d) {
@@ -283,149 +283,11 @@
                     .append('circle')
                     .attr('r', consts.pinSize / 2);
 
-                var newValueIndicators = newNodeInputs
+                newNodeInputs
                     .append('g')
-                    .classed('pin-value', true)
-                    .attr('transform', translate(-consts.pinSize / 2, 0))
-                    .clickToEdit({
-                        editClass: 'edit',
-                        errorClass: 'error',
-                        width: 50,
-                        constraint: function (d, value) {
-                            if (d.value.type === 0) {
-                                return !value;
-                            } else if (d.value.type === 3) {
-                                return value && isFinite(value);
-                            }
-                            return true;
-                        },
-                        handlers: {
-                            start: function () {
-                                self.deselectAll();
-                            },
-                            done: function (d, i, value, valid) {
-                                if (valid) {
-                                    // Set modified flag for node
-                                    var nodeDatum = d3.select(this.parentNode.parentNode).datum();
-                                    nodeDatum.modified = true;
-
-                                    var type = d.value.type;
-                                    if (type === 0) {
-                                        value = '';
-                                    } else if (type === 3) {
-                                        value = parseFloat(value).toString();
-                                    }
-                                    d.value.value = value;
-                                    d3.select(this).select('text').text(value);
-                                }
-                            }
-                        }
-                    });
-
-                var typeOptions = [
-                    { name: 'None', icon: '#noneType' },
-                    { name: 'Error', icon: '#errorType' },
-                    { name: 'String', icon: '#stringType' },
-                    { name: 'Number', icon: '#numberType' },
-                    { name: 'Boolean', icon: '#booleanType' },
-                    { name: 'Object', icon: '#objectType' },
-                    { name: 'Set', icon: '#setType' },
-                    { name: 'List', icon: '#listType' },
-                    { name: 'Function', icon: '#functionType' }
-                ];
-
-                newValueIndicators.append('circle')
-                    .attr('r', consts.pinSize / 2)
-                    .style('fill', 'rgba(0, 0, 0, 0)')
-                    .style('stroke', 'none')
-                    .attr('transform', translate(consts.pinSize / 2, 0));
-
-                newValueIndicators.append('use')
-                    .classed('input-default-type-icon', true)
-                    .attr('transform', translate(consts.pinSize / 2, 0));
-
-                d3.selectAll('.node').selectAll('use.input-default-type-icon')
-                    .attr('xlink:href', function (d) { return typeOptions[d.value.type].icon; });
-
-                newValueIndicators.append('rect')
-                    .attr('width', 50)
-                    .attr('height', 20)
-                    .attr('x', -55)
-                    .attr('y', -10)
-                    .attr('rx', 5)
-                    .attr('ry', 5);
-
-                newValueIndicators.append('text')
-                    .attr('text-anchor', 'end')
-                    .attr('dominant-baseline', 'middle')
-                    .attr('transform', translate(-10, 0))
-                    .text(function (d, i) {
-                        var inputs = d3.select(this.parentNode.parentNode.parentNode).datum().inputs;
-                        return inputs[i].value;
-                    });
-
-                var valueTypeIndicators = newValueIndicators.append('g')
-                    .classed('value-types', true);
-
-                valueTypeIndicators.append('circle')
-                    .attr('r', function (d) {
-                        return consts.pinSpacing / (2 * Math.sin(Math.PI / d.types.length));
-                    })
-                    .style('stroke-width', consts.pinSpacing + 6);
-
-                var valueTypeIndicatorOptions = valueTypeIndicators.selectAll('g')
-                    .data(function (d) { return d.types; });
-
-
-                var newValueTypeIndicatorOptionIcons = valueTypeIndicatorOptions.enter()
-                    .append('g')
-                    .classed('value-type', true)
-                    .on(mouseDownEvent, function (d) {
-                        var parentData = d3.select(this.parentNode).datum();
-                        parentData.value.type = d;
-                        window.preventEditableBlur = true;
-                        self.updateGraph();
-                    });
-
-                newValueTypeIndicatorOptionIcons.append('circle')
-                    .attr('r', consts.pinSpacing / 2 - 0.5);
-
-                newValueTypeIndicatorOptionIcons.append('use')
-                    .attr('xlink:href', function (d) { return typeOptions[d].icon; });
-
-                valueTypeIndicatorOptions.exit()
-                    .remove();
+                    .valueEditor();
 
                 inputs.exit().remove();
-
-                d3.selectAll('.value-types').selectAll('.value-type')
-                    .classed('active', function (d) {
-                        var parentValueType = d3.select(this.parentNode).datum().value.type;
-                        return parentValueType === d;
-                    })
-                    .transition()
-                    .attr('transform', function (d, i) {
-                        var parentDatum = d3.select(this.parentNode).datum();
-                        var type = parentDatum.value.type;
-                        var types = parentDatum.types;
-                        var typeIndex = types.indexOf(type);
-                        var t = 2 * Math.PI * i / types.length;
-                        var t2 = 360 * typeIndex / types.length;
-                        var r = consts.pinSpacing / (2 * Math.sin(Math.PI / types.length));
-                        return translate(r * Math.cos(t), r * Math.sin(t))
-                            + rotate(t2);
-                    });
-
-                d3.selectAll('.value-types')
-                    .transition()
-                    .attr('transform', function (d) {
-                        var type = d.value.type;
-                        var types = d.types;
-                        var typeIndex = types.indexOf(type);
-                        var t = 360 * typeIndex / types.length;
-                        var r = consts.pinSpacing / (2 * Math.sin(Math.PI / types.length));
-                        return translate(-r - 72, 0) + rotate(-t);
-                    });
 
                 var outputs = self.nodeElements
                     .select('.node-outputs')
