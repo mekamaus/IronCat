@@ -268,134 +268,134 @@ text {
   stroke: #00ffff;
   fill: #007070;
 }
-.node .node-input .value > rect,
-.node .node-output .value > rect {
-  fill: #a0ffff;
-  stroke: none;
-}
-.node .node-input .value .value-types,
-.node .node-output .value .value-types {
-  display: none;
-  opacity: 0;
-}
-.node .node-input .value .value-types > rect,
-.node .node-output .value .value-types > rect,
-.node .node-input .value .value-types > circle,
-.node .node-output .value .value-types > circle {
-  stroke: #203030;
-  fill: #203030;
-}
-.node .node-input .value:hover > rect,
-.node .node-output .value:hover > rect,
-.node .node-input .value:active > rect,
-.node .node-output .value:active > rect,
-.node .node-input .value.edit > rect,
-.node .node-output .value.edit > rect {
+.node .node-input .value-container:hover > .value > rect,
+.node .node-output .value-container:hover > .value > rect,
+.node .node-input .value-container:active > .value > rect,
+.node .node-output .value-container:active > .value > rect,
+.node .node-input .value-container.edit > .value > rect,
+.node .node-output .value-container.edit > .value > rect {
   fill: #203030;
   stroke: #00ffff;
   stroke-width: 2px;
 }
-.node .node-input .value:hover > text,
-.node .node-output .value:hover > text,
-.node .node-input .value:active > text,
-.node .node-output .value:active > text,
-.node .node-input .value.edit > text,
-.node .node-output .value.edit > text {
+.node .node-input .value-container:hover > .value > text,
+.node .node-output .value-container:hover > .value > text,
+.node .node-input .value-container:active > .value > text,
+.node .node-output .value-container:active > .value > text,
+.node .node-input .value-container.edit > .value > text,
+.node .node-output .value-container.edit > .value > text {
   fill: #50ff50;
 }
-.node .node-input .value:hover .value-types .value-type text,
-.node .node-output .value:hover .value-types .value-type text,
-.node .node-input .value:active .value-types .value-type text,
-.node .node-output .value:active .value-types .value-type text,
-.node .node-input .value.edit .value-types .value-type text,
-.node .node-output .value.edit .value-types .value-type text {
+.node .node-input .value-container:hover > .value-types .value-type text,
+.node .node-output .value-container:hover > .value-types .value-type text,
+.node .node-input .value-container:active > .value-types .value-type text,
+.node .node-output .value-container:active > .value-types .value-type text,
+.node .node-input .value-container.edit > .value-types .value-type text,
+.node .node-output .value-container.edit > .value-types .value-type text {
   fill: rgba(255, 255, 255, 0);
 }
-.node .node-input .value:hover .value-types .value-type rect,
-.node .node-output .value:hover .value-types .value-type rect,
-.node .node-input .value:active .value-types .value-type rect,
-.node .node-output .value:active .value-types .value-type rect,
-.node .node-input .value.edit .value-types .value-type rect,
-.node .node-output .value.edit .value-types .value-type rect,
-.node .node-input .value:hover .value-types .value-type circle,
-.node .node-output .value:hover .value-types .value-type circle,
-.node .node-input .value:active .value-types .value-type circle,
-.node .node-output .value:active .value-types .value-type circle,
-.node .node-input .value.edit .value-types .value-type circle,
-.node .node-output .value.edit .value-types .value-type circle {
+.node .node-input .value-container:hover > .value-types .value-type rect,
+.node .node-output .value-container:hover > .value-types .value-type rect,
+.node .node-input .value-container:active > .value-types .value-type rect,
+.node .node-output .value-container:active > .value-types .value-type rect,
+.node .node-input .value-container.edit > .value-types .value-type rect,
+.node .node-output .value-container.edit > .value-types .value-type rect,
+.node .node-input .value-container:hover > .value-types .value-type circle,
+.node .node-output .value-container:hover > .value-types .value-type circle,
+.node .node-input .value-container:active > .value-types .value-type circle,
+.node .node-output .value-container:active > .value-types .value-type circle,
+.node .node-input .value-container.edit > .value-types .value-type circle,
+.node .node-output .value-container.edit > .value-types .value-type circle {
   stroke: rgba(0, 255, 255, 0);
   stroke-width: 1;
   fill: #000000;
 }
-.node .node-input .value:hover .value-types .value-type:hover,
-.node .node-output .value:hover .value-types .value-type:hover,
-.node .node-input .value:active .value-types .value-type:hover,
-.node .node-output .value:active .value-types .value-type:hover,
-.node .node-input .value.edit .value-types .value-type:hover,
-.node .node-output .value.edit .value-types .value-type:hover {
+.node .node-input .value-container:hover > .value-types .value-type:hover,
+.node .node-output .value-container:hover > .value-types .value-type:hover,
+.node .node-input .value-container:active > .value-types .value-type:hover,
+.node .node-output .value-container:active > .value-types .value-type:hover,
+.node .node-input .value-container.edit > .value-types .value-type:hover,
+.node .node-output .value-container.edit > .value-types .value-type:hover {
   cursor: pointer;
 }
-.node .node-input .value:hover .value-types .value-type:hover text,
-.node .node-output .value:hover .value-types .value-type:hover text,
-.node .node-input .value:active .value-types .value-type:hover text,
-.node .node-output .value:active .value-types .value-type:hover text,
-.node .node-input .value.edit .value-types .value-type:hover text,
-.node .node-output .value.edit .value-types .value-type:hover text {
+.node .node-input .value-container:hover > .value-types .value-type:hover text,
+.node .node-output .value-container:hover > .value-types .value-type:hover text,
+.node .node-input .value-container:active > .value-types .value-type:hover text,
+.node .node-output .value-container:active > .value-types .value-type:hover text,
+.node .node-input .value-container.edit > .value-types .value-type:hover text,
+.node .node-output .value-container.edit > .value-types .value-type:hover text {
   fill: #00ff00;
 }
-.node .node-input .value:hover .value-types .value-type:hover rect,
-.node .node-output .value:hover .value-types .value-type:hover rect,
-.node .node-input .value:active .value-types .value-type:hover rect,
-.node .node-output .value:active .value-types .value-type:hover rect,
-.node .node-input .value.edit .value-types .value-type:hover rect,
-.node .node-output .value.edit .value-types .value-type:hover rect,
-.node .node-input .value:hover .value-types .value-type:hover circle,
-.node .node-output .value:hover .value-types .value-type:hover circle,
-.node .node-input .value:active .value-types .value-type:hover circle,
-.node .node-output .value:active .value-types .value-type:hover circle,
-.node .node-input .value.edit .value-types .value-type:hover circle,
-.node .node-output .value.edit .value-types .value-type:hover circle {
+.node .node-input .value-container:hover > .value-types .value-type:hover rect,
+.node .node-output .value-container:hover > .value-types .value-type:hover rect,
+.node .node-input .value-container:active > .value-types .value-type:hover rect,
+.node .node-output .value-container:active > .value-types .value-type:hover rect,
+.node .node-input .value-container.edit > .value-types .value-type:hover rect,
+.node .node-output .value-container.edit > .value-types .value-type:hover rect,
+.node .node-input .value-container:hover > .value-types .value-type:hover circle,
+.node .node-output .value-container:hover > .value-types .value-type:hover circle,
+.node .node-input .value-container:active > .value-types .value-type:hover circle,
+.node .node-output .value-container:active > .value-types .value-type:hover circle,
+.node .node-input .value-container.edit > .value-types .value-type:hover circle,
+.node .node-output .value-container.edit > .value-types .value-type:hover circle {
   fill: #203030;
   stroke: #00ffff;
 }
-.node .node-input .value:hover .value-types .value-type.active,
-.node .node-output .value:hover .value-types .value-type.active,
-.node .node-input .value:active .value-types .value-type.active,
-.node .node-output .value:active .value-types .value-type.active,
-.node .node-input .value.edit .value-types .value-type.active,
-.node .node-output .value.edit .value-types .value-type.active {
+.node .node-input .value-container:hover > .value-types .value-type.active,
+.node .node-output .value-container:hover > .value-types .value-type.active,
+.node .node-input .value-container:active > .value-types .value-type.active,
+.node .node-output .value-container:active > .value-types .value-type.active,
+.node .node-input .value-container.edit > .value-types .value-type.active,
+.node .node-output .value-container.edit > .value-types .value-type.active {
   cursor: inherit;
 }
-.node .node-input .value:hover .value-types .value-type.active rect,
-.node .node-output .value:hover .value-types .value-type.active rect,
-.node .node-input .value:active .value-types .value-type.active rect,
-.node .node-output .value:active .value-types .value-type.active rect,
-.node .node-input .value.edit .value-types .value-type.active rect,
-.node .node-output .value.edit .value-types .value-type.active rect,
-.node .node-input .value:hover .value-types .value-type.active circle,
-.node .node-output .value:hover .value-types .value-type.active circle,
-.node .node-input .value:active .value-types .value-type.active circle,
-.node .node-output .value:active .value-types .value-type.active circle,
-.node .node-input .value.edit .value-types .value-type.active circle,
-.node .node-output .value.edit .value-types .value-type.active circle {
+.node .node-input .value-container:hover > .value-types .value-type.active rect,
+.node .node-output .value-container:hover > .value-types .value-type.active rect,
+.node .node-input .value-container:active > .value-types .value-type.active rect,
+.node .node-output .value-container:active > .value-types .value-type.active rect,
+.node .node-input .value-container.edit > .value-types .value-type.active rect,
+.node .node-output .value-container.edit > .value-types .value-type.active rect,
+.node .node-input .value-container:hover > .value-types .value-type.active circle,
+.node .node-output .value-container:hover > .value-types .value-type.active circle,
+.node .node-input .value-container:active > .value-types .value-type.active circle,
+.node .node-output .value-container:active > .value-types .value-type.active circle,
+.node .node-input .value-container.edit > .value-types .value-type.active circle,
+.node .node-output .value-container.edit > .value-types .value-type.active circle {
   visibility: hidden;
 }
-.node .node-input .value.edit .value-types,
-.node .node-output .value.edit .value-types {
+.node .node-input .value-container.edit > .value-types,
+.node .node-output .value-container.edit > .value-types {
   display: inherit;
   opacity: 1;
 }
-.node .node-input .value.error rect,
-.node .node-output .value.error rect {
+.node .node-input .value-container.error > .value > rect,
+.node .node-output .value-container.error > .value > rect {
   fill: #800000;
   stroke: #ff4040;
+}
+.node .node-input .value-container > .value > rect,
+.node .node-output .value-container > .value > rect {
+  fill: #a0ffff;
+  stroke: none;
+}
+.node .node-input .value-container > .value-types,
+.node .node-output .value-container > .value-types {
+  display: none;
+  opacity: 0;
+}
+.node .node-input .value-container > .value-types > rect,
+.node .node-output .value-container > .value-types > rect,
+.node .node-input .value-container > .value-types > circle,
+.node .node-output .value-container > .value-types > circle {
+  stroke: #203030;
+  fill: #203030;
 }
 .node .node-input.connected circle,
 .node .node-output.connected circle {
   fill: #00ffff;
 }
-.node .node-input.connected .value,
-.node .node-output.connected .value {
+.node .node-input.connected .value-container,
+.node .node-output.connected .value-container {
   display: none;
 }
 input.edit {

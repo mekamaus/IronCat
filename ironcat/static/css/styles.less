@@ -343,29 +343,19 @@ text {
       stroke: @stroke-primary;
       fill: @pin-fill-inactive;
     }
-    .value {
-      >rect {
-        fill: @fill-value;
-        stroke: none;
-      }
-      .value-types {
-        display: none;
-        opacity: 0;
-        >rect, >circle{
-          stroke: @fill-fg-hover;
-          fill: @fill-fg-hover;
-        }
-      }
+    .value-container {
       &:hover, &:active, &.edit {
-        >rect {
-          fill: @fill-fg-hover;
-          stroke: @stroke-primary;
-          stroke-width: 2px;
+        >.value {
+          >rect {
+            fill: @fill-fg-hover;
+            stroke: @stroke-primary;
+            stroke-width: 2px;
+          }
+          >text {
+            fill: @text-editing;
+          }
         }
-        >text {
-          fill: @text-editing;
-        }
-        .value-types {
+        >.value-types {
           .value-type {
             text {
               fill: @text-invisible;
@@ -395,15 +385,31 @@ text {
         }
       }
       &.edit {
-        .value-types {
+        >.value-types {
           display: inherit;
           opacity: 1;
         }
       }
       &.error {
-        rect {
-          fill: @fill-fg-error;
-          stroke: @stroke-error;
+        >.value {
+          >rect {
+            fill: @fill-fg-error;
+            stroke: @stroke-error;
+          }
+        }
+      }
+      >.value {
+        >rect {
+          fill: @fill-value;
+          stroke: none;
+        }
+      }
+      >.value-types {
+        display: none;
+        opacity: 0;
+        > rect, > circle {
+          stroke: @fill-fg-hover;
+          fill: @fill-fg-hover;
         }
       }
     }
@@ -411,7 +417,7 @@ text {
       circle {
         fill: @pin-fill-active;
       }
-      .value {
+      .value-container {
         display: none;
       }
     }
