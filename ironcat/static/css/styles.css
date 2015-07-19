@@ -276,7 +276,7 @@ text {
 .node .node-output .value-container.edit > .value > rect {
   fill: #203030;
   stroke: #00ffff;
-  stroke-width: 2px;
+  stroke-width: 1px;
 }
 .node .node-input .value-container:hover > .value > text,
 .node .node-output .value-container:hover > .value > text,

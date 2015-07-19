@@ -15,7 +15,6 @@
             { name: 'Function', icon: '#functionType' }
         ];
         return this.each(function (d, i) {
-            //console.log('adding editor for ', d, i);
             var self = this;
             var value = d.value;
             var types = d.types;
@@ -59,8 +58,6 @@
                     if (data.value.type === typeOption) {
                         return;
                     }
-                    //console.log('setting the type:');
-                    //console.log(data, typeOption);
                     data.value.type = typeOption;
                     switch (data.value.type) {
                         case 0:
@@ -116,9 +113,6 @@
                 });
 
             function update(value, index) {
-
-                //console.log('updating', value, index);
-
                 // Update type selectors.
                 d3.select(self).select('.value-types').selectAll('.value-type')
                     .classed('active', function (d) {
@@ -139,6 +133,32 @@
                             + rotate(t2) + scale(s);
                     });
 
+                function getListHeight(list) {
+                    var height = 8;
+                    for (var i = 0; i < list.length; i++) {
+                        var type = list[i].type;
+                        if (type === 7) {
+                            height += getListHeight(JSON.parse(list[i].value)) + 4;
+                        } else {
+                            height += 24;
+                        }
+                    }
+                    return height;
+                }
+
+                function getValueWidth(value) {
+                    if (value.type === 7) {
+                        var list = JSON.parse(value.value);
+                        var maxElementWidth = 50;
+                        for (var i = 0; i < list.length; i++) {
+                            maxElementWidth = Math.max(maxElementWidth, getValueWidth(list[i]));
+                        }
+                        return maxElementWidth + 30;
+                    } else {
+                        return 50;
+                    }
+                }
+
                 d3.select(self).select('.value-types')
                     .transition()
                     .attr('transform', function (d) {
@@ -147,7 +167,8 @@
                         var typeIndex = types.indexOf(type);
                         var t = 360 * typeIndex / types.length;
                         var r = 24 / (2 * Math.sin(Math.PI / types.length));
-                        return translate(-r - 72, 0) + rotate(-t);
+                        var width = getValueWidth(d.value);
+                        return translate(-r - width - 22, 0) + rotate(-t);
                     });
 
                 // Update value indicators.
@@ -185,26 +206,6 @@
                         var listNode = valueIndicator.append('g')
                             .classed('value-list', true)
                             .attr('transform', translate(-16, 0));
-
-                        function getListHeight(list) {
-                            var height = 8;
-                            for (var i = 0; i < list.length; i++) {
-                                var type = list[i].type;
-                                if (type === 7) {
-                                    height += getListHeight(JSON.parse(list[i].value)) + 4;
-                                } else {
-                                    height += 24;
-                                }
-                            }
-                            //console.log('list height');
-                            for (var a in list) {
-                                var x = list[a];
-                                //console.log(x);
-                            }
-                            //console.log(height);
-                            //console.log();
-                            return height;
-                        }
 
                         function recCount(list) {
                             var count = 0;
@@ -262,11 +263,7 @@
                                 handlers: {
                                     change: function (d, i) {
                                         var list = JSON.parse(value.value.value);
-                                        var oldCountDebug = recCount(list);
                                         list[i] = d;
-                                        var newCountDebug = recCount(list);
-                                        console.log(d);
-                                        console.log(oldCountDebug, '->', newCountDebug);
                                         value.value.value = JSON.stringify(list);
                                         updateList.call(self);
                                         change.call(self, value.value, index);
