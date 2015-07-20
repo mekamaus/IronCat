@@ -1,4 +1,31 @@
 (function () {
+
+    function getListHeight(list) {
+        var height = 8;
+        for (var i = 0; i < list.length; i++) {
+            var type = list[i].type;
+            if (type === 7) {
+                height += getListHeight(JSON.parse(list[i].value)) + 4;
+            } else {
+                height += 24;
+            }
+        }
+        return height;
+    }
+
+    function getValueWidth(value) {
+        if (value.type === 7) {
+            var list = JSON.parse(value.value);
+            var maxElementWidth = 50;
+            for (var i = 0; i < list.length; i++) {
+                maxElementWidth = Math.max(maxElementWidth, getValueWidth(list[i]));
+            }
+            return maxElementWidth + 30;
+        } else {
+            return 50;
+        }
+    }
+
     d3.selection.prototype.valueEditor = function (options) {
         options = options || {};
         var handlers = options.handlers || {};
@@ -55,6 +82,7 @@
                 .classed('value-type', true)
                 .click(function (typeOption) {
                     var data = d3.select(this.parentNode).datum();
+                    console.log('you clicked a type option', data.value.type, typeOption);
                     if (data.value.type === typeOption) {
                         return;
                     }
@@ -114,7 +142,7 @@
 
             function update(value, index) {
                 // Update type selectors.
-                d3.select(self).select('.value-types').selectAll('.value-type')
+                d3.select(self).children('g').child('.value-types').selectAll('.value-type')
                     .classed('active', function (d) {
                         var parentValueType = d3.select(this.parentNode).datum().value.type;
                         return parentValueType === d;
@@ -133,44 +161,17 @@
                             + rotate(t2) + scale(s);
                     });
 
-                function getListHeight(list) {
-                    var height = 8;
-                    for (var i = 0; i < list.length; i++) {
-                        var type = list[i].type;
-                        if (type === 7) {
-                            height += getListHeight(JSON.parse(list[i].value)) + 4;
-                        } else {
-                            height += 24;
-                        }
-                    }
-                    return height;
-                }
+                var type = value.value.type;
+                var types = value.types;
+                var typeIndex = types.indexOf(type);
+                var t = 360 * typeIndex / types.length;
+                var r = 24 / (2 * Math.sin(Math.PI / types.length));
+                var width = getValueWidth(value.value);
 
-                function getValueWidth(value) {
-                    if (value.type === 7) {
-                        var list = JSON.parse(value.value);
-                        var maxElementWidth = 50;
-                        for (var i = 0; i < list.length; i++) {
-                            maxElementWidth = Math.max(maxElementWidth, getValueWidth(list[i]));
-                        }
-                        return maxElementWidth + 30;
-                    } else {
-                        return 50;
-                    }
-                }
-
-                d3.select(self).select('.value-types')
+                console.log('updating the type selector', type, typeIndex, t);
+                d3.select(self).children('g').child('.value-types')
                     .transition()
-                    .attr('transform', function (d) {
-                        var type = d.value.type;
-                        var types = d.types;
-                        var typeIndex = types.indexOf(type);
-                        var t = 360 * typeIndex / types.length;
-                        var r = 24 / (2 * Math.sin(Math.PI / types.length));
-                        var width = getValueWidth(d.value);
-                        console.log('updating width to ' + width);
-                        return translate(-r - width - 22, 0) + rotate(-t);
-                    });
+                    .attr('transform', translate(-r - width - 22, 0) + rotate(-t));
 
                 // Update value indicators.
                 switch (d.value.type) {
