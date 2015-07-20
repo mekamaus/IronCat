@@ -168,6 +168,7 @@
                         var t = 360 * typeIndex / types.length;
                         var r = 24 / (2 * Math.sin(Math.PI / types.length));
                         var width = getValueWidth(d.value);
+                        console.log('updating width to ' + width);
                         return translate(-r - width - 22, 0) + rotate(-t);
                     });
 

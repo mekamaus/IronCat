@@ -376,7 +376,8 @@ text {
 .node .node-input .value-container > .value > rect,
 .node .node-output .value-container > .value > rect {
   fill: #a0ffff;
-  stroke: none;
+  stroke-width: 1px;
+  stroke: #00abab;
 }
 .node .node-input .value-container > .value-types,
 .node .node-output .value-container > .value-types {
