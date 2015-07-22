@@ -82,7 +82,6 @@
                 .classed('value-type', true)
                 .click(function (typeOption) {
                     var data = d3.select(this.parentNode).datum();
-                    console.log('you clicked a type option', data.value.type, typeOption);
                     if (data.value.type === typeOption) {
                         return;
                     }
@@ -166,12 +165,13 @@
                 var typeIndex = types.indexOf(type);
                 var t = 360 * typeIndex / types.length;
                 var r = 24 / (2 * Math.sin(Math.PI / types.length));
-                var width = getValueWidth(value.value);
 
-                console.log('updating the type selector', type, typeIndex, t);
-                d3.select(self).children('g').child('.value-types')
-                    .transition()
-                    .attr('transform', translate(-r - width - 22, 0) + rotate(-t));
+                function updateTypeSelector(width) {
+                    d3.select(self).children('g').child('.value-types')
+                        .transition()
+                        .attr('transform', translate(-r - width - 22, 0) + rotate(-t));
+                }
+                updateTypeSelector(getValueWidth(value.value));
 
                 // Update value indicators.
                 switch (d.value.type) {
@@ -226,13 +226,16 @@
 
                         function updateList() {
                             var listHeight = getListHeight(list);
+                            var listWidth = getValueWidth(value.value);
                             valueIndicator.select('.value-area')
-                                .attr('width', 81)
+                                .attr('width', listWidth)
                                 .attr('height', listHeight)
-                                .attr('x', -86)
+                                .attr('x', -5 - listWidth)
                                 .attr('y', -15)
                                 .attr('rx', 10)
                                 .attr('ry', 10);
+
+                            updateTypeSelector(listWidth);
 
                             var listItems = listNode.children('.value-list-item')
                                 .data(list.map(function (value) {
