@@ -53,8 +53,10 @@
                     class: 'edit',
                     handlers: {
                         select: function () {
+                            update(d, i);
                         },
                         deselect: function () {
+                            update(d, i);
                         }
                     }
                 });
@@ -207,9 +209,12 @@
                             .text('');
                         var list = JSON.parse(d.value.value);
 
-                        var listNode = valueIndicator.append('g')
-                            .classed('value-list', true)
-                            .attr('transform', translate(-16, 0));
+                        var listNode = valueIndicator.child('g.value-list');
+                        if (listNode.empty()) {
+                            listNode = valueIndicator.append('g')
+                                .classed('value-list', true)
+                                .attr('transform', translate(-16, 0));
+                        }
 
                         function recCount(list) {
                             var count = 0;
@@ -229,18 +234,32 @@
                         function updateList() {
                             var listHeight = getListHeight(list);
                             var listWidth = getValueWidth(value.value);
-                            valueIndicator.select('.value-area')
-                                .attr('width', listWidth)
-                                .attr('height', listHeight)
-                                .attr('x', -5 - listWidth)
-                                .attr('y', -15)
-                                .attr('rx', 0)
-                                .attr('ry', 0);
+                            var visibleList;
+                            var expanded = valueContainer.classed('edit');
+                            if (expanded) {
+                                valueIndicator.select('.value-area')
+                                    .attr('width', listWidth)
+                                    .attr('height', listHeight)
+                                    .attr('x', -5 - listWidth)
+                                    .attr('y', -15)
+                                    .attr('rx', 0)
+                                    .attr('ry', 0);
+                                visibleList = list;
+                            } else {
+                                valueIndicator.select('.value-area')
+                                    .attr('width', 50)
+                                    .attr('height', 20)
+                                    .attr('x', -55)
+                                    .attr('y', -10)
+                                    .attr('rx', 0)
+                                    .attr('ry', 0);
+                                visibleList = [];
+                            }
 
                             updateTypeSelector(listWidth);
 
                             var listItems = listNode.children('.value-list-item')
-                                .data(list.map(function (value) {
+                                .data(visibleList.map(function (value) {
                                     return {
                                         value: value,
                                         types: [0, 1, 2, 3, 4, 5, 6, 7, 8]
