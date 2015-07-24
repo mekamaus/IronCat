@@ -20,7 +20,7 @@
             for (var i = 0; i < list.length; i++) {
                 maxElementWidth = Math.max(maxElementWidth, getValueWidth(list[i]));
             }
-            return maxElementWidth + 30;
+            return maxElementWidth + 30 + 100;
         } else {
             return 50;
         }
@@ -62,11 +62,6 @@
             valueContainer.append('use')
                 .classed('input-default-type-icon', true)
                 .attr('transform', translate(18 / 2, 0));
-
-            d3.selectAll('.node').selectAll('use.input-default-type-icon')
-                .attr('xlink:href', function (d) {
-                    return typeOptions[d.value.type].icon;
-                });
 
             var valueIndicator = valueContainer.append('g')
                 .classed('value', true);
@@ -128,8 +123,8 @@
                 .attr('height', 20)
                 .attr('x', -55)
                 .attr('y', -10)
-                .attr('rx', 5)
-                .attr('ry', 5);
+                .attr('rx', 0)
+                .attr('ry', 0);
             valueIndicator.append('text')
                 .classed('.value-text', true)
                 .attr('text-anchor', 'end')
@@ -140,6 +135,12 @@
                 });
 
             function update(value, index) {
+                // Update current type indicators.
+                d3.selectAll('.node').selectAll('use.input-default-type-icon')
+                    .attr('xlink:href', function (d) {
+                        return typeOptions[d.value.type].icon;
+                    });
+
                 // Update type selectors.
                 d3.select(self).children('g').child('.value-types').selectAll('.value-type')
                     .classed('active', function (d) {
@@ -171,7 +172,8 @@
                         .transition()
                         .attr('transform', translate(-r - width - 22, 0) + rotate(-t));
                 }
-                updateTypeSelector(getValueWidth(value.value));
+                var valueWidth = getValueWidth(value.value);
+                updateTypeSelector(valueWidth);
 
                 // Update value indicators.
                 switch (d.value.type) {
@@ -188,8 +190,8 @@
                             .attr('height', 20)
                             .attr('x', -55)
                             .attr('y', -10)
-                            .attr('rx', 5)
-                            .attr('ry', 5);
+                            .attr('rx', 0)
+                            .attr('ry', 0);
                         valueIndicator.child('.value-text')
                             .attr('text-anchor', 'end')
                             .attr('dominant-baseline', 'middle')
@@ -232,8 +234,8 @@
                                 .attr('height', listHeight)
                                 .attr('x', -5 - listWidth)
                                 .attr('y', -15)
-                                .attr('rx', 10)
-                                .attr('ry', 10);
+                                .attr('rx', 0)
+                                .attr('ry', 0);
 
                             updateTypeSelector(listWidth);
 
