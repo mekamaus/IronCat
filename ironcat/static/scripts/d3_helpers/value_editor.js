@@ -54,9 +54,11 @@
                     handlers: {
                         select: function () {
                             update(d, i);
+                            change.call(self, d.value, i);
                         },
                         deselect: function () {
                             update(d, i);
+                            change.call(self, d.value, i);
                         }
                     }
                 });
@@ -125,10 +127,10 @@
                 .attr('height', 20)
                 .attr('x', -55)
                 .attr('y', -10)
-                .attr('rx', 0)
-                .attr('ry', 0);
+                .attr('rx', 2)
+                .attr('ry', 2);
             valueIndicator.append('text')
-                .classed('.value-text', true)
+                .classed('value-text', true)
                 .attr('text-anchor', 'end')
                 .attr('dominant-baseline', 'middle')
                 .attr('transform', translate(-10, 0))
@@ -192,8 +194,8 @@
                             .attr('height', 20)
                             .attr('x', -55)
                             .attr('y', -10)
-                            .attr('rx', 0)
-                            .attr('ry', 0);
+                            .attr('rx', 2)
+                            .attr('ry', 2);
                         valueIndicator.child('.value-text')
                             .attr('text-anchor', 'end')
                             .attr('dominant-baseline', 'middle')
@@ -232,29 +234,9 @@
                         }
 
                         function updateList() {
-                            var listHeight = getListHeight(list);
                             var listWidth = getValueWidth(value.value);
-                            var visibleList;
                             var expanded = valueContainer.classed('edit');
-                            if (expanded) {
-                                valueIndicator.select('.value-area')
-                                    .attr('width', listWidth)
-                                    .attr('height', listHeight)
-                                    .attr('x', -5 - listWidth)
-                                    .attr('y', -15)
-                                    .attr('rx', 0)
-                                    .attr('ry', 0);
-                                visibleList = list;
-                            } else {
-                                valueIndicator.select('.value-area')
-                                    .attr('width', 50)
-                                    .attr('height', 20)
-                                    .attr('x', -55)
-                                    .attr('y', -10)
-                                    .attr('rx', 0)
-                                    .attr('ry', 0);
-                                visibleList = [];
-                            }
+                            var visibleList = expanded ? list : [];
 
                             updateTypeSelector(listWidth);
 
@@ -271,18 +253,21 @@
                             listItems.exit()
                                 .remove();
 
+                            var offset = 0;
+
+                            // Assumes that the transforms will be performed in order.
                             listItems.transition()
                                 .attr('transform', function (d, i) {
-                                    var offset = 0;
-                                    for (var j = 0; j <= i; j++) {
-                                        if (list[j].type === 7) {
-                                            offset += 5;
-                                            if (j < i) {
-                                                offset += getListHeight(JSON.parse(list[j].value)) - 24;
-                                            }
-                                        }
+                                    var d3node = d3.select(this);
+                                    var isExpandedList = d.value.type === 7 && d3node.containsChild('.edit');
+                                    if (isExpandedList) {
+                                        offset += 5;
                                     }
-                                    return translate(0, 25 * i + offset);
+                                    var transform = translate(0, 25 * i + offset);
+                                    // TODO: Don't scrape the height from the DOM; instead, get it programmatically.
+                                    var listHeight = d3node.child('.value-container').child('.value').child('.value-area').attr('height');
+                                    offset += listHeight - 25;
+                                    return transform;
                                 });
 
                             newListItems.valueEditor({
@@ -296,6 +281,25 @@
                                     }
                                 }
                             });
+
+                            if (expanded) {
+                                var listHeight = list.length * 25 + offset + 5;
+                                valueIndicator.select('.value-area')
+                                    .attr('width', listWidth)
+                                    .attr('height', listHeight)
+                                    .attr('x', -5 - listWidth)
+                                    .attr('y', -15)
+                                    .attr('rx', 2)
+                                    .attr('ry', 2);
+                            } else {
+                                valueIndicator.select('.value-area')
+                                    .attr('width', 50)
+                                    .attr('height', 20)
+                                    .attr('x', -55)
+                                    .attr('y', -10)
+                                    .attr('rx', 2)
+                                    .attr('ry', 2);
+                            }
                         }
                         updateList();
                         break;
