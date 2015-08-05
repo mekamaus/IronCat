@@ -45,7 +45,17 @@
             this.dragmove = function (d) {
                 var state = self.state, func = self.func, svgG = self.svgG;
                 if (state.pinDrag) {
-                    var sourcePos = d.outputs ? add(d, [consts.nodeWidth / 2, (state.mouseDownPin - (d.outputs.length - 1) / 2) * consts.pinSpacing]) : [0, -25 * (func.inputs.length - 1) + state.mouseDownPin * 50];
+                    var sourcePos = d.func
+                        ? add(
+                            d,
+                            [
+                                consts.nodeWidth / 2,
+                                (state.mouseDownPin - (d.func.outputs.length - 1) / 2) * consts.pinSpacing
+                            ])
+                        : [
+                            0,
+                            -25 * (func.inputs.length - 1) + state.mouseDownPin * 50
+                        ];
                     var targetPos = d3.mouse(svgG.node());
                     var ctrlPt1 = avg(sourcePos, targetPos);
                     ctrlPt1[1] = sourcePos[1];
