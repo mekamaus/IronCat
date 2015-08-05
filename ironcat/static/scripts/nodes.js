@@ -246,13 +246,14 @@
                     .attr('rx', consts.nodeCornerRadius)
                     .attr('ry', consts.nodeCornerRadius);
 
+                // Show glow around nodes.
                 // Browser Compatibility is an Exquisite Pain in the Ass
-                if (window.chrome) {
+                /*if (window.chrome) {
                     nodeShapes.style('filter', 'url(#borderGlow)');
                 } else {
                     nodeShapes.style('-webkit-filter', 'url(#borderGlow)');
                     nodeShapes.style('-webkit-svg-shadow', '0px 0px 16px #00ffff');
-                }
+                }*/
 
                 newNodes.append('g')
                     .classed('node-inputs', true)
@@ -469,8 +470,8 @@
                         .attr('x', -consts.nodeWidth / 2 + 15)
                         .attr('width', consts.nodeWidth - 30)
                         .attr('height', 20)
-                        .attr('rx', 10)
-                        .attr('ry', 10);
+                        .attr('rx', 2)
+                        .attr('ry', 2);
 
                     newResults.append('text')
                         .attr('y', 10)

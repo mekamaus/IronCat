@@ -254,19 +254,37 @@
                                 .remove();
 
                             var offset = 0;
+                            var listWidth = 50;
+                            /*if (value.type === 7) {
+                                var list = JSON.parse(value.value);
+                                var maxElementWidth = 50;
+                                for (var i = 0; i < list.length; i++) {
+                                    maxElementWidth = Math.max(maxElementWidth, getValueWidth(list[i]));
+                                }
+                                width = maxElementWidth + 30 + 100;
+                            } else {
+                                width = 50;
+                            }*/
 
                             // Assumes that the transforms will be performed in order.
                             listItems.transition()
                                 .attr('transform', function (d, i) {
                                     var d3node = d3.select(this);
-                                    var isExpandedList = d.value.type === 7 && d3node.containsChild('.edit');
+                                    var isExpanded = d3node.containsChild('.edit');
+                                    var isExpandedList = d.value.type === 7 && isExpanded;
+                                    if (isExpanded) {
+                                        var newListWidth = d3node.child('.value-container').child('.value').child('.value-area').attr('width') + 100;
+                                        if (newListWidth > listWidth) {
+                                            listWidth = newListWidth;
+                                        }
+                                    }
                                     if (isExpandedList) {
                                         offset += 5;
                                     }
                                     var transform = translate(0, 25 * i + offset);
-                                    // TODO: Don't scrape the height from the DOM; instead, get it programmatically.
-                                    var listHeight = d3node.child('.value-container').child('.value').child('.value-area').attr('height');
-                                    offset += listHeight - 25;
+                                    if (isExpandedList) {
+                                        offset += 30;
+                                    }
                                     return transform;
                                 });
 
@@ -284,6 +302,7 @@
 
                             if (expanded) {
                                 var listHeight = list.length * 25 + offset + 5;
+                                //var listWidth = 100;
                                 valueIndicator.select('.value-area')
                                     .attr('width', listWidth)
                                     .attr('height', listHeight)
