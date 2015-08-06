@@ -65,7 +65,7 @@ WSGI_APPLICATION = 'ironcat.wsgi.application'
 #}
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'mysql.connector.django',
         'NAME': 'ironARymwNqZJrHS',
         'USER': 'b36e6daa92ef05',
         'PASSWORD': 'd6ff8016',
