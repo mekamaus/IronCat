@@ -1,4 +1,17 @@
 class PhotonTypes:
+
+    type_names_to_enum = {
+        'none': 0,
+        'error': 1,
+        'string': 2,
+        'number': 3,
+        'bool': 4,
+        'object': 5,
+        'set': 6,
+        'list': 7,
+        'function': 8
+    }
+
     none = 0
     error = 1
     string = 2
@@ -14,9 +27,9 @@ class PhotonTypes:
         types = []
         for name in type_names:
             if isinstance(name, str):
-                types.append(PhotonTypes.__getattr__(name))
+                types.append(PhotonTypes.type_names_to_enum[name])
             elif isinstance(name, int):
-                types.append(PhotonTypes(name))
+                types.append(name)
 
         return types
 
