@@ -8,3 +8,5 @@ local_settings.py
 Desktop.ini
 *.db
 __pycache__/
+env/
+*.sqlite3
