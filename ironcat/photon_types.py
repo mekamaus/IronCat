@@ -1,7 +1,4 @@
-from ironcat.enum import IntEnum
-
-
-class PhotonTypes(IntEnum):
+class PhotonTypes:
     none = 0
     error = 1
     string = 2
