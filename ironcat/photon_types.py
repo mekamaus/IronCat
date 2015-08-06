@@ -1,4 +1,4 @@
-from enum import IntEnum
+from ironcat.enum import IntEnum
 
 
 class PhotonTypes(IntEnum):
