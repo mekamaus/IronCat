@@ -65,15 +65,19 @@ WSGI_APPLICATION = 'ironcat.wsgi.application'
 #}
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql.connector.django',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ironARymwNqZJrHS',
         'USER': 'b36e6daa92ef05',
         'PASSWORD': 'd6ff8016',
         'HOST': 'us-cdbr-azure-central-a.cloudapp.net',
         'PORT': '3306',
-        'OPTIONS': {'ssl': {'ca’:’ironcat/9c5b583ad56a9d-ca.cer', 
-            'cert’:’ironcat/9c5b583ad56a9d-cert.cer', 
-            'key’:’ironcat/9c5b583ad56a9d-key-nopass.cer'},},
+        'OPTIONS': {
+            'ssl': {
+                'ca': 'ironcat/9c5b583ad56a9d-ca.cer',
+                'cert': 'ironcat/9c5b583ad56a9d-cert.cer',
+                'key': 'ironcat/9c5b583ad56a9d-key-nopass.cer'
+            },
+        },
     }
 }
 
@@ -81,7 +85,7 @@ DATABASES = {
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = os.path.join(SITE_ROOT, ' static')
+STATIC_ROOT = os.path.join(SITE_ROOT, 'static')
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
