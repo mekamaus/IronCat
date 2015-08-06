@@ -5,6 +5,7 @@ import json
 from django.views.decorators.csrf import ensure_csrf_cookie
 from ironcat import function_engine
 from ironcat.view_helpers import json_response, json_success, delete_object, get_query
+from django.http import HttpResponse
 
 
 # region pages
@@ -22,10 +23,123 @@ def index(request):
 @ensure_csrf_cookie
 def contribute(request):
     now = datetime.now
-    data = {
-        'now': now
-    }
-    return render(request, 'contribute.html', data)
+    return HttpResponse("""
+
+
+    <!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Contribute</title>
+    <script src="/static/lib/jquery.min.js"></script>
+    <script src="/static/lib/jquery.cookie.js"></script>
+    <script src="/static/lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/lib/bootstrap/js/bootstrap-select.min.js"></script>
+    <script src="/static/lib/jquery.autocomplete.min.js"></script>
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
+    <script src="/static/lib/d3.min.js"></script>
+    <script src="/static/scripts/draw_helpers.js"></script>
+    <script src="/static/lib/jquery.debounce.min.js"></script>
+    <script src="/static/scripts/start.js"></script>
+    <script src="/static/scripts/d3_helpers/children.js"></script>
+    <script src="/static/scripts/d3_helpers/child.js"></script>
+    <script src="/static/scripts/d3_helpers/contains_child.js"></script>
+    <script src="/static/scripts/d3_helpers/click.js"></script>
+    <script src="/static/scripts/d3_helpers/click_outside.js"></script>
+    <script src="/static/scripts/d3_helpers/selectable.js"></script>
+    <script src="/static/scripts/d3_helpers/move_to_front.js"></script>
+    <script src="/static/scripts/d3_helpers/edit_text.js"></script>
+    <script src="/static/scripts/d3_helpers/click_to_edit.js"></script>
+    <script src="/static/scripts/d3_helpers/value_editor.js"></script>
+    <script src="/static/scripts/nodes.js"></script>
+    <link rel="stylesheet" href="/static/lib/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/lib/bootstrap/css/bootstrap-custom.min.css"/>
+    <link rel="stylesheet" href="/static/lib/bootstrap/css/bootstrap-select.min.css" />
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/lib/font-awesome/css/font-awesome.min.css"/>
+    <link href="/static/css/styles.css" rel="stylesheet"/>
+    {% block include %}{% endblock %}
+</head>
+<body>
+    {% block requires %}{% endblock %}
+    <div class="container"><nav class="navbar navbar-default editor-toolbar">
+        <div class="container-fluid">
+            <div>
+                <ul class="nav navbar-nav">
+                    <li><a class="function-name"></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <svg class="editor">
+        <defs>
+            <g id="addSymbol">
+                <rect x="-6" y="-2" rx="1" ry="1" width="12" height="4" style="fill: #ffffff;"></rect>
+                <rect x="-2" y="-6" rx="1" ry="1" width="4" height="12" style="fill: #ffffff;"></rect>
+            </g>
+            <g id="removeSymbol" transform="rotate(45)">
+                <rect x="-6" y="-2" rx="1" ry="1" width="12" height="4" style="fill: #ffffff;"></rect>
+                <rect x="-2" y="-6" rx="1" ry="1" width="4" height="12" style="fill: #ffffff;"></rect>
+            </g>
+            <g id="noneType">
+                <circle r="6" style="fill: none; stroke-width: 3; stroke: #ffffff"></circle>
+                <rect transform="rotate(-45)translate(-6, -1.5)" width="12" height="3" style="fill: #ffffff;"></rect>
+            </g>
+            <g id="errorType">
+                <polygon points="0 -6 -6 4 6 4" stroke-linejoin="round" stroke-width="2" stroke="#ffffff" fill="#ffffff"/>
+                <text y="1" text-anchor="middle" dominant-baseline="middle" style="font-size: 11px; font-weight: 900; fill: #000000;">!</text>
+            </g>
+            <g id="stringType">
+                <text y="1" text-anchor="middle" dominant-baseline="middle" style="font-size: 12px; fill: #ffffff;">Aa</text>
+            </g>
+            <g id="numberType" transform="scale(1.5)">
+                <text y="1" text-anchor="middle" dominant-baseline="middle" style="font-size: 12px; fill: #ffffff;">π</text>
+            </g>
+            <g id="booleanType">
+                <path d="M6,0 A 6,6 0 0,1 -6,0 Z" fill="white"/>
+                <circle r="6" stroke-width="3" stroke="white" fill="none"/>
+            </g>
+            <g id="objectType">
+                <polygon points="0 0 -6 -3 -6 3 0 6" fill="white"/>
+                <polygon points="0 -6 -6 -3 -6 3 0 6 6 3 6 -3" style="stroke-width: 2; stroke: #ffffff; stroke-linejoin: round; fill: none;"/>
+            </g>
+            <g id="setType">
+                <circle r="6" stroke-width="3" fill="none" stroke="white"/>
+                <circle r="1" fill="white" transform="translate(-2, -1)"/>
+                <circle r="1" fill="white" transform="translate(2, -1)"/>
+                <circle r="1" fill="white" transform="translate(0, 2)"/>
+            </g>
+            <g id="listType">
+                <rect width="12" height="3" rx="1" ry="1" x="-6" y="-6" style="fill: #ffffff;"></rect>
+                <rect width="12" height="3" rx="1" ry="1" x="-6" y="-1.5" style="fill: #ffffff;"></rect>
+                <rect width="12" height="3" rx="1" ry="1" x="-6" y="3" style="fill: #ffffff;"></rect>
+            </g>
+            <g id="functionType">
+                <polygon points="-3 -5 3 0 -3 5" style="stroke: #ffffff; fill: #ffffff;"/>
+                <line x1="-6" y1="0" x2="6" y2="0" style="stroke-width: 2; stroke: #ffffff;"/>
+            </g>
+            <filter id="borderGlow" height="130%" width="130%">
+                <feGaussianBlur in="StrokePaint" stdDeviation="8" result="blur"/>
+                <feMorphology in="blur" operator="dilate" radius="8" result="dilatedBlur"/>
+                <feMorphology in="dilatedBlur" operator="erode" radius="3" result="erodedDilatedBlur"/>
+                <feMerge>
+                    <feMergeNode in="erodedDilatedBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+    </svg>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+""")
 
 
 @ensure_csrf_cookie
