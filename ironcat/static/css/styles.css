@@ -431,3 +431,9 @@ p {
 .node-title-edit {
   color: #50ff50;
 }
+.boundary rect,
+.boundary path {
+  stroke: #00ffff;
+  stroke-width: 3px;
+  fill: none;
+}

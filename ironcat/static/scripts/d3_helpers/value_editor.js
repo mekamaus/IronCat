@@ -259,6 +259,9 @@
                             listItems.transition()
                                 .attr('transform', function (d, i) {
                                     var d3node = d3.select(this);
+                                    if (!d3node.children().size()){
+                                        return;
+                                    }
                                     var isExpandedList = d.value.type === 7 && d3node.containsChild('.edit');
                                     if (isExpandedList) {
                                         offset += 5;

@@ -247,12 +247,12 @@
                     .attr('ry', consts.nodeCornerRadius);
 
                 // Browser Compatibility is an Exquisite Pain in the Ass
-                if (window.chrome) {
+                /*if (window.chrome) {
                     nodeShapes.style('filter', 'url(#borderGlow)');
                 } else {
                     nodeShapes.style('-webkit-filter', 'url(#borderGlow)');
                     nodeShapes.style('-webkit-svg-shadow', '0px 0px 16px #00ffff');
-                }
+                }*/
 
                 newNodes.append('g')
                     .classed('node-inputs', true)
@@ -751,7 +751,7 @@
                         ? add(d.targetNode, [
                             -consts.nodeWidth / 2,
                             (d.targetPin - (d.targetNode.func.inputs.length - 1) / 2) * consts.pinSpacing])
-                        : [1000, -25 * (func.outputs.length - 1) + 50 * d.targetPin];
+                        : [1024, -25 * (func.outputs.length - 1) + 50 * d.targetPin];
                     var ctrlPt1 = avg(sourcePos, targetPos);
                     ctrlPt1[1] = sourcePos[1];
                     var ctrlPt2 = avg(sourcePos, targetPos);
@@ -854,7 +854,19 @@
             };
             this.svg = svg;
             this.svgG = svg.append('g').attr('class', consts.graphClass);
+
             var svgG = this.svgG;
+
+            svgG.append('g')
+                .classed('boundary', true)
+                .append('rect')
+                .attr('width', 1024)
+                .attr('height', 1024)
+                .attr('x', 0)
+                .attr('y', -512)
+                .attr('rx', 20)
+                .attr('ry', 20);
+
             // displayed when pinDrag between nodes
             this.dragLine = svgG.append('svg:path').attr('class', 'link dragline hidden').attr('d', moveto(0, 0) + lineto(0, 0)).style('marker-end', 'url(#mark-end-arrow)');
             // svg nodes and edges
@@ -863,7 +875,9 @@
             this.inputGroup = svgG.append('g').classed('inputs', true).attr('transform', translate(0, 0)).on(mouseDownEvent, function () {
                 d3.event.stopPropagation();
             });
-            this.outputGroup = svgG.append('g').classed('outputs', true).attr('transform', translate(1000, 0));
+            this.outputGroup = svgG.append('g').classed('outputs', true).attr('transform', translate(1024, 0));
+
+
             this.inputElements = this.inputGroup.append('g').selectAll('g');
             this.outputElements = this.outputGroup.append('g').selectAll('g');
             this.inputAddButtonGroup = this.inputGroup.append('g').attr('transform', translate(0, 0));
